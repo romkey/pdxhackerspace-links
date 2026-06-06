@@ -1,0 +1,12 @@
+name: links-lint
+
+services:
+  rubocop:
+    image: links_rubocop:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.rubocop
+    command: rubocop
+    volumes:
+      - .:/workspace
+    working_dir: /workspace

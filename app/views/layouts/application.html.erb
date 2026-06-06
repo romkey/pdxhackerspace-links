@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <title><%= content_for(:title) || "Links" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="d-flex flex-column min-vh-100">
+    <% if logged_in? %>
+      <nav class="navbar navbar-expand-lg border-bottom border-secondary-subtle">
+        <div class="container-fluid">
+          <%= link_to "Links", root_path, class: "navbar-brand" %>
+          <%= link_to "Things", things_path, class: "btn btn-outline-secondary btn-sm ms-2" %>
+          <div class="d-flex align-items-center gap-2">
+            <span class="text-secondary text-13"><%= current_user.name %></span>
+            <%= button_to "Sign out", logout_path, method: :delete, class: "btn btn-outline-secondary btn-sm" %>
+          </div>
+        </div>
+      </nav>
+    <% end %>
+
+    <main class="flex-grow-1">
+      <% flash.each do |type, message| %>
+        <div class="container-fluid mt-3">
+          <div class="alert alert-<%= bootstrap_class_for(type) %> alert-dismissible fade show py-2" role="alert">
+            <%= message %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        </div>
+      <% end %>
+
+      <%= yield %>
+    </main>
+
+    <footer class="border-top border-secondary-subtle py-2 mt-auto">
+      <div class="container-fluid d-flex justify-content-between text-12 text-secondary">
+        <span>Links</span>
+        <span>v<%= app_version %></span>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,7 @@
+keyboard:
+  name: Keyboard
+  description: Front door entry system
+
+router:
+  name: Router
+  description: Main network router

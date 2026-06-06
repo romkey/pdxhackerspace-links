@@ -1,0 +1,10 @@
+local_admin:
+  email: local@example.com
+  name: Local Admin
+  password_digest: <%= BCrypt::Password.create("secret", cost: 4) %>
+
+oidc_user:
+  email: oidc@example.com
+  name: OIDC User
+  provider: openid_connect
+  uid: "12345"

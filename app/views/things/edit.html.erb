@@ -1,0 +1,16 @@
+<% content_for :title, "Edit #{@thing.name}" %>
+
+<div class="container-fluid py-4">
+  <div class="mb-3">
+    <div class="text-12 text-secondary mb-1">
+      <%= link_to "Things", things_path, class: "text-secondary text-decoration-none" %>
+      <span class="mx-1">/</span>
+      <%= link_to @thing.name, thing_path(@thing), class: "text-secondary text-decoration-none" %>
+      <span class="mx-1">/</span>
+      <span class="text-body">Edit</span>
+    </div>
+    <h1 class="h-page-title mb-0">Edit <%= @thing.name %></h1>
+  </div>
+
+  <%= render "form", thing: @thing %>
+</div>

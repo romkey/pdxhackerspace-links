@@ -1,0 +1,42 @@
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-5">
+      <h1 class="h-page-title mb-1">Sign in</h1>
+      <p class="text-secondary text-13 mb-4">Access Links with your account.</p>
+
+      <% if oidc_login_available? %>
+        <div class="d-grid mb-3">
+          <%= button_to "Sign in with OpenID Connect",
+                        "/auth/openid_connect",
+                        method: :post,
+                        class: "btn btn-primary",
+                        data: { turbo: false } %>
+        </div>
+      <% end %>
+
+      <% if local_login_available? %>
+        <% if oidc_login_available? %>
+          <div class="text-center text-secondary text-13 my-3">or</div>
+        <% end %>
+
+        <%= form_with url: local_login_path, class: "vstack gap-3" do |form| %>
+          <div>
+            <%= form.label :email, class: "form-label" %>
+            <%= form.email_field :email, class: "form-control", required: true, autocomplete: "username" %>
+          </div>
+          <div>
+            <%= form.label :password, class: "form-label" %>
+            <%= form.password_field :password, class: "form-control", required: true, autocomplete: "current-password" %>
+          </div>
+          <%= form.submit "Sign in locally", class: "btn btn-outline-secondary" %>
+        <% end %>
+      <% end %>
+
+      <% unless oidc_login_available? || local_login_available? %>
+        <div class="alert alert-warning text-13 mb-0">
+          No sign-in method is configured. Set OIDC or LOCAL_AUTH environment variables.
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

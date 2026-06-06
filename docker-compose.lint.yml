@@ -1,0 +1,9 @@
+name: links-lint
+
+services:
+  rubocop:
+    image: links_rubocop:latest
+    command: rubocop
+    volumes:
+      - .:/workspace
+    working_dir: /workspace

@@ -1,0 +1,93 @@
+<%= form_with model: thing, class: "vstack gap-4" do |form| %>
+  <% if thing.errors.any? %>
+    <div class="alert alert-danger text-13">
+      <%= thing.errors.full_messages.to_sentence %>
+    </div>
+  <% end %>
+
+  <div>
+    <div class="h-section-label mb-2">Identity</div>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <%= form.label :name, class: "form-label" %>
+        <%= form.text_field :name, class: "form-control", required: true %>
+      </div>
+      <div class="col-12">
+        <%= form.label :description, class: "form-label" %>
+        <%= form.text_area :description, class: "form-control", rows: 4 %>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="h-section-label mb-2">Standard links</div>
+    <p class="text-secondary text-13 mb-3">Optional links shared by every thing: Asset, Wiki, Slack, and Where.</p>
+    <div class="row g-3">
+      <% thing.standard_links.each do |link| %>
+        <%= form.fields_for :links, link do |link_form| %>
+          <%= link_form.hidden_field :link_type %>
+          <div class="col-md-6">
+            <%= link_form.label :url, link.display_title, class: "form-label" %>
+            <%= link_form.url_field :url, class: "form-control", placeholder: "https://" %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <div>
+    <div class="h-section-label mb-2">Custom links</div>
+    <div class="vstack gap-2" id="custom-links">
+      <%= form.fields_for :links do |link_form| %>
+        <% next unless link_form.object.link_custom? %>
+
+        <div class="row g-2 align-items-end">
+          <%= link_form.hidden_field :link_type %>
+          <%= link_form.hidden_field :id %>
+          <div class="col-md-4">
+            <%= link_form.label :title, "Title", class: "form-label" %>
+            <%= link_form.text_field :title, class: "form-control" %>
+          </div>
+          <div class="col-md-7">
+            <%= link_form.label :url, "URL", class: "form-label" %>
+            <%= link_form.url_field :url, class: "form-control", placeholder: "https://" %>
+          </div>
+          <div class="col-md-1">
+            <%= link_form.hidden_field :_destroy, value: "0" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+    <p class="text-secondary text-12 mt-2 mb-0">Leave custom link fields blank to omit them.</p>
+  </div>
+
+  <div>
+    <div class="h-section-label mb-2">Photos</div>
+    <% if thing.photos.attached? %>
+      <div class="row g-2 mb-3">
+        <% thing.photos.each do |photo| %>
+          <div class="col-4 col-md-3">
+            <%= image_tag photo, class: "img-fluid rounded border border-secondary-subtle w-100" %>
+            <% if thing.persisted? %>
+              <div class="mt-1">
+                <%= button_to "Remove", photo_thing_path(thing, photo), method: :delete,
+                              class: "btn btn-outline-danger btn-sm w-100" %>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+    <%= form.label :photos, "Add photos", class: "form-label" %>
+    <%= form.file_field :photos, multiple: true, accept: "image/jpeg,image/png,image/gif,image/webp", class: "form-control" %>
+  </div>
+
+  <div class="d-flex gap-2">
+    <%= form.submit class: "btn btn-primary btn-sm" %>
+    <%= link_to "Cancel", thing.persisted? ? thing_path(thing) : things_path, class: "btn btn-outline-secondary btn-sm" %>
+    <% if thing.persisted? %>
+      <%= button_to "Delete", thing_path(thing), method: :delete, class: "btn btn-outline-danger btn-sm",
+                    form: { data: { turbo_confirm: "Delete #{thing.name}?" } } %>
+    <% end %>
+  </div>
+<% end %>

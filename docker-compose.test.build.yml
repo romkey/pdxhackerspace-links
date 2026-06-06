@@ -1,0 +1,8 @@
+name: links-test
+
+services:
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+      pull: true

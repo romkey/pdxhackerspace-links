@@ -1,0 +1,21 @@
+keyboard_wiki:
+  thing: keyboard
+  link_type: wiki
+  url: https://wiki.example.com/keyboard
+
+keyboard_slack:
+  thing: keyboard
+  link_type: slack
+  url: https://slack.example.com/archives/keyboard
+
+router_asset:
+  thing: router
+  link_type: asset
+  url: https://assets.example.com/router
+
+router_custom:
+  thing: router
+  link_type: custom
+  title: Manual
+  url: https://example.com/router-manual
+  position: 0

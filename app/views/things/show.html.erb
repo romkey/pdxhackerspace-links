@@ -1,0 +1,53 @@
+<% content_for :title, @thing.name %>
+
+<div class="container-fluid py-4">
+  <div class="d-flex align-items-end justify-content-between mb-3">
+    <div>
+      <div class="text-12 text-secondary mb-1">
+        <%= link_to "Things", things_path, class: "text-secondary text-decoration-none" %>
+        <span class="mx-1">/</span>
+        <span class="text-body"><%= @thing.name %></span>
+      </div>
+      <h1 class="h-page-title mb-0"><%= @thing.name %></h1>
+      <% if @thing.description.present? %>
+        <div class="text-13 text-secondary mt-2"><%= simple_format(@thing.description) %></div>
+      <% end %>
+    </div>
+    <div class="d-flex gap-2">
+      <%= link_to "Edit", edit_thing_path(@thing), class: "btn btn-primary btn-sm" %>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <div class="h-section-label mb-2">Links</div>
+      <% if @thing.links_with_urls.any? %>
+        <div class="list-group list-compact">
+          <% @thing.links_with_urls.each do |link| %>
+            <%= link_to link.url, target: "_blank", rel: "noopener", class: "list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2" do %>
+              <span><%= link.display_title %></span>
+              <i class="bi bi-box-arrow-up-right text-secondary"></i>
+            <% end %>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-secondary text-13 mb-0">No links added yet.</p>
+      <% end %>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="h-section-label mb-2">Photos</div>
+      <% if @thing.photos.any? %>
+        <div class="row g-2">
+          <% @thing.photos.each do |photo| %>
+            <div class="col-6">
+              <%= image_tag photo, class: "img-fluid rounded border border-secondary-subtle w-100" %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-secondary text-13 mb-0">No photos yet.</p>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,53 @@
+<% content_for :title, "Things" %>
+
+<div class="container-fluid py-4">
+  <div class="d-flex align-items-end justify-content-between mb-3">
+    <div>
+      <h1 class="h-page-title mb-0">Things</h1>
+      <div class="text-13 text-secondary mt-1">
+        <span class="text-body"><%= @things.size %></span> total
+      </div>
+    </div>
+    <div>
+      <%= link_to "+ New thing", new_thing_path, class: "btn btn-primary btn-sm" %>
+    </div>
+  </div>
+
+  <% if @things.any? %>
+    <div class="table-responsive">
+      <table class="table table-compact table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Links</th>
+            <th>Photos</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @things.each do |thing| %>
+            <tr class="clickable-row" data-href="<%= thing_path(thing) %>">
+              <td class="fw-medium"><%= thing.name %></td>
+              <td class="num text-secondary"><%= thing.links_with_urls.size %></td>
+              <td class="num text-secondary"><%= thing.photos.count %></td>
+              <td class="text-end">
+                <%= link_to "Edit", edit_thing_path(thing), class: "btn btn-outline-secondary btn-sm" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-secondary text-13 mb-0">No things yet. Create one to get started.</p>
+  <% end %>
+</div>
+
+<script>
+  document.querySelectorAll(".clickable-row").forEach((row) => {
+    row.addEventListener("click", (event) => {
+      if (event.target.closest("a, button")) return;
+      window.location = row.dataset.href;
+    });
+  });
+</script>

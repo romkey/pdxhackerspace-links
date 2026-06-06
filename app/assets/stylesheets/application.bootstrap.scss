@@ -1,0 +1,42 @@
+@import 'bootstrap/scss/bootstrap';
+@import 'bootstrap-icons/font/bootstrap-icons';
+
+.h-page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.h-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bs-secondary-color);
+}
+
+.text-11 { font-size: 11px; }
+.text-12 { font-size: 12px; }
+.text-13 { font-size: 13px; }
+
+.table-compact {
+  font-size: 13px;
+
+  th {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+  }
+
+  td, th {
+    padding: 0.35rem 0.5rem;
+  }
+}
+
+.list-compact .list-group-item {
+  font-size: 13px;
+}
+
+.clickable-row {
+  cursor: pointer;
+}
