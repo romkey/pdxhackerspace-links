@@ -38,7 +38,7 @@ class ThingTest < ActiveSupport::TestCase
       ]
     )
 
-    assert_equal [0, 1], thing.custom_links.map(&:position)
+    assert_equal [ 0, 1 ], thing.custom_links.map(&:position)
   end
 
   test "purges blank links after save" do

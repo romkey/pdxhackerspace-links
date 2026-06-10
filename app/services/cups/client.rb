@@ -32,7 +32,7 @@ module Cups
         "-o", "media=#{printer.cups_media}",
         "-o", "fit-to-page"
       ]
-      args.concat(["-t", title]) if title.present?
+      args.concat([ "-t", title ]) if title.present?
 
       _stdout, stderr, status = @runner.call(env, "lp", *args, path)
       raise Error, stderr.presence || "Print job failed" unless status.success?

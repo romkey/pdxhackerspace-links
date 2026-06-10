@@ -20,7 +20,7 @@ class SidekiqWebAuth
     if user_id && User.exists?(user_id)
       @app.call(env)
     else
-      [302, { "Location" => "/login" }, []]
+      [ 302, { "Location" => "/login" }, [] ]
     end
   end
 end

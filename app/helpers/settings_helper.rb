@@ -4,7 +4,7 @@ module SettingsHelper
   end
 
   def settings_nav_class(section)
-    classes = ["settings-nav-item"]
+    classes = [ "settings-nav-item" ]
     classes << "active" if settings_nav_active?(section)
     classes.join(" ")
   end

@@ -79,8 +79,8 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     thing = Thing.order(:created_at).last
     assert_redirected_to thing_path(thing)
     assert_equal 2, thing.custom_links.size
-    assert_equal ["Support", "Drivers"], thing.custom_links.map(&:display_title)
-    assert_equal [0, 1], thing.custom_links.map(&:position)
+    assert_equal [ "Support", "Drivers" ], thing.custom_links.map(&:display_title)
+    assert_equal [ 0, 1 ], thing.custom_links.map(&:position)
   end
 
   test "updates thing with additional custom links" do
@@ -98,7 +98,7 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to thing_path(things(:router))
     router = things(:router).reload
     assert_equal 2, router.custom_links.size
-    assert_equal ["Manual", "Firmware"], router.custom_links.map(&:display_title)
+    assert_equal [ "Manual", "Firmware" ], router.custom_links.map(&:display_title)
   end
 
   test "edit form includes add custom link control" do

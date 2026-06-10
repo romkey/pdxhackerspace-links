@@ -23,7 +23,7 @@ class ThingLink < ApplicationRecord
 
   scope :standard, -> { where(link_type: STANDARD_TYPES.keys) }
   scope :custom, -> { where(link_type: "custom") }
-  scope :with_url, -> { where.not(url: [nil, ""]) }
+  scope :with_url, -> { where.not(url: [ nil, "" ]) }
   scope :ordered, -> { order(Arel.sql("CASE WHEN link_type = 'custom' THEN 1 ELSE 0 END"), :position, :link_type) }
 
   before_validation :clear_blank_custom_links

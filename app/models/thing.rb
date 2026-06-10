@@ -27,7 +27,7 @@ class Thing < ApplicationRecord
   end
 
   def custom_links
-    links.select(&:link_custom?).sort_by { |link| [link.position || 0, link.id || 0] }
+    links.select(&:link_custom?).sort_by { |link| [ link.position || 0, link.id || 0 ] }
   end
 
   def link_for(type)
@@ -35,7 +35,7 @@ class Thing < ApplicationRecord
   end
 
   def links_with_urls
-    links.select(&:present_link?).sort_by { |link| [link.standard? ? 0 : 1, link.position || 0, link.display_title] }
+    links.select(&:present_link?).sort_by { |link| [ link.standard? ? 0 : 1, link.position || 0, link.display_title ] }
   end
 
   private
@@ -51,7 +51,7 @@ class Thing < ApplicationRecord
   end
 
   def purge_blank_links
-    links.where(url: [nil, ""]).destroy_all
+    links.where(url: [ nil, "" ]).destroy_all
   end
 
   def build_standard_links

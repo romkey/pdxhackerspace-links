@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.1.3] - 2026-06-10
+
+### Changed
+
+- RuboCop style fixes for array literal spacing and trailing newlines
+
 ## [v0.1.2] - 2026-06-10
 
 ### Fixed
