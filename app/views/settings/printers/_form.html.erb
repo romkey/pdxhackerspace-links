@@ -1,0 +1,85 @@
+<% content_for :title, title %>
+
+<%= settings_frame do %>
+  <div class="mb-3">
+    <div class="text-12 text-secondary mb-1">
+      <%= link_to "Printers", settings_printers_path, class: "text-secondary text-decoration-none" %>
+      <span class="mx-1">/</span>
+      <span class="text-body"><%= title %></span>
+    </div>
+    <h1 class="h-page-title mb-0"><%= title %></h1>
+  </div>
+
+  <%= form_with model: printer, url: printer.persisted? ? settings_printer_path(printer) : settings_printers_path,
+                class: "vstack gap-4" do |form| %>
+    <% if printer.errors.any? %>
+      <div class="alert alert-danger text-13">
+        <%= printer.errors.full_messages.to_sentence %>
+      </div>
+    <% end %>
+
+    <div>
+      <div class="h-section-label mb-2">Identity</div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <%= form.label :name, class: "form-label" %>
+          <%= form.text_field :name, class: "form-control", required: true %>
+        </div>
+        <div class="col-md-6">
+          <%= form.label :cups_name, "CUPS queue name", class: "form-label" %>
+          <% if cups_queues.any? %>
+            <%= form.select :cups_name, cups_queues, { include_blank: "Select a queue…" },
+                            class: "form-select", required: true %>
+          <% else %>
+            <%= form.text_field :cups_name, class: "form-control", required: true,
+                                placeholder: "Queue name on the CUPS server" %>
+            <div class="form-text text-12">Configure the CUPS server in <%= link_to "General settings", settings_site_path %> to list available queues.</div>
+          <% end %>
+        </div>
+        <div class="col-12">
+          <%= form.label :description, class: "form-label" %>
+          <%= form.text_area :description, class: "form-control", rows: 2 %>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="h-section-label mb-2">Page size</div>
+      <p class="text-secondary text-13 mb-3">Choose the media size sent to CUPS for this printer.</p>
+      <div class="row g-2">
+        <% Printer::PAGE_SIZES.each do |key, config| %>
+          <div class="col-md-6">
+            <div class="form-check border border-secondary-subtle rounded p-2 h-100">
+              <%= form.radio_button :page_size, key, class: "form-check-input", id: "printer_page_size_#{key}" %>
+              <%= form.label :page_size, for: "printer_page_size_#{key}", class: "form-check-label w-100" do %>
+                <span class="fw-medium text-13"><%= config[:label] %></span>
+                <span class="text-bg-secondary-subtle badge ms-1"><%= config[:category] %></span>
+                <span class="d-block text-secondary text-12 mt-1"><%= config[:description] %></span>
+                <span class="d-block text-secondary text-11 mt-1">CUPS media: <%= config[:media] %></span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div>
+      <div class="h-section-label mb-2">Status</div>
+      <div class="form-check">
+        <%= form.check_box :enabled, class: "form-check-input" %>
+        <%= form.label :enabled, "Enabled", class: "form-check-label" %>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <%= form.submit class: "btn btn-primary btn-sm" %>
+      <%= link_to "Cancel", printer.persisted? ? settings_printer_path(printer) : settings_printers_path,
+                  class: "btn btn-outline-secondary btn-sm" %>
+      <% if printer.persisted? %>
+        <%= button_to "Delete", settings_printer_path(printer), method: :delete,
+                      class: "btn btn-outline-danger btn-sm",
+                      form: { data: { turbo_confirm: "Delete #{printer.name}?" } } %>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

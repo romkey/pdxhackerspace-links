@@ -7,7 +7,7 @@ FROM ruby:${RUBY_VERSION}-slim
 WORKDIR /rails
 
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential curl git libpq-dev libyaml-dev pkg-config python-is-python3 && \
+    apt-get install --no-install-recommends -y build-essential curl cups-client git libpq-dev libyaml-dev pkg-config python-is-python3 && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 ARG NODE_VERSION
@@ -27,5 +27,6 @@ RUN yarn install --frozen-lockfile
 
 COPY . .
 
+ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 EXPOSE 3000
 CMD ["./bin/dev"]

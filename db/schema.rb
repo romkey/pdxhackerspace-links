@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_06_06_000003) do
+ActiveRecord::Schema[8.1].define(version: 2025_06_07_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -39,6 +39,25 @@ ActiveRecord::Schema[8.1].define(version: 2025_06_06_000003) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "printers", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "cups_name", null: false
+    t.text "description"
+    t.boolean "enabled", default: true, null: false
+    t.string "name", null: false
+    t.string "page_size", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cups_name"], name: "index_printers_on_cups_name", unique: true
+    t.index ["enabled"], name: "index_printers_on_enabled"
+    t.index ["name"], name: "index_printers_on_name"
+  end
+
+  create_table "site_settings", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "cups_server", default: "localhost:631", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "thing_links", force: :cascade do |t|

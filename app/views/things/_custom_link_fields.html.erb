@@ -1,0 +1,21 @@
+<div class="row g-2 align-items-end" data-nested-form-target="item">
+  <%= form.hidden_field :link_type %>
+  <% if form.object.persisted? %>
+    <%= form.hidden_field :id %>
+    <%= form.hidden_field :_destroy, value: "0", data: { nested_form_target: "destroyField" } %>
+  <% end %>
+  <div class="col-md-4">
+    <%= form.label :title, "Title", class: "form-label" %>
+    <%= form.text_field :title, class: "form-control" %>
+  </div>
+  <div class="col-md-7">
+    <%= form.label :url, "URL", class: "form-label" %>
+    <%= form.url_field :url, class: "form-control", placeholder: "https://" %>
+  </div>
+  <div class="col-md-1">
+    <label class="form-label d-none d-md-block">&nbsp;</label>
+    <button type="button" class="btn btn-outline-secondary btn-sm w-100" data-action="nested-form#remove" title="Remove">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+</div>

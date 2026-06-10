@@ -5,7 +5,12 @@
     <div>
       <h1 class="h-page-title mb-0">Things</h1>
       <div class="text-13 text-secondary mt-1">
-        <span class="text-body"><%= @things.size %></span> total
+        <% if @search_query.present? %>
+          <span class="text-body"><%= @things.size %></span> matching “<%= @search_query %>” ·
+          <%= link_to "Clear", things_path, class: "text-secondary" %>
+        <% else %>
+          <span class="text-body"><%= @things.size %></span> total
+        <% end %>
       </div>
     </div>
     <div>
@@ -39,7 +44,13 @@
       </table>
     </div>
   <% else %>
-    <p class="text-secondary text-13 mb-0">No things yet. Create one to get started.</p>
+    <p class="text-secondary text-13 mb-0">
+      <% if @search_query.present? %>
+        No things match “<%= @search_query %>”.
+      <% else %>
+        No things yet. Create one to get started.
+      <% end %>
+    </p>
   <% end %>
 </div>
 

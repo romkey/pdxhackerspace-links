@@ -7,6 +7,7 @@ services:
       - "3000:80"
     environment:
       RAILS_ENV: production
+      CUPS_SERVER: ${CUPS_SERVER:-localhost:631}
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: ${REDIS_URL}
       RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
@@ -20,6 +21,7 @@ services:
     command: bundle exec sidekiq
     environment:
       RAILS_ENV: production
+      CUPS_SERVER: ${CUPS_SERVER:-localhost:631}
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: ${REDIS_URL}
       RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
@@ -42,6 +44,7 @@ services:
     command: ./bin/rails db:prepare
     environment:
       RAILS_ENV: production
+      CUPS_SERVER: ${CUPS_SERVER:-localhost:631}
       DATABASE_URL: ${DATABASE_URL}
       RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
     restart: "no"

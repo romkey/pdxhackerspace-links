@@ -27,7 +27,7 @@ Use `-f docker-compose.<stack>.yml`; each stack sets a top-level `name:` so volu
 | `docker-compose.lint.yml` | RuboCop using prebuilt `links_rubocop:latest`. |
 | `docker-compose.server.yml` | Prod/staging-style: external Postgres via `DATABASE_URL`; includes Redis for Sidekiq. |
 
-- **Dev migrate:** `docker compose -f docker-compose.dev.yml --profile tools run --rm migrate`
+- **Dev startup:** `bin/dev` runs `db:prepare db:seed` and clears stale PIDs before starting the server
 - **Tests:** `docker compose -f docker-compose.test.yml run --rm test`
 - **Lint (quick):** `docker compose -f docker-compose.lint.yml run --rm rubocop`
 - **Lint (build):** `docker compose -f docker-compose.lint.build.yml run --rm rubocop`

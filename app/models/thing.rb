@@ -7,7 +7,19 @@ class Thing < ApplicationRecord
   validates :name, presence: true
   validate :acceptable_photos
 
+  scope :search, lambda { |query|
+    term = query.to_s.strip
+    next all if term.blank?
+
+    pattern = "%#{sanitize_sql_like(term)}%"
+    left_joins(:links).where(
+      "things.name ILIKE :q OR things.description ILIKE :q OR thing_links.title ILIKE :q OR thing_links.url ILIKE :q",
+      q: pattern
+    ).distinct
+  }
+
   after_initialize :build_standard_links, if: :new_record?
+  before_save :assign_custom_link_positions
   after_save :purge_blank_links
 
   def standard_links
@@ -30,6 +42,12 @@ class Thing < ApplicationRecord
 
   def reject_blank_link?(attributes)
     attributes["url"].to_s.blank? && attributes["title"].to_s.blank?
+  end
+
+  def assign_custom_link_positions
+    links.select(&:link_custom?).reject(&:marked_for_destruction?).each_with_index do |link, index|
+      link.position = index
+    end
   end
 
   def purge_blank_links

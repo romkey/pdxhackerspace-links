@@ -37,13 +37,9 @@ A Rails application for managing links. This repository contains the application
    docker compose -f docker-compose.dev.yml up --build
    ```
 
-5. Run migrations and seed the local account (first time):
+   The web service creates the database if needed, runs migrations, and seeds the local account on every startup.
 
-   ```bash
-   docker compose -f docker-compose.dev.yml --profile tools run --rm migrate
-   ```
-
-6. Open [http://localhost:3000](http://localhost:3000) and sign in with the credentials from `.env`.
+5. Open [http://localhost:3000](http://localhost:3000) and sign in with the credentials from `.env`.
 
 ## Authentication
 
@@ -132,8 +128,9 @@ Set `DATABASE_URL`, `REDIS_URL`, `RAILS_MASTER_KEY`, and `LINKS_IMAGE`.
 
 ```
 app/
-  controllers/   # HTTP layer (auth, things)
-  models/        # User, Thing, ThingLink
+  controllers/   # HTTP layer (auth, things, settings)
+  models/        # User, Thing, ThingLink, SiteSetting, Printer
+  services/      # CUPS print client
   views/         # Bootstrap 5.3 templates
   jobs/          # ActiveJob → Sidekiq
 config/
@@ -145,6 +142,21 @@ test/            # Minitest suite
 ### Things
 
 Each **Thing** has a name, optional description, optional standard links (Asset, Wiki, Slack, Where), optional custom links with titles, and one or more photos (Active Storage).
+
+### Printing
+
+**Site settings → General** configures the CUPS print server (`CUPS_SERVER`, hostname:port). Docker images include `cups-client` (`lp`, `lpstat`) for submitting jobs to a remote CUPS server.
+
+**Site settings → Printers** registers queues with a page size:
+
+| Page size | Use |
+|-----------|-----|
+| 24mm label strip | Continuous narrow label printers |
+| 4×6" label | Shipping and parcel labels |
+| Letter | Laser and inkjet office printers |
+| 80mm receipt | Thermal POS receipt printers |
+
+Set `CUPS_SERVER` in `.env` (default in Docker dev: `host.docker.internal:631`) to reach a CUPS server on your host or network. Queues discovered on the server appear when adding a printer.
 
 ## Changelog
 

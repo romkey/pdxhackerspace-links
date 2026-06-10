@@ -19,10 +19,21 @@
   <body class="d-flex flex-column min-vh-100">
     <% if logged_in? %>
       <nav class="navbar navbar-expand-lg border-bottom border-secondary-subtle">
-        <div class="container-fluid">
-          <%= link_to "Links", root_path, class: "navbar-brand" %>
-          <%= link_to "Things", things_path, class: "btn btn-outline-secondary btn-sm ms-2" %>
-          <div class="d-flex align-items-center gap-2">
+        <div class="container-fluid d-flex align-items-center gap-2">
+          <%= link_to "Links", root_path, class: "navbar-brand me-0" %>
+          <%= link_to "Things", things_path, class: "btn btn-outline-secondary btn-sm" %>
+          <%= link_to "Site settings", settings_root_path, class: "btn btn-outline-secondary btn-sm" %>
+
+          <%= form_with url: things_path, method: :get, class: "navbar-search flex-grow-1 mx-2", html: { role: "search" } do %>
+            <input type="search"
+                   name="q"
+                   value="<%= params[:q] %>"
+                   class="form-control form-control-sm"
+                   placeholder="Search things…"
+                   aria-label="Search things">
+          <% end %>
+
+          <div class="d-flex align-items-center gap-2 ms-auto">
             <span class="text-secondary text-13"><%= current_user.name %></span>
             <%= button_to "Sign out", logout_path, method: :delete, class: "btn btn-outline-secondary btn-sm" %>
           </div>

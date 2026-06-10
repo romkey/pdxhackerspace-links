@@ -1,0 +1,24 @@
+label_printer:
+  name: Label printer
+  cups_name: DYMO_LabelWriter
+  page_size: label_strip_24mm
+  description: Front desk label printer
+  enabled: true
+
+shipping_printer:
+  name: Shipping station
+  cups_name: Zebra_ZP450
+  page_size: label_4x6
+  enabled: true
+
+office_laser:
+  name: Office laser
+  cups_name: HP_LaserJet
+  page_size: letter
+  enabled: true
+
+receipt_printer:
+  name: POS receipt
+  cups_name: Epson_TM-T88
+  page_size: receipt_80mm
+  enabled: false

@@ -21,6 +21,26 @@ class ThingTest < ActiveSupport::TestCase
     assert_not_includes titles, "Asset"
   end
 
+  test "search matches name, description, and links" do
+    assert_includes Thing.search("keyboard"), things(:keyboard)
+    assert_includes Thing.search("network"), things(:router)
+    assert_includes Thing.search("Manual"), things(:router)
+    assert_not_includes Thing.search("keyboard"), things(:router)
+    assert_equal Thing.count, Thing.search("").count
+  end
+
+  test "assigns positions to custom links on save" do
+    thing = Thing.create!(
+      name: "Positioned Thing",
+      links_attributes: [
+        { link_type: :custom, title: "First", url: "https://example.com/first" },
+        { link_type: :custom, title: "Second", url: "https://example.com/second" }
+      ]
+    )
+
+    assert_equal [0, 1], thing.custom_links.map(&:position)
+  end
+
   test "purges blank links after save" do
     thing = Thing.create!(name: "Test Thing", links_attributes: [
       { link_type: :wiki, url: "https://example.com/wiki" },

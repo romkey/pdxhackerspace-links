@@ -1,7 +1,9 @@
 #!/bin/bash -e
 
-# If running the rails server then create or migrate existing database
-if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
+# bin/dev prepares the database; other dev commands (e.g. sidekiq) need it here.
+if [ "${RAILS_ENV}" = "development" ] && [ "${@: -1:1}" != "./bin/dev" ]; then
+  ./bin/rails db:prepare db:seed
+elif [ "${@: -2:1}" = "./bin/rails" ] && [ "${@: -1:1}" = "server" ]; then
   ./bin/rails db:prepare
 fi
 

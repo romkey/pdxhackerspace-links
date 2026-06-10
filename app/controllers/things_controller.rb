@@ -2,7 +2,8 @@ class ThingsController < ApplicationController
   before_action :set_thing, only: %i[show edit update destroy purge_photo]
 
   def index
-    @things = Thing.order(:name)
+    @search_query = params[:q].to_s.strip.presence
+    @things = Thing.search(@search_query).order(:name)
   end
 
   def show
@@ -68,7 +69,7 @@ class ThingsController < ApplicationController
   end
 
   def ensure_custom_link_fields
-    return if @thing.links.any?(&:custom?)
+    return if @thing.links.any?(&:link_custom?)
 
     @thing.links.build(link_type: :custom, position: next_custom_link_position)
   end

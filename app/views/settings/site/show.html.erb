@@ -1,0 +1,55 @@
+<% content_for :title, "Site settings" %>
+
+<%= settings_frame do %>
+  <div class="d-flex align-items-end justify-content-between mb-3">
+    <div>
+      <h1 class="h-page-title mb-0">General</h1>
+      <div class="text-13 text-secondary mt-1">Print server and site-wide options</div>
+    </div>
+  </div>
+
+  <%= form_with model: @site_setting, url: settings_site_path, method: :patch, class: "vstack gap-4" do |form| %>
+    <% if @site_setting.errors.any? %>
+      <div class="alert alert-danger text-13">
+        <%= @site_setting.errors.full_messages.to_sentence %>
+      </div>
+    <% end %>
+
+    <div>
+      <div class="h-section-label mb-2">Print server</div>
+      <p class="text-secondary text-13 mb-3">
+        CUPS server hostname and port for remote printing. Docker containers use this to reach your print server on the host or network.
+      </p>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <%= form.label :cups_server, "CUPS server", class: "form-label" %>
+          <%= form.text_field :cups_server, class: "form-control", placeholder: "host.docker.internal:631", required: true %>
+          <div class="form-text text-12">Example: <code>192.168.1.10:631</code> or <code>host.docker.internal:631</code></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="h-section-label mb-2">Connection</div>
+      <% if @cups_reachable %>
+        <div class="status-panel status-clear text-13 mb-2">
+          Connected to <%= @site_setting.cups_server %>
+        </div>
+        <% if @cups_queues.any? %>
+          <p class="text-13 text-secondary mb-1"><%= @cups_queues.size %> queue<%= @cups_queues.size == 1 ? "" : "s" %> available on the server:</p>
+          <div class="text-13"><%= @cups_queues.join(", ") %></div>
+        <% else %>
+          <p class="text-secondary text-13 mb-0">Connected, but no queues were reported.</p>
+        <% end %>
+      <% else %>
+        <div class="status-panel status-attention text-13">
+          Cannot reach CUPS at <%= @site_setting.cups_server %>. Check the server address and that cupsd is running.
+        </div>
+      <% end %>
+    </div>
+
+    <div>
+      <%= form.submit "Save settings", class: "btn btn-primary btn-sm" %>
+    </div>
+  <% end %>
+<% end %>

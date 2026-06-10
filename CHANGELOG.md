@@ -6,9 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.1.1] - 2026-06-10
+
+### Changed
+
+- Thing forms support adding and removing multiple custom links
+- Dev startup creates the database if needed, runs migrations, seeds the local account, and clears stale PID files — no separate migrate step
+
 ### Added
 
-- Things with name, description, optional standard links (Asset, Wiki, Slack, Where), custom titled links, and multiple photos
+- Site settings in the navbar with CUPS print server configuration and printer management
+- Printers support label strip (24mm), 4×6", letter, and 80mm receipt page sizes via CUPS media options
+- Navbar search across things by name, description, and link title or URL
 - Things index, detail, create, edit, and delete pages
 - Initial Rails 8.1 application scaffold with PostgreSQL, Redis 8, and Sidekiq 8
 - OpenID Connect sign-in via OmniAuth, plus optional local account from environment variables
@@ -19,3 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Removed
 
 - Kamal deployment configuration (project uses Docker Compose and GitHub Actions instead)
+
+## [v0.1.0] - 2026-06-06
+
+Initial release.

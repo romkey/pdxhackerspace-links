@@ -1,0 +1,62 @@
+<% content_for :title, "Printers" %>
+
+<%= settings_frame do %>
+  <div class="d-flex align-items-end justify-content-between mb-3">
+    <div>
+      <h1 class="h-page-title mb-0">Printers</h1>
+      <div class="text-13 text-secondary mt-1">
+        <span class="text-body"><%= @printers.size %></span> total ·
+        <span class="text-body"><%= @printers.count(&:enabled?) %></span> enabled
+      </div>
+    </div>
+    <div>
+      <%= link_to "+ Add printer", new_settings_printer_path, class: "btn btn-primary btn-sm" %>
+    </div>
+  </div>
+
+  <% if @printers.any? %>
+    <div class="table-responsive">
+      <table class="table table-compact table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>CUPS queue</th>
+            <th>Page size</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @printers.each do |printer| %>
+            <tr class="clickable-row" data-href="<%= settings_printer_path(printer) %>">
+              <td class="fw-medium"><%= printer.name %></td>
+              <td class="text-secondary"><%= printer.cups_name %></td>
+              <td class="text-secondary"><%= printer.page_size_label %></td>
+              <td>
+                <% if printer.enabled? %>
+                  <span class="status-dot status-success" title="Enabled"></span>
+                <% else %>
+                  <span class="text-bg-secondary-subtle badge"><%= "Disabled" %></span>
+                <% end %>
+              </td>
+              <td class="text-end">
+                <%= link_to "Edit", edit_settings_printer_path(printer), class: "btn btn-outline-secondary btn-sm" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-secondary text-13 mb-0">No printers yet. Add one to get started.</p>
+  <% end %>
+<% end %>
+
+<script>
+  document.querySelectorAll(".clickable-row").forEach((row) => {
+    row.addEventListener("click", (event) => {
+      if (event.target.closest("a, button")) return;
+      window.location = row.dataset.href;
+    });
+  });
+</script>

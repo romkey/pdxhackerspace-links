@@ -11,6 +11,12 @@ Rails.application.routes.draw do
     end
   end
 
+  namespace :settings do
+    root to: "site#show"
+    resource :site, only: %i[show update], controller: "site"
+    resources :printers
+  end
+
   get "login", to: "sessions#new"
   delete "logout", to: "sessions#destroy"
   post "login/local", to: "local_sessions#create", as: :local_login

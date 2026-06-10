@@ -1,0 +1,2 @@
+default:
+  cups_server: cups.test:631
