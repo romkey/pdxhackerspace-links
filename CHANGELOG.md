@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.1.4] - 2026-06-10
+
+### Fixed
+
+- Docker production build re-declares `APP_VERSION` in the base stage so CI build checks pass
+
 ## [v0.1.3] - 2026-06-10
 
 ### Changed

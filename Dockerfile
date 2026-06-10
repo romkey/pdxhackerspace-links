@@ -5,6 +5,7 @@ ARG RUBY_VERSION=3.4.4
 ARG APP_VERSION=dev
 FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 
+ARG APP_VERSION
 WORKDIR /rails
 
 RUN apt-get update -qq && \
