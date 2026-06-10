@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.1.2] - 2026-06-10
+
+### Fixed
+
+- Thing link URLs are validated before rendering in `link_to` to prevent unsafe href values
+
+### Changed
+
+- GitHub Actions `setup-node` upgraded to v6 for Node.js 24 compatibility
+
 ## [v0.1.1] - 2026-06-10
 
 ### Changed

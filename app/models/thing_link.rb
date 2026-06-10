@@ -40,6 +40,15 @@ class ThingLink < ApplicationRecord
     url.present?
   end
 
+  def safe_href
+    return if url.blank?
+
+    uri = URI.parse(url.strip)
+    url if uri.is_a?(URI::HTTP) && uri.host.present?
+  rescue URI::InvalidURIError
+    nil
+  end
+
   private
 
   def clear_blank_custom_links

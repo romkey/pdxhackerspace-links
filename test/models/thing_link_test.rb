@@ -33,4 +33,15 @@ class ThingLinkTest < ActiveSupport::TestCase
     assert_not link.valid?
     assert_includes link.errors[:url], "is invalid"
   end
+
+  test "safe_href returns http and https urls only" do
+    link = thing_links(:keyboard_wiki)
+    assert_equal thing_links(:keyboard_wiki).url, link.safe_href
+
+    link.url = "javascript:alert(1)"
+    assert_nil link.safe_href
+
+    link.url = "https://example.com/path"
+    assert_equal "https://example.com/path", link.safe_href
+  end
 end
