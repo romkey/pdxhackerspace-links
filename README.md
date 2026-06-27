@@ -82,6 +82,21 @@ When the app runs behind a reverse proxy, set `TRUSTED_REVERSE_PROXIES` to the p
 TRUSTED_REVERSE_PROXIES=198.51.100.10,172.18.0.0/16
 ```
 
+### NFC tag writing
+
+Signed-in users can write NFC tags from a thing’s page or its row on the things list when the browser supports [WebNFC](https://developer.mozilla.org/en-US/docs/Web/API/Web_NFC_API) (typically Chrome on Android over HTTPS).
+
+Each tag gets two NDEF records:
+
+- A **URL** that opens the thing page
+- A **JSON** record with the URL, name, owner, IP address, description, and notes (shortened if needed to fit the tag)
+
+Use NTAG215 tags or larger when possible. Optional:
+
+```bash
+NFC_TAG_MAX_BYTES=496
+```
+
 ## Running locally
 
 ```bash

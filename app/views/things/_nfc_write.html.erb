@@ -1,0 +1,18 @@
+<% payload = nfc_tag_payload(thing) %>
+<% compact = local_assigns.fetch(:compact, false) %>
+
+<%= tag.div class: (compact ? "d-inline" : nil), data: {
+      controller: "nfc-write",
+      nfc_write_url_value: payload.url,
+      nfc_write_json_value: payload.json,
+      nfc_write_json_truncated_value: payload.json_truncated
+    } do %>
+  <button type="button"
+          class="btn btn-outline-secondary btn-sm d-none"
+          data-nfc-write-target="writeButton"
+          data-action="nfc-write#write">
+    Write NFC
+  </button>
+  <div class="<%= compact ? "text-12" : "text-13" %> text-secondary mt-1 d-none"
+       data-nfc-write-target="status"></div>
+<% end %>

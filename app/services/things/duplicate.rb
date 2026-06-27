@@ -13,6 +13,7 @@ module Things
         copy = Thing.create!(
           name: "#{thing.name} (duplicate)",
           description: thing.description,
+          notes: thing.notes,
           owner: thing.owner,
           ip_address: thing.ip_address
         )

@@ -15,7 +15,7 @@ class Thing < ApplicationRecord
 
     pattern = "%#{sanitize_sql_like(term)}%"
     left_joins(:links).where(
-      "things.name ILIKE :q OR things.description ILIKE :q OR things.owner ILIKE :q OR things.ip_address ILIKE :q OR thing_links.title ILIKE :q OR thing_links.url ILIKE :q",
+      "things.name ILIKE :q OR things.description ILIKE :q OR things.notes ILIKE :q OR things.owner ILIKE :q OR things.ip_address ILIKE :q OR thing_links.title ILIKE :q OR thing_links.url ILIKE :q",
       q: pattern
     ).distinct
   }

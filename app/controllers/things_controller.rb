@@ -106,6 +106,7 @@ class ThingsController < ApplicationController
     params.require(:thing).permit(
       :name,
       :description,
+      :notes,
       :owner,
       :ip_address,
       photos: [],

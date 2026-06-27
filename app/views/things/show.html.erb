@@ -25,10 +25,17 @@
       <% if @thing.description.present? %>
         <div class="text-13 text-secondary mt-2"><%= simple_format(@thing.description) %></div>
       <% end %>
+      <% if @thing.notes.present? %>
+        <div class="mt-2">
+          <div class="text-12 text-secondary mb-1">Notes</div>
+          <div class="text-13 text-secondary"><%= simple_format(@thing.notes) %></div>
+        </div>
+      <% end %>
     </div>
     <% if can_manage_things? %>
-      <div class="d-flex gap-2">
+      <div class="d-flex flex-wrap gap-2 justify-content-end">
         <%= render "print_controls", thing: @thing, printers: @printers, align_end: true %>
+        <%= render "nfc_write", thing: @thing %>
         <%= link_to "Edit", edit_thing_path(@thing), class: "btn btn-primary btn-sm" %>
       </div>
     <% end %>

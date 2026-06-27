@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- Optional notes field on things
+- Write NFC on thing pages and index rows when the browser supports WebNFC, writing the thing URL plus JSON metadata to tags
+
 ## [v0.2.0] - 2026-06-27
 
 ### Added

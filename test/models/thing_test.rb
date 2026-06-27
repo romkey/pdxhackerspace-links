@@ -39,12 +39,13 @@ class ThingTest < ActiveSupport::TestCase
     assert_includes thing.errors[:ip_address], "must be a valid IPv4 address"
   end
 
-  test "search matches name, description, owner, and links" do
+  test "search matches name, description, owner, notes, and links" do
     assert_includes Thing.search("keyboard"), things(:keyboard)
     assert_includes Thing.search("network"), things(:router)
     assert_includes Thing.search("Manual"), things(:router)
     assert_includes Thing.search("romkey"), things(:router)
     assert_includes Thing.search("192.168.1.1"), things(:router)
+    assert_includes Thing.search("front of shelf"), things(:router)
     assert_not_includes Thing.search("keyboard"), things(:router)
     assert_equal Thing.count, Thing.search("").count
   end

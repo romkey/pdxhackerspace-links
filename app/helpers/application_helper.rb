@@ -10,4 +10,8 @@ module ApplicationHelper
     else "secondary"
     end
   end
+
+  def nfc_tag_payload(thing)
+    Things::NfcTagPayload.call(thing)
+  end
 end

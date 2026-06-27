@@ -6,6 +6,7 @@ class Things::DuplicateTest < ActiveSupport::TestCase
 
     assert_equal "Router (duplicate)", copy.name
     assert_equal things(:router).description, copy.description
+    assert_equal things(:router).notes, copy.notes
     assert_equal things(:router).owner, copy.owner
     assert_equal things(:router).ip_address, copy.ip_address
   end

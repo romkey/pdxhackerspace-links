@@ -38,4 +38,5 @@
                   class: "d-inline",
                   data: { turbo_confirm: "Delete “#{thing.name}”?" }
                 } %>
+  <%= render "nfc_write", thing: thing, compact: true %>
 </div>

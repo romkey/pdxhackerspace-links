@@ -183,6 +183,7 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     patch thing_path(things(:router)), params: {
       thing: {
         name: "Core Router",
+        notes: "Moved to rack 3",
         links_attributes: {
           "0" => { id: thing_links(:router_asset).id, link_type: "asset", url: thing_links(:router_asset).url }
         }
@@ -190,7 +191,9 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     }
 
     assert_redirected_to thing_path(things(:router))
-    assert_equal "Core Router", things(:router).reload.name
+    router = things(:router).reload
+    assert_equal "Core Router", router.name
+    assert_equal "Moved to rack 3", router.notes
   end
 
   test "destroys thing" do

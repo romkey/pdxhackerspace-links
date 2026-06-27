@@ -5,5 +5,6 @@ keyboard:
 router:
   name: Router
   description: Main network router
+  notes: Rack 2, front of shelf
   owner: romkey
   ip_address: 192.168.1.1
