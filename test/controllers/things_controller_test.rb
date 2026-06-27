@@ -56,13 +56,29 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_match(/inline/, response.headers["Content-Disposition"])
   end
 
-  test "index includes print actions when printers are enabled" do
+  test "index includes inline row actions when printers are enabled" do
     get things_path
     assert_response :success
-    assert_select "button", text: /Print on #{printers(:brother_printer).name}/
+    assert_select "a[href=?]", edit_thing_path(things(:keyboard))
+    assert_select "button", text: "Duplicate"
+    assert_select "button", text: "Delete"
+    assert_select "button", text: "Print"
+    assert_select "button[aria-label*=Actions]", count: 0
   end
 
-  test "print sends label to selected printer" do
+  test "duplicate creates copy and redirects to it" do
+    assert_difference -> { Thing.count }, 1 do
+      post duplicate_thing_path(things(:router))
+    end
+
+    copy = Thing.order(:created_at).last
+    assert_redirected_to thing_path(copy)
+    assert_equal "Router (duplicate)", copy.name
+    assert_equal things(:router).links_with_urls.size, copy.links_with_urls.size
+    assert_equal "Duplicated as “Router (duplicate)”.", flash[:notice]
+  end
+
+  test "print sends label to selected printer from index row" do
     with_fake_cups_client do
       post print_thing_path(things(:keyboard)), params: { printer_id: printers(:brother_printer).id }
     end

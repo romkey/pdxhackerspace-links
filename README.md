@@ -64,6 +64,24 @@ Set in `.env`:
 - `OIDC_CLIENT_SECRET`
 - `OIDC_REDIRECT_URI` (optional; defaults from `APP_HOST`)
 
+### Network whitelist (optional)
+
+Set `NETWORK_WHITELIST` to a comma-separated list of CIDR blocks and/or individual IP addresses. Visitors from those networks can browse and search things without signing in. They cannot create, edit, delete, or print labels.
+
+Example:
+
+```bash
+NETWORK_WHITELIST=192.168.0.0/16,10.0.0.0/8
+```
+
+Sign-in is still available for full access from whitelisted networks.
+
+When the app runs behind a reverse proxy, set `TRUSTED_REVERSE_PROXIES` to the proxy IP addresses or CIDR blocks so Rails uses the client IP from `X-Forwarded-For` (for example when evaluating `NETWORK_WHITELIST`). These entries are merged with Rails' default private-network proxies.
+
+```bash
+TRUSTED_REVERSE_PROXIES=198.51.100.10,172.18.0.0/16
+```
+
 ## Running locally
 
 ```bash
@@ -122,7 +140,15 @@ docker compose -f docker-compose.server.yml --profile tools run --rm migrate
 docker compose -f docker-compose.server.yml up
 ```
 
-Set `DATABASE_URL`, `REDIS_URL`, `RAILS_MASTER_KEY`, and `LINKS_IMAGE`.
+Set `DATABASE_URL`, `REDIS_URL`, `LINKS_IMAGE`, and either `SECRET_KEY_BASE` or `RAILS_MASTER_KEY`.
+
+Generate a secret key:
+
+```bash
+docker compose -f docker-compose.dev.yml run --rm web bin/rails secret
+```
+
+`SECRET_KEY_BASE` is passed through to containers in `docker-compose.server.yml`. Use it when you are not using encrypted credentials. Alternatively, set `RAILS_MASTER_KEY` to the contents of `config/master.key` if you use Rails credentials.
 
 ### Error monitoring
 

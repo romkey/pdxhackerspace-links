@@ -1,6 +1,7 @@
 class ThingsController < ApplicationController
-  before_action :set_thing, only: %i[show edit update destroy purge_photo print label_preview]
-  before_action :load_printers, only: %i[index show label_preview]
+  before_action :require_full_access, only: %i[new create edit update destroy duplicate purge_photo print label_preview]
+  before_action :set_thing, only: %i[show edit update destroy duplicate purge_photo print label_preview]
+  before_action :load_printers, only: %i[index show label_preview], if: :can_manage_things?
 
   def index
     @search_query = params[:q].to_s.strip.presence
@@ -82,6 +83,11 @@ class ThingsController < ApplicationController
   def destroy
     @thing.destroy!
     redirect_to things_path, notice: "Thing was deleted."
+  end
+
+  def duplicate
+    copy = Things::Duplicate.call(thing: @thing)
+    redirect_to copy, notice: "Duplicated as “#{copy.name}”."
   end
 
   def purge_photo

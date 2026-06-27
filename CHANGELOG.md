@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.2.0] - 2026-06-27
+
+### Added
+
+- `NETWORK_WHITELIST` environment variable for anonymous read-only access to things from trusted networks (browse, search, and view links; no create, edit, or print)
+- `TRUSTED_REVERSE_PROXIES` environment variable so Rails trusts reverse proxy `X-Forwarded-For` headers when determining the client IP
+- Duplicate action on things index rows, creating a copy with the same fields and links plus `(duplicate)` in the name
+
+### Fixed
+
+- Label preview and print layouts now show QR codes; Prawn places images from the top-left corner, not the bottom-left coordinate we were passing
+- Things index rows show inline Edit, Duplicate, Print, and Delete actions instead of a non-functional actions menu
+
+### Changed
+
+- Production Docker Compose now passes `SECRET_KEY_BASE` from the environment (alongside optional `RAILS_MASTER_KEY`)
+
 ## [v0.1.6] - 2026-06-26
 
 ### Changed

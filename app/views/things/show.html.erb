@@ -26,10 +26,12 @@
         <div class="text-13 text-secondary mt-2"><%= simple_format(@thing.description) %></div>
       <% end %>
     </div>
-    <div class="d-flex gap-2">
-      <%= render "print_controls", thing: @thing, printers: @printers, align_end: true %>
-      <%= link_to "Edit", edit_thing_path(@thing), class: "btn btn-primary btn-sm" %>
-    </div>
+    <% if can_manage_things? %>
+      <div class="d-flex gap-2">
+        <%= render "print_controls", thing: @thing, printers: @printers, align_end: true %>
+        <%= link_to "Edit", edit_thing_path(@thing), class: "btn btn-primary btn-sm" %>
+      </div>
+    <% end %>
   </div>
 
   <div class="row g-4">

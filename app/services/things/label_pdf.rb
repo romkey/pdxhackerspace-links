@@ -1,5 +1,6 @@
 require "prawn"
 require "rqrcode"
+require "stringio"
 
 module Things
   class LabelPdf
@@ -226,12 +227,7 @@ module Things
     end
 
     def draw_qr_code(pdf, x:, y:, size:)
-      Tempfile.create(%w[thing-qr .png]) do |temp|
-        temp.binmode
-        temp.write(qr_png_data(size))
-        temp.flush
-        pdf.image temp.path, at: [ x, y ], width: size, height: size
-      end
+      pdf.image StringIO.new(qr_png_data(size)), at: [ x, y + size ], width: size, height: size
     end
 
     def qr_png_data(size_pt)

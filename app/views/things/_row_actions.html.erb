@@ -1,0 +1,41 @@
+<div class="d-flex flex-wrap gap-1 justify-content-end">
+  <%= link_to "Edit", edit_thing_path(thing), class: "btn btn-outline-secondary btn-sm" %>
+  <%= button_to "Duplicate",
+                duplicate_thing_path(thing),
+                method: :post,
+                class: "btn btn-outline-secondary btn-sm",
+                form: { class: "d-inline" } %>
+  <% if printers.one? %>
+    <%= button_to "Print",
+                  print_thing_path(thing, printer_id: printers.first.id),
+                  class: "btn btn-outline-secondary btn-sm",
+                  form: { class: "d-inline" } %>
+  <% elsif printers.many? %>
+    <div class="dropdown">
+      <button type="button"
+              class="btn btn-outline-secondary btn-sm dropdown-toggle"
+              data-bs-toggle="dropdown"
+              aria-expanded="false">
+        Print
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <% printers.each do |printer| %>
+          <li>
+            <%= button_to "Print on #{printer.name}",
+                          print_thing_path(thing, printer_id: printer.id),
+                          class: "dropdown-item",
+                          form: { class: "d-inline" } %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+  <%= button_to "Delete",
+                thing_path(thing),
+                method: :delete,
+                class: "btn btn-outline-danger btn-sm",
+                form: {
+                  class: "d-inline",
+                  data: { turbo_confirm: "Delete “#{thing.name}”?" }
+                } %>
+</div>

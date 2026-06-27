@@ -9,6 +9,7 @@ Rails.application.routes.draw do
     member do
       delete "photos/:photo_id", to: "things#purge_photo", as: :photo
       get :label_preview
+      post :duplicate
       post :print
     end
   end

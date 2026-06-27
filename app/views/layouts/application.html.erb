@@ -17,12 +17,14 @@
   </head>
 
   <body class="d-flex flex-column min-vh-100">
-    <% if logged_in? %>
+    <% if logged_in? || network_guest? %>
       <nav class="navbar navbar-expand-lg border-bottom border-secondary-subtle">
         <div class="container-fluid d-flex align-items-center gap-2">
           <%= link_to "Links", root_path, class: "navbar-brand me-0" %>
           <%= link_to "Things", things_path, class: "btn btn-outline-secondary btn-sm" %>
-          <%= link_to "Site settings", settings_root_path, class: "btn btn-outline-secondary btn-sm" %>
+          <% if logged_in? %>
+            <%= link_to "Site settings", settings_root_path, class: "btn btn-outline-secondary btn-sm" %>
+          <% end %>
 
           <%= form_with url: things_path, method: :get, class: "navbar-search flex-grow-1 mx-2", html: { role: "search" } do %>
             <input type="search"
@@ -34,8 +36,12 @@
           <% end %>
 
           <div class="d-flex align-items-center gap-2 ms-auto">
-            <span class="text-secondary text-13"><%= current_user.name %></span>
-            <%= button_to "Sign out", logout_path, method: :delete, class: "btn btn-outline-secondary btn-sm" %>
+            <% if logged_in? %>
+              <span class="text-secondary text-13"><%= current_user.name %></span>
+              <%= button_to "Sign out", logout_path, method: :delete, class: "btn btn-outline-secondary btn-sm" %>
+            <% else %>
+              <%= link_to "Sign in", login_path, class: "btn btn-outline-secondary btn-sm" %>
+            <% end %>
           </div>
         </div>
       </nav>

@@ -24,9 +24,12 @@ class Settings::SiteControllerTest < ActionDispatch::IntegrationTest
     assert_equal "192.168.1.50:631", SiteSetting.instance.cups_server
   end
 
-  test "requires authentication" do
-    delete logout_path
-    get settings_site_path
-    assert_redirected_to login_path
+  test "requires authentication even from whitelisted network" do
+    with_network_whitelist("192.168.0.0/16") do
+      delete logout_path
+
+      get settings_site_path, env: from_network("192.168.1.50")
+      assert_redirected_to login_path
+    end
   end
 end

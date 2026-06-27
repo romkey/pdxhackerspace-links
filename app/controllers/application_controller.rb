@@ -4,7 +4,8 @@ class ApplicationController < ActionController::Base
   before_action :require_login
   before_action :set_sentry_user
 
-  helper_method :current_user, :logged_in?, :oidc_login_available?, :local_login_available?
+  helper_method :current_user, :logged_in?, :network_guest?, :can_manage_things?,
+                :oidc_login_available?, :local_login_available?
 
   private
 
@@ -16,10 +17,35 @@ class ApplicationController < ActionController::Base
     current_user.present?
   end
 
+  def network_guest?
+    !logged_in? && network_whitelist_access?
+  end
+
+  def can_manage_things?
+    logged_in?
+  end
+
+  def network_whitelist_access?
+    Links::NetworkWhitelist.includes?(request.remote_ip)
+  end
+
   def require_login
+    return if logged_in?
+    return if network_whitelist_access?
+
+    redirect_to login_path, alert: "Please sign in to continue."
+  end
+
+  def require_signed_in_user
     return if logged_in?
 
     redirect_to login_path, alert: "Please sign in to continue."
+  end
+
+  def require_full_access
+    return if logged_in?
+
+    redirect_to root_path, alert: "Sign in to do that."
   end
 
   def oidc_login_available?

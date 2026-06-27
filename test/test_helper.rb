@@ -25,6 +25,40 @@ class ActiveSupport::TestCase
     end
   end
 
+  def with_network_whitelist(value)
+    previous = ENV["NETWORK_WHITELIST"]
+    value.nil? ? ENV.delete("NETWORK_WHITELIST") : ENV["NETWORK_WHITELIST"] = value
+    Links::NetworkWhitelist.reset!
+    yield
+  ensure
+    previous.nil? ? ENV.delete("NETWORK_WHITELIST") : ENV["NETWORK_WHITELIST"] = previous
+    Links::NetworkWhitelist.reset!
+  end
+
+  def from_network(ip)
+    { "REMOTE_ADDR" => ip }
+  end
+
+  def through_proxy(proxy_ip, client_ip:)
+    {
+      "REMOTE_ADDR" => proxy_ip,
+      "HTTP_X_FORWARDED_FOR" => client_ip
+    }
+  end
+
+  def with_trusted_reverse_proxies(value)
+    previous_env = ENV["TRUSTED_REVERSE_PROXIES"]
+    previous_config = Rails.application.config.action_dispatch.trusted_proxies
+    value.nil? ? ENV.delete("TRUSTED_REVERSE_PROXIES") : ENV["TRUSTED_REVERSE_PROXIES"] = value
+    Links::TrustedReverseProxies.reset!
+    Links::TrustedReverseProxies.apply!
+    yield
+  ensure
+    previous_env.nil? ? ENV.delete("TRUSTED_REVERSE_PROXIES") : ENV["TRUSTED_REVERSE_PROXIES"] = previous_env
+    Links::TrustedReverseProxies.reset!
+    Rails.application.config.action_dispatch.trusted_proxies = previous_config
+  end
+
   def with_fake_cups_client(server: "cups.example.com:631", fail_print: false, &block)
     runner = lambda do |*_args|
       case _args[1]

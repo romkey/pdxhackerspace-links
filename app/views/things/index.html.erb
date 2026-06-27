@@ -14,7 +14,9 @@
       </div>
     </div>
     <div>
-      <%= link_to "+ New thing", new_thing_path, class: "btn btn-primary btn-sm" %>
+      <% if can_manage_things? %>
+        <%= link_to "+ New thing", new_thing_path, class: "btn btn-primary btn-sm" %>
+      <% end %>
     </div>
   </div>
 
@@ -26,7 +28,9 @@
             <th>Name</th>
             <th>Links</th>
             <th>Photos</th>
-            <th></th>
+            <% if can_manage_things? %>
+              <th></th>
+            <% end %>
           </tr>
         </thead>
         <tbody>
@@ -35,36 +39,11 @@
               <td class="fw-medium"><%= thing.name %></td>
               <td class="num text-secondary"><%= thing.links_with_urls.size %></td>
               <td class="num text-secondary"><%= thing.photos.count %></td>
-              <td class="text-end">
-                <div class="dropdown">
-                  <button type="button"
-                          class="btn btn-outline-secondary btn-sm"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="false"
-                          aria-label="Actions for <%= thing.name %>">
-                    <i class="bi bi-three-dots"></i>
-                  </button>
-                  <ul class="dropdown-menu dropdown-menu-end">
-                    <li><%= link_to "Edit", edit_thing_path(thing), class: "dropdown-item" %></li>
-                    <% if @printers.any? %>
-                      <li><hr class="dropdown-divider"></li>
-                      <% @printers.each do |printer| %>
-                        <li>
-                          <%= link_to "Preview on #{printer.name}",
-                                      label_preview_thing_path(thing, printer_id: printer.id),
-                                      class: "dropdown-item" %>
-                        </li>
-                        <li>
-                          <%= button_to "Print on #{printer.name}",
-                                        print_thing_path(thing, printer_id: printer.id),
-                                        class: "dropdown-item",
-                                        form: { class: "d-inline" } %>
-                        </li>
-                      <% end %>
-                    <% end %>
-                  </ul>
-                </div>
-              </td>
+              <% if can_manage_things? %>
+                <td class="text-end">
+                  <%= render "row_actions", thing: thing, printers: @printers %>
+                </td>
+              <% end %>
             </tr>
           <% end %>
         </tbody>
@@ -74,8 +53,10 @@
     <p class="text-secondary text-13 mb-0">
       <% if @search_query.present? %>
         No things match “<%= @search_query %>”.
-      <% else %>
+      <% elsif can_manage_things? %>
         No things yet. Create one to get started.
+      <% else %>
+        No things yet.
       <% end %>
     </p>
   <% end %>

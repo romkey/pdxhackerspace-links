@@ -1,4 +1,6 @@
 require "test_helper"
+require "open3"
+require "chunky_png"
 
 class Things::LabelPdfTest < ActiveSupport::TestCase
   test "generates a pdf file for brother labels" do
@@ -56,6 +58,25 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
     content = File.binread(path)
 
     assert_includes content.force_encoding(Encoding::BINARY), "/Subtype /Image"
+    assert_qr_visible_in_label_pdf(path)
+  ensure
+    label_pdf&.cleanup!
+  end
+
+  test "brother landscape label embeds visible qr image" do
+    label_pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:brother_printer))
+    path = label_pdf.generate
+
+    assert_qr_visible_in_label_pdf(path)
+  ensure
+    label_pdf&.cleanup!
+  end
+
+  test "avery letter label embeds visible qr image" do
+    label_pdf = Things::LabelPdf.new(thing: things(:keyboard), printer: printers(:office_laser))
+    path = label_pdf.generate
+
+    assert_qr_visible_in_label_pdf(path, region: :any)
   ensure
     label_pdf&.cleanup!
   end
@@ -66,5 +87,48 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
     data = label_pdf.pdf_data
     assert data.start_with?("%PDF")
     assert_not label_pdf.instance_variable_get(:@generated_path)
+  end
+
+  private
+
+  def assert_qr_visible_in_label_pdf(path, region: :left)
+    png_path = rasterize_label_pdf(path)
+    image = ChunkyPNG::Image.from_file(png_path)
+    x_range = case region
+    when :left
+      0...(image.width / 3)
+    when :center
+      (image.width / 3)...(2 * image.width / 3)
+    else
+      0...image.width
+    end
+    dark_pixels = dark_pixel_count(image, x_range: x_range)
+
+    assert_operator dark_pixels, :>, 100, "expected QR code pixels in the #{region} region of the label"
+  ensure
+    File.delete(png_path) if png_path && File.exist?(png_path)
+  end
+
+  def rasterize_label_pdf(path)
+    base = Tempfile.new([ "label-test", "" ]).path
+    _stdout, stderr, status = Open3.capture3(
+      "pdftoppm", "-png", "-singlefile", "-rx", "150", "-ry", "150", path, base
+    )
+    raise "pdftoppm failed: #{stderr}" unless status.success?
+
+    "#{base}.png"
+  end
+
+  def dark_pixel_count(image, x_range:, y_range: nil)
+    y_range ||= 0...image.height
+    count = 0
+
+    x_range.each do |x|
+      y_range.each do |y|
+        count += 1 if ChunkyPNG::Color.r(image[x, y]) < 200
+      end
+    end
+
+    count
   end
 end
