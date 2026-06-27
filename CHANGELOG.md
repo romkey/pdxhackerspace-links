@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.2.2] - 2026-06-26
+
+### Changed
+
+- Login page hides the local sign-in form in a collapsible details section when OpenID Connect is configured
+
 ## [v0.2.1] - 2026-06-26
 
 ### Added

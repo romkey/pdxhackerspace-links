@@ -1,0 +1,11 @@
+<%= form_with url: local_login_path, class: "vstack gap-3" do |form| %>
+  <div>
+    <%= form.label :email, class: "form-label" %>
+    <%= form.email_field :email, class: "form-control", required: true, autocomplete: "username" %>
+  </div>
+  <div>
+    <%= form.label :password, class: "form-label" %>
+    <%= form.password_field :password, class: "form-control", required: true, autocomplete: "current-password" %>
+  </div>
+  <%= form.submit "Sign in locally", class: "btn btn-outline-secondary" %>
+<% end %>
