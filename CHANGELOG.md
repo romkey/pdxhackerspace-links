@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.1.5] - 2026-06-26
+
 ### Added
 
 - Sentry error monitoring for production and staging, including Sidekiq job failures, release tracking via `APP_VERSION`, and signed-in user context
@@ -25,6 +27,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Label preview page shows the exact PDF layout before printing
 - Removed unsupported default CUPS options (`Cut=EveryPage`, `orientation-requested=4`) that could stall jobs; use `CUPS_LABEL_OPTIONS` when your queue supports them
 - Docker dev and test stacks run `bundle install` automatically when `Gemfile.lock` changes instead of failing with missing gems
+- Command printer PNG conversion uses `pdftoppm` instead of ruby-vips so dev and production containers only need poppler
+- CI installs poppler-utils for command printer tests; Brakeman updated to 8.0.5
 
 ### Changed
 

@@ -79,12 +79,12 @@ module Settings
 
       flash_type = reachable && queue_found ? :notice : :alert
       message = if !reachable
-                  "Cannot reach CUPS at #{@printer.cups_server}."
-                elsif !queue_found
-                  "Connected to #{@printer.cups_server}, but queue #{@printer.cups_name} was not found."
-                else
-                  "Connected to #{@printer.cups_server}; queue #{@printer.cups_name} is available."
-                end
+        "Cannot reach CUPS at #{@printer.cups_server}."
+      elsif !queue_found
+        "Connected to #{@printer.cups_server}, but queue #{@printer.cups_name} was not found."
+      else
+        "Connected to #{@printer.cups_server}; queue #{@printer.cups_name} is available."
+      end
 
       redirect_to settings_printer_path(@printer), flash_type => message
     end

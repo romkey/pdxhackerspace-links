@@ -31,7 +31,7 @@ gem "rqrcode", "~> 2.2"
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
   gem "bundler-audit", require: false
-  gem "brakeman", require: false
+  gem "brakeman", "~> 8.0.5", require: false
   gem "rubocop-rails-omakase", require: false
 end
 
