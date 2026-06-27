@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.3.8] - 2026-06-27
+
+### Fixed
+
+- Matomo URL validation regex anchored with `\z` so Brakeman `scan_ruby` passes in CI
+
 ## [v0.3.7] - 2026-06-27
 
 ### Fixed

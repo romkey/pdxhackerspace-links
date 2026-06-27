@@ -1,7 +1,7 @@
 class SiteSetting < ApplicationRecord
   validates :cups_server, presence: true
   validates :matomo_url, format: {
-    with: %r{\Ahttps?://.+}i,
+    with: %r{\Ahttps?://.+\z}i,
     allow_blank: true,
     message: "must be an http or https URL"
   }
