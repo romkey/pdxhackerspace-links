@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   resources :things do
     member do
       delete "photos/:photo_id", to: "things#purge_photo", as: :photo
+      delete :ar_anchor, to: "things#purge_ar_anchor"
       get :label_preview
       post :duplicate
       post :print

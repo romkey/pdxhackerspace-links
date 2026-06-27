@@ -12,6 +12,7 @@ router_asset:
   thing: router
   link_type: asset
   url: https://assets.example.com/router
+  note: Front rack label
 
 router_custom:
   thing: router

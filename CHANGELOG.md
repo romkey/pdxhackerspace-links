@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.2.4] - 2026-06-26
+
+### Added
+
+- Optional notes on standard links (Asset, Wiki, Slack, Where), shown in the link list when viewing a thing
+- AR Anchor image upload with optional note; printed at the end of labels after the QR code and text lines
+
 ## [v0.2.3] - 2026-06-26
 
 ### Fixed

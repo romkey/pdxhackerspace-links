@@ -21,6 +21,24 @@ class ThingTest < ActiveSupport::TestCase
     assert_not_includes titles, "Asset"
   end
 
+  test "links_for_display includes standard links with notes and no url" do
+    link = thing_links(:router_asset)
+    link.update!(url: "", note: "Physical tag location")
+    thing = things(:router).reload
+
+    assert_includes thing.links_for_display.map(&:display_title), "Asset"
+    assert_not_includes thing.links_with_urls.map(&:display_title), "Asset"
+  end
+
+  test "preserves standard links with notes but no url after save" do
+    thing = Thing.create!(name: "Tagged", links_attributes: [
+      { link_type: :wiki, url: "", note: "Shelf B" }
+    ])
+
+    assert thing.links.exists?(link_type: :wiki)
+    assert_equal "Shelf B", thing.links.find_by(link_type: :wiki).note
+  end
+
   test "label title line includes owner when set" do
     router = things(:router)
     assert_equal "Router romkey", router.label_title_line

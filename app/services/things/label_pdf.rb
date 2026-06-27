@@ -18,6 +18,7 @@ module Things
     LANDSCAPE_FEED_MARGIN_MM = 3
     LANDSCAPE_TEXT_MIN_WIDTH_MM = 28
     LANDSCAPE_TEXT_SIZE = 11
+    AR_ANCHOR_GAP_MM = 0.75
 
     PAGE_LAYOUTS = {
       "label_brother_12mm" => { width_mm: 12, height_mm: 40 },
@@ -155,15 +156,37 @@ module Things
     def landscape_label_width_mm
       return strip_24mm_width_mm if strip_24mm_label?
 
+      base_landscape_label_width_mm + ar_anchor_reserved_width_mm
+    end
+
+    def strip_24mm_width_mm
+      base_strip_24mm_width_mm + ar_anchor_reserved_width_mm
+    end
+
+    def base_landscape_label_width_mm
       margin = STRIP_24MM_MARGIN_MM
       qr = roll_width_mm - (2 * margin)
       (margin + qr + STRIP_24MM_TEXT_GAP_MM + LANDSCAPE_TEXT_MIN_WIDTH_MM + margin + LANDSCAPE_FEED_MARGIN_MM).round
     end
 
-    def strip_24mm_width_mm
+    def base_strip_24mm_width_mm
       margin = STRIP_24MM_MARGIN_MM
       qr = strip_roll_width_mm - (2 * margin)
       (margin + qr + STRIP_24MM_TEXT_GAP_MM + STRIP_24MM_TEXT_MIN_WIDTH_MM + margin + STRIP_24MM_FEED_MARGIN_MM).round
+    end
+
+    def ar_anchor_reserved_width_mm
+      return 0 unless ar_anchor_attached?
+
+      AR_ANCHOR_GAP_MM + anchor_display_size_mm
+    end
+
+    def anchor_display_size_mm
+      strip_roll_width_mm - (2 * STRIP_24MM_MARGIN_MM)
+    end
+
+    def ar_anchor_attached?
+      thing.respond_to?(:ar_anchor) && thing.ar_anchor.attached?
     end
 
     def strip_roll_width_mm
@@ -190,11 +213,14 @@ module Things
       strip_height = page_height
       qr_size = strip_height - (2 * margin)
       qr_bottom = margin
+      anchor_size = ar_anchor_attached? ? qr_size : 0
+      anchor_gap = ar_anchor_attached? ? mm(AR_ANCHOR_GAP_MM) : 0
+      anchor_reserved = anchor_size + anchor_gap
 
       draw_qr_code(pdf, x: margin, y: qr_bottom, size: qr_size)
 
       text_left = margin + qr_size + mm(STRIP_24MM_TEXT_GAP_MM)
-      text_width = page_width - text_left - margin - feed_margin
+      text_width = page_width - text_left - margin - feed_margin - anchor_reserved
       text_rows = bottom_line.present? ? 2 : 1
       text_row_height = mm(STRIP_24MM_TEXT_ROW_MM)
       text_gap = mm(STRIP_24MM_TEXT_GAP_MM)
@@ -212,22 +238,33 @@ module Things
                    single_line: true,
                    valign: :center
 
-      return if bottom_line.blank?
+      if bottom_line.present?
+        row_top -= text_row_height + text_gap
+        pdf.text_box bottom_line.to_s,
+                     at: [ text_left, row_top ],
+                     width: text_width,
+                     height: text_row_height,
+                     size: font_size,
+                     overflow: :truncate,
+                     single_line: true,
+                     valign: :center,
+                     color: "444444"
+      end
 
-      row_top -= text_row_height + text_gap
-      pdf.text_box bottom_line.to_s,
-                   at: [ text_left, row_top ],
-                   width: text_width,
-                   height: text_row_height,
-                   size: font_size,
-                   overflow: :truncate,
-                   single_line: true,
-                   valign: :center,
-                   color: "444444"
+      return unless ar_anchor_attached?
+
+      anchor_x = page_width - feed_margin - margin - anchor_size
+      draw_ar_anchor(pdf, x: anchor_x, y: margin, size: anchor_size)
     end
 
     def draw_qr_code(pdf, x:, y:, size:)
       pdf.image StringIO.new(qr_png_data(size)), at: [ x, y + size ], width: size, height: size
+    end
+
+    def draw_ar_anchor(pdf, x:, y:, size:)
+      thing.ar_anchor.blob.open do |file|
+        pdf.image file.path, at: [ x, y + size ], width: size, height: size
+      end
     end
 
     def qr_png_data(size_pt)
@@ -295,6 +332,11 @@ module Things
         if subtitle.present? && pdf.cursor > 12
           pdf.move_down 4
           pdf.text subtitle, size: [ title_size(content_width) - 2, 6 ].max, align: :center, color: "666666"
+        end
+
+        if ar_anchor_attached? && content_height > 48
+          anchor_size = [ content_width * 0.35, content_height * 0.25, 72 ].min
+          draw_ar_anchor(pdf, x: (content_width - anchor_size) / 2, y: 0, size: anchor_size)
         end
       end
     end

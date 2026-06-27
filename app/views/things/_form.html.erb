@@ -34,13 +34,19 @@
   <div>
     <div class="h-section-label mb-2">Standard links</div>
     <p class="text-secondary text-13 mb-3">Optional links shared by every thing: Asset, Wiki, Slack, and Where.</p>
-    <div class="row g-3">
+    <div class="vstack gap-2">
       <% thing.standard_links.each do |link| %>
         <%= form.fields_for :links, link do |link_form| %>
           <%= link_form.hidden_field :link_type %>
-          <div class="col-md-6">
-            <%= link_form.label :url, link.display_title, class: "form-label" %>
-            <%= link_form.url_field :url, class: "form-control", placeholder: "https://" %>
+          <div class="row g-2 align-items-end">
+            <div class="col-md-7">
+              <%= link_form.label :url, link.display_title, class: "form-label" %>
+              <%= link_form.url_field :url, class: "form-control", placeholder: "https://" %>
+            </div>
+            <div class="col-md-5">
+              <%= link_form.label :note, "Note", class: "form-label" %>
+              <%= link_form.text_field :note, class: "form-control", placeholder: "Optional" %>
+            </div>
           </div>
         <% end %>
       <% end %>
@@ -67,6 +73,32 @@
       + Add custom link
     </button>
     <p class="text-secondary text-12 mt-2 mb-0">Leave custom link fields blank to omit them.</p>
+  </div>
+
+  <div>
+    <div class="h-section-label mb-2">AR Anchor</div>
+    <p class="text-secondary text-13 mb-3">Optional image marker printed at the end of labels for AR apps.</p>
+    <% if thing.ar_anchor.attached? %>
+      <div class="mb-3">
+        <%= image_tag thing.ar_anchor, class: "img-fluid rounded border border-secondary-subtle", style: "max-height: 120px" %>
+        <% if thing.persisted? %>
+          <div class="mt-2">
+            <%= button_to "Remove AR anchor", ar_anchor_thing_path(thing), method: :delete,
+                          class: "btn btn-outline-danger btn-sm" %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+    <div class="row g-2 align-items-end">
+      <div class="col-md-7">
+        <%= form.label :ar_anchor, "Image", class: "form-label" %>
+        <%= form.file_field :ar_anchor, accept: "image/jpeg,image/png,image/gif,image/webp", class: "form-control" %>
+      </div>
+      <div class="col-md-5">
+        <%= form.label :ar_anchor_note, "Note", class: "form-label" %>
+        <%= form.text_field :ar_anchor_note, class: "form-control", placeholder: "Optional" %>
+      </div>
+    </div>
   </div>
 
   <div>

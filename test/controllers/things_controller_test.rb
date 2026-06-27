@@ -39,6 +39,26 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "button", text: "Duplicate"
   end
 
+  test "show displays standard link notes" do
+    get thing_path(things(:router))
+
+    assert_response :success
+    assert_select ".list-group-item", text: /Asset/
+    assert_select ".list-group-item", text: /Front rack label/
+  end
+
+  test "show displays ar anchor when attached" do
+    attach_ar_anchor(things(:router))
+    things(:router).update!(ar_anchor_note: "Scan from the front")
+
+    get thing_path(things(:router))
+
+    assert_response :success
+    assert_select ".h-section-label", text: "AR Anchor"
+    assert_select "img[src]"
+    assert_select ".text-12", text: "Scan from the front"
+  end
+
   test "label preview shows scaled pdf and print action" do
     get label_preview_thing_path(things(:router), printer_id: printers(:label_printer).id)
 
@@ -195,6 +215,59 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     router = things(:router).reload
     assert_equal "Core Router", router.name
     assert_equal "Moved to rack 3", router.notes
+  end
+
+  test "updates standard link notes" do
+    patch thing_path(things(:router)), params: {
+      thing: {
+        name: things(:router).name,
+        links_attributes: {
+          "0" => {
+            id: thing_links(:router_asset).id,
+            link_type: "asset",
+            url: thing_links(:router_asset).url,
+            note: "Updated rack note"
+          }
+        }
+      }
+    }
+
+    assert_redirected_to thing_path(things(:router))
+    assert_equal "Updated rack note", thing_links(:router_asset).reload.note
+  end
+
+  test "uploads ar anchor with note" do
+    patch thing_path(things(:router)), params: {
+      thing: {
+        name: things(:router).name,
+        ar_anchor: fixture_file_upload("ar_anchor.png", "image/png"),
+        ar_anchor_note: "Marker on front panel"
+      }
+    }
+
+    router = things(:router).reload
+    assert_redirected_to thing_path(router)
+    assert router.ar_anchor.attached?
+    assert_equal "Marker on front panel", router.ar_anchor_note
+  end
+
+  test "purges ar anchor" do
+    attach_ar_anchor(things(:router))
+
+    assert things(:router).ar_anchor.attached?
+
+    delete ar_anchor_thing_path(things(:router))
+
+    assert_redirected_to thing_path(things(:router))
+    assert_not things(:router).reload.ar_anchor.attached?
+  end
+
+  test "edit form includes standard link note fields" do
+    get edit_thing_path(things(:router))
+
+    assert_response :success
+    assert_select "input[name*='[note]']"
+    assert_select "input[name=?]", "thing[ar_anchor_note]"
   end
 
   test "destroys thing" do

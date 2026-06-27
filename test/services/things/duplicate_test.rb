@@ -28,4 +28,20 @@ class Things::DuplicateTest < ActiveSupport::TestCase
     assert_equal things(:keyboard).links_with_urls.size, copy.links_with_urls.size
     assert_nil copy.links.find_by(link_type: :asset)
   end
+
+  test "copies standard link notes" do
+    copy = Things::Duplicate.call(thing: things(:router))
+
+    assert_equal "Front rack label", copy.links.find_by(link_type: :asset).note
+  end
+
+  test "copies ar anchor and note" do
+    attach_ar_anchor(things(:router))
+    things(:router).update!(ar_anchor_note: "Scan marker")
+
+    copy = Things::Duplicate.call(thing: things(:router))
+
+    assert copy.ar_anchor.attached?
+    assert_equal "Scan marker", copy.ar_anchor_note
+  end
 end

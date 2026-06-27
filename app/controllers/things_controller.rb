@@ -1,6 +1,6 @@
 class ThingsController < ApplicationController
-  before_action :require_full_access, only: %i[new create edit update destroy duplicate purge_photo print label_preview]
-  before_action :set_thing, only: %i[show edit update destroy duplicate purge_photo print label_preview]
+  before_action :require_full_access, only: %i[new create edit update destroy duplicate purge_photo purge_ar_anchor print label_preview]
+  before_action :set_thing, only: %i[show edit update destroy duplicate purge_photo purge_ar_anchor print label_preview]
   before_action :load_printers, only: %i[index show label_preview], if: :can_manage_things?
 
   def index
@@ -96,6 +96,11 @@ class ThingsController < ApplicationController
     redirect_to @thing, notice: "Photo was removed."
   end
 
+  def purge_ar_anchor
+    @thing.ar_anchor.purge
+    redirect_to @thing, notice: "AR anchor was removed."
+  end
+
   private
 
   def set_thing
@@ -109,8 +114,10 @@ class ThingsController < ApplicationController
       :notes,
       :owner,
       :ip_address,
+      :ar_anchor_note,
+      :ar_anchor,
       photos: [],
-      links_attributes: %i[id link_type title url position _destroy]
+      links_attributes: %i[id link_type title url note position _destroy]
     )
   end
 

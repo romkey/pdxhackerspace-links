@@ -33,6 +33,15 @@ class ActiveSupport::TestCase
     previous.nil? ? ENV.delete("APP_HOST") : ENV["APP_HOST"] = previous
   end
 
+  def attach_ar_anchor(thing, filename: "ar_anchor.png")
+    thing.ar_anchor.attach(
+      io: file_fixture(filename).open,
+      filename: filename,
+      content_type: "image/png"
+    )
+    thing
+  end
+
   def with_network_whitelist(value)
     previous = ENV["NETWORK_WHITELIST"]
     value.nil? ? ENV.delete("NETWORK_WHITELIST") : ENV["NETWORK_WHITELIST"] = value

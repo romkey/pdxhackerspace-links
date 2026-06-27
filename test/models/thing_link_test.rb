@@ -34,6 +34,12 @@ class ThingLinkTest < ActiveSupport::TestCase
     assert_includes link.errors[:url], "is invalid"
   end
 
+  test "standard link can store optional note" do
+    link = thing_links(:router_asset)
+    assert_equal "Front rack label", link.note
+    assert link.standard_note?
+  end
+
   test "safe_href returns http and https urls only" do
     link = thing_links(:keyboard_wiki)
     assert_equal thing_links(:keyboard_wiki).url, link.safe_href

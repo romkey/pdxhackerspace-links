@@ -40,6 +40,10 @@ class ThingLink < ApplicationRecord
     url.present?
   end
 
+  def standard_note?
+    standard? && note.present?
+  end
+
   def safe_href
     return if url.blank?
 
