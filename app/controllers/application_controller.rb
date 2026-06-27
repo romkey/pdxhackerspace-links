@@ -1,6 +1,4 @@
 class ApplicationController < ActionController::Base
-  allow_browser versions: :modern
-
   before_action :require_login
   before_action :set_sentry_user
 

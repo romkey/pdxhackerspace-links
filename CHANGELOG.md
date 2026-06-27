@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.3.9] - 2026-06-27
+
+### Fixed
+
+- Removed the Rails `allow_browser` gate that returned 406 for Safari versions below 17.2 and other “non-modern” browsers, which blocked QR scans, thing pages, and label preview PDFs in iframes
+- Label previews no longer crash when an AR marker attachment record exists but the file is missing from storage
+- Server compose mounts a persistent volume for Active Storage uploads (photos and AR markers)
+
 ## [v0.3.8] - 2026-06-27
 
 ### Fixed

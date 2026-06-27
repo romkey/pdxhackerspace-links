@@ -186,7 +186,10 @@ module Things
     end
 
     def ar_marker_attached?
-      thing.respond_to?(:ar_anchor) && thing.ar_anchor.attached?
+      return false unless thing.respond_to?(:ar_anchor) && thing.ar_anchor.attached?
+
+      blob = thing.ar_anchor.blob
+      blob.service.exist?(blob.key)
     end
 
     def strip_roll_width_mm
@@ -266,6 +269,10 @@ module Things
       thing.ar_anchor.blob.open do |file|
         pdf.image file.path, at: [ x, y + size ], width: size, height: size
       end
+    rescue ActiveStorage::FileNotFoundError => error
+      Rails.logger.warn("Skipping missing AR marker for thing #{thing.id}: #{error.message}")
+    rescue Prawn::Errors::UnsupportedImageType => error
+      Rails.logger.warn("Skipping unsupported AR marker for thing #{thing.id}: #{error.message}")
     end
 
     def qr_png_data(size_pt)

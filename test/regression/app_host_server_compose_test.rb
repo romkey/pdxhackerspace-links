@@ -14,4 +14,12 @@ class AppHostServerComposeRegressionTest < ActiveSupport::TestCase
       assert_match(/\$\{APP_HOST/, environment.fetch("APP_HOST"))
     end
   end
+
+  test "server compose mounts persistent storage for active storage uploads" do
+    compose = YAML.load_file(COMPOSE_PATH)
+    web = compose.fetch("services").fetch("web")
+
+    assert_includes web.fetch("volumes"), "links_storage:/rails/storage"
+    assert_includes compose.fetch("volumes").keys, "links_storage"
+  end
 end

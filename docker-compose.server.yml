@@ -5,6 +5,8 @@ services:
     image: ${LINKS_IMAGE:-ghcr.io/example/links:latest}
     ports:
       - "3000:80"
+    volumes:
+      - links_storage:/rails/storage
     environment:
       RAILS_ENV: production
       APP_HOST: ${APP_HOST:-http://localhost:3000}
@@ -61,3 +63,6 @@ services:
       SECRET_KEY_BASE: ${SECRET_KEY_BASE:-}
       RAILS_MASTER_KEY: ${RAILS_MASTER_KEY:-}
     restart: "no"
+
+volumes:
+  links_storage:

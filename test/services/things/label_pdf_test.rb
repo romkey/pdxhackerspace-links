@@ -116,6 +116,19 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
     label_pdf&.cleanup!
   end
 
+  test "landscape label skips missing ar marker file without error" do
+    thing = attach_ar_anchor(things(:router))
+    blob = thing.ar_anchor.blob
+    ActiveStorage::Blob.service.delete(blob.key)
+
+    label_pdf = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer))
+
+    assert_nothing_raised { label_pdf.generate }
+    assert_in_delta label_pdf.page_width_mm, Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer)).page_width_mm, 0.1
+  ensure
+    label_pdf&.cleanup!
+  end
+
   private
 
   def assert_qr_visible_in_label_pdf(path, region: :left)
