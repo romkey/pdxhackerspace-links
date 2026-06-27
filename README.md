@@ -5,7 +5,7 @@ A Rails application for managing links. This repository contains the application
 ## Requirements
 
 - Docker and Docker Compose
-- Ruby 3.4.4 (via Docker for local development)
+- Ruby 4.0.5 (via Docker for local development)
 - PostgreSQL 16
 - Redis 8
 - Node.js (for CSS builds; handled in Docker images)
@@ -14,7 +14,7 @@ A Rails application for managing links. This repository contains the application
 
 | Component | Version |
 |-----------|---------|
-| Ruby | 3.4.4 |
+| Ruby | 4.0.5 |
 | Rails | 8.1 |
 | PostgreSQL | 16 |
 | Redis | 8 |

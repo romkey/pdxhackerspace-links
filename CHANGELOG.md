@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.1.6] - 2026-06-26
+
+### Changed
+
+- Ruby 3.4.4 → 4.0.5 across Docker images, CI, and local development
+- Updated gem dependencies, including Puma 8, Sidekiq 8.1.6, and Bundler 4
+
 ## [v0.1.5] - 2026-06-26
 
 ### Added

@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Links Project Conventions
 
-- **Stack:** Rails 8.1, Ruby 3.4.4, PostgreSQL 16, Redis 8, Sidekiq 8
+- **Stack:** Rails 8.1, Ruby 4.0.5, PostgreSQL 16, Redis 8, Sidekiq 8
 - **Frontend:** Bootstrap 5.3 via cssbundling-rails, Stimulus, Turbo, importmap-rails
 - **Auth:** OmniAuth OpenID Connect + optional local account from environment variables
 - **Testing:** Minitest with fixtures, Capybara + Selenium for system tests — write tests for every change and regression tests for every fix

@@ -8,7 +8,7 @@ alwaysApply: false
 
 ## Docker
 
-- **Base image:** `ruby:3.4.4-slim` with multi-stage build
+- **Base image:** `ruby:4.0.5-slim` with multi-stage build
 - **Node:** 24.x for asset compilation in production Dockerfile
 - **Yarn:** Use `yarn install --immutable` in production builds
 - **Assets:** Precompiled with `SECRET_KEY_BASE_DUMMY=1`
