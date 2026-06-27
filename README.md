@@ -221,7 +221,7 @@ Remote printing supports two printer types:
 
 When editing a printer, enter the CUPS server (`hostname:631`) and queue name. Queues are fetched from that server when reachable; use **Test connection** on the printer detail page to verify. **Test print** sends a sample label (same layout as thing labels) even when the printer is disabled.
 
-From a thing’s detail page or the things list, use **Preview** to see the exact label layout, then **Print label** to send it to an enabled printer. On roll and strip printers, labels print in landscape (feed along the long edge) with a trailing margin for feed and cut. The 24mm strip layout uses a full-height QR code on the left, name and owner on the first text row, and IP address on the second when set. When a thing has an **AR Anchor** image, it prints at the end of the label after the QR code and text.
+From a thing’s detail page or the things list, use **Preview** to see the exact label layout, then **Print label** to send it to an enabled printer. On roll and strip printers, labels print in landscape (feed along the long edge) with a trailing margin for feed and cut. The 24mm strip layout uses a full-height QR code on the left, name and owner on the first text row, and IP address on the second when set. When a thing has an **AR Marker** image, it prints at the end of the label after the QR code and text.
 
 Standard links (Asset, Wiki, Slack, Where) can include an optional **Note** shown on the thing page alongside the link.
 

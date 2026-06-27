@@ -126,14 +126,14 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".list-group-item", text: /Front rack label/
   end
 
-  test "show displays ar anchor when attached" do
+  test "show displays ar marker when attached" do
     attach_ar_anchor(things(:router))
     things(:router).update!(ar_anchor_note: "Scan from the front")
 
     get thing_path(things(:router))
 
     assert_response :success
-    assert_select ".h-section-label", text: "AR Anchor"
+    assert_select ".h-section-label", text: "AR Marker"
     assert_select "img[src]"
     assert_select ".text-12", text: "Scan from the front"
   end
@@ -315,7 +315,7 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Updated rack note", thing_links(:router_asset).reload.note
   end
 
-  test "uploads ar anchor with note" do
+  test "uploads ar marker with note" do
     patch thing_path(things(:router)), params: {
       thing: {
         name: things(:router).name,
@@ -330,7 +330,7 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Marker on front panel", router.ar_anchor_note
   end
 
-  test "purges ar anchor" do
+  test "purges ar marker" do
     attach_ar_anchor(things(:router))
 
     assert things(:router).ar_anchor.attached?

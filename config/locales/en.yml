@@ -29,3 +29,8 @@
 
 en:
   hello: "Hello world"
+  activerecord:
+    attributes:
+      thing:
+        ar_anchor: AR marker
+        ar_anchor_note: AR marker note

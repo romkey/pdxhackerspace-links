@@ -89,7 +89,7 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
     assert_not label_pdf.instance_variable_get(:@generated_path)
   end
 
-  test "24mm strip label grows when ar anchor is attached" do
+  test "24mm strip label grows when ar marker is attached" do
     thing = attach_ar_anchor(things(:router))
     pdf = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer))
     margin = Things::LabelPdf::STRIP_24MM_MARGIN_MM
@@ -97,21 +97,21 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
     base_width = (margin + qr + Things::LabelPdf::STRIP_24MM_TEXT_GAP_MM +
                   Things::LabelPdf::STRIP_24MM_TEXT_MIN_WIDTH_MM + margin +
                   Things::LabelPdf::STRIP_24MM_FEED_MARGIN_MM).round
-    anchor_width = Things::LabelPdf::AR_ANCHOR_GAP_MM + qr
+    marker_width = Things::LabelPdf::AR_MARKER_GAP_MM + qr
 
-    assert_equal base_width + anchor_width, pdf.page_width_mm
+    assert_equal base_width + marker_width, pdf.page_width_mm
   ensure
     pdf&.cleanup! if pdf&.instance_variable_get(:@generated_path)
   end
 
-  test "landscape label embeds qr and ar anchor images" do
+  test "landscape label embeds qr and ar marker images" do
     thing = attach_ar_anchor(things(:router))
     label_pdf = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer))
     path = label_pdf.generate
     content = File.binread(path)
     image_count = content.scan("/Subtype /Image").size
 
-    assert_operator image_count, :>=, 2, "expected QR code and AR anchor images in label PDF"
+    assert_operator image_count, :>=, 2, "expected QR code and AR marker images in label PDF"
   ensure
     label_pdf&.cleanup!
   end

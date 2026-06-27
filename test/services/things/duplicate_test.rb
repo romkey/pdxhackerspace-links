@@ -35,7 +35,7 @@ class Things::DuplicateTest < ActiveSupport::TestCase
     assert_equal "Front rack label", copy.links.find_by(link_type: :asset).note
   end
 
-  test "copies ar anchor and note" do
+  test "copies ar marker and note" do
     attach_ar_anchor(things(:router))
     things(:router).update!(ar_anchor_note: "Scan marker")
 

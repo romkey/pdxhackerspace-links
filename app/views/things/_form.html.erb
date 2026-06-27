@@ -76,14 +76,14 @@
   </div>
 
   <div>
-    <div class="h-section-label mb-2">AR Anchor</div>
+    <div class="h-section-label mb-2">AR Marker</div>
     <p class="text-secondary text-13 mb-3">Optional image marker printed at the end of labels for AR apps.</p>
     <% if thing.ar_anchor.attached? %>
       <div class="mb-3">
         <%= image_tag thing.ar_anchor, class: "img-fluid rounded border border-secondary-subtle", style: "max-height: 120px" %>
         <% if thing.persisted? %>
           <div class="mt-2">
-            <%= button_to "Remove AR anchor", ar_anchor_thing_path(thing), method: :delete,
+            <%= button_to "Remove AR marker", ar_anchor_thing_path(thing), method: :delete,
                           class: "btn btn-outline-danger btn-sm" %>
           </div>
         <% end %>
