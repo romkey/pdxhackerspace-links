@@ -87,7 +87,7 @@ class ThingsController < ApplicationController
 
   def duplicate
     copy = Things::Duplicate.call(thing: @thing)
-    redirect_to copy, notice: "Duplicated as “#{copy.name}”."
+    redirect_to edit_thing_path(copy), notice: "Duplicated as “#{copy.name}”."
   end
 
   def purge_photo

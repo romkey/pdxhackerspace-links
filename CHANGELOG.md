@@ -6,10 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.2.1] - 2026-06-26
+
 ### Added
 
 - Optional notes field on things
 - Write NFC on thing pages and index rows when the browser supports WebNFC, writing the thing URL plus JSON metadata to tags
+
+### Changed
+
+- Duplicating a thing opens the copy on its edit page so you can rename and adjust it immediately
+- Thing show page includes a Duplicate button alongside Edit
 
 ## [v0.2.0] - 2026-06-27
 

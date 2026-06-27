@@ -36,6 +36,11 @@
       <div class="d-flex flex-wrap gap-2 justify-content-end">
         <%= render "print_controls", thing: @thing, printers: @printers, align_end: true %>
         <%= render "nfc_write", thing: @thing %>
+        <%= button_to "Duplicate",
+                      duplicate_thing_path(@thing),
+                      method: :post,
+                      class: "btn btn-outline-secondary btn-sm",
+                      form: { class: "d-inline" } %>
         <%= link_to "Edit", edit_thing_path(@thing), class: "btn btn-primary btn-sm" %>
       </div>
     <% end %>

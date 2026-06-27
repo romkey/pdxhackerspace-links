@@ -36,6 +36,7 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "h1", things(:keyboard).name
     assert_select "a[href=?]", thing_links(:keyboard_wiki).url
     assert_select "a[href*=?]", "label_preview"
+    assert_select "button", text: "Duplicate"
   end
 
   test "label preview shows scaled pdf and print action" do
@@ -66,13 +67,13 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "button[aria-label*=Actions]", count: 0
   end
 
-  test "duplicate creates copy and redirects to it" do
+  test "duplicate creates copy and redirects to edit" do
     assert_difference -> { Thing.count }, 1 do
       post duplicate_thing_path(things(:router))
     end
 
     copy = Thing.order(:created_at).last
-    assert_redirected_to thing_path(copy)
+    assert_redirected_to edit_thing_path(copy)
     assert_equal "Router (duplicate)", copy.name
     assert_equal things(:router).links_with_urls.size, copy.links_with_urls.size
     assert_equal "Duplicated as “Router (duplicate)”.", flash[:notice]
