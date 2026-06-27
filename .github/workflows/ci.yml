@@ -31,7 +31,7 @@ jobs:
         with:
           ruby-version: .ruby-version
           bundler-cache: true
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         env:
           DEPENDENCIES_HASH: ${{ hashFiles('.ruby-version', '.rubocop.yml', 'Gemfile.lock') }}
         with:
