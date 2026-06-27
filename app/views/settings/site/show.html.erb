@@ -4,7 +4,12 @@
   <div class="d-flex align-items-end justify-content-between mb-3">
     <div>
       <h1 class="h-page-title mb-0">General</h1>
-      <div class="text-13 text-secondary mt-1">Print server and site-wide options</div>
+      <div class="text-13 text-secondary mt-1">
+        Print server and site-wide options ·
+        <span class="<%= @scan_stats.qr_total.zero? ? 'text-secondary' : 'text-body' %>"><%= @scan_stats.qr_total %></span> QR ·
+        <span class="<%= @scan_stats.nfc_total.zero? ? 'text-secondary' : 'text-body' %>"><%= @scan_stats.nfc_total %></span> NFC ·
+        <span class="<%= @scan_stats.total.zero? ? 'text-secondary' : 'text-body' %>"><%= @scan_stats.total %></span> total scans
+      </div>
     </div>
   </div>
 
@@ -52,4 +57,14 @@
       <%= form.submit "Save settings", class: "btn btn-primary btn-sm" %>
     </div>
   <% end %>
+
+  <div class="mt-4">
+    <div class="h-section-label mb-2">Scan visits</div>
+    <p class="text-secondary text-13 mb-3">
+      Counts increment when a thing page is opened with <code>utm_source=qrcode</code> or <code>utm_source=nfc</code>.
+    </p>
+    <%= render "scan_rankings", title: "By total", things: @scan_stats.by_total %>
+    <%= render "scan_rankings", title: "By QR", things: @scan_stats.by_qr %>
+    <%= render "scan_rankings", title: "By NFC", things: @scan_stats.by_nfc %>
+  </div>
 <% end %>

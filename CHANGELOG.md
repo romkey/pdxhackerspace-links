@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.3.0] - 2026-06-26
+
+### Added
+
+- QR and NFC scan visit counters on things, incremented when a thing page loads with `utm_source=qrcode` or `utm_source=nfc`
+- Scan counts on thing pages and aggregate totals plus ranked thing lists under Site settings
+- Label QR codes and NFC tag URLs include `utm_source=qrcode` or `utm_source=nfc`
+- Single-link things scanned via QR or NFC show a 5-second redirect countdown to that link
+
+### Changed
+
+- Production deploy docs: migrations run automatically on web container startup via `db:prepare`
+
 ## [v0.2.4] - 2026-06-26
 
 ### Added

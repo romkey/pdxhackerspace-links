@@ -39,6 +39,67 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "button", text: "Duplicate"
   end
 
+  test "show with utm_source qrcode and single link shows redirect countdown" do
+    thing = things(:keyboard)
+    thing.links.find_by(link_type: :slack).destroy!
+
+    assert_difference -> { thing.reload.qr_scan_count }, 1 do
+      get thing_path(thing, utm_source: "qrcode")
+    end
+
+    assert_response :success
+    assert_select "[data-controller='redirect-countdown']"
+    assert_select "[data-redirect-countdown-url-value=?]", thing_links(:keyboard_wiki).url
+    assert_select "span[data-redirect-countdown-target='countdown']", text: "5"
+  end
+
+  test "show with utm_source nfc and single link shows redirect countdown" do
+    thing = things(:keyboard)
+    thing.links.find_by(link_type: :slack).destroy!
+
+    assert_difference -> { thing.reload.nfc_scan_count }, 1 do
+      get thing_path(thing, utm_source: "nfc")
+    end
+
+    assert_response :success
+    assert_select "[data-controller='redirect-countdown']"
+  end
+
+  test "show with utm_source qrcode and multiple links does not redirect" do
+    thing = things(:keyboard)
+
+    assert_difference -> { thing.reload.qr_scan_count }, 1 do
+      get thing_path(thing, utm_source: "qrcode")
+    end
+
+    assert_response :success
+    assert_select "[data-controller='redirect-countdown']", count: 0
+  end
+
+  test "show with unknown utm_source does not redirect or increment scans" do
+    thing = things(:keyboard)
+    thing.links.find_by(link_type: :slack).destroy!
+
+    assert_no_difference -> { thing.reload.qr_scan_count } do
+      assert_no_difference -> { thing.nfc_scan_count } do
+        get thing_path(thing, utm_source: "email")
+      end
+    end
+
+    assert_response :success
+    assert_select "[data-controller='redirect-countdown']", count: 0
+  end
+
+  test "show displays scan visit counts" do
+    things(:router).update!(qr_scan_count: 4, nfc_scan_count: 2)
+
+    get thing_path(things(:router))
+
+    assert_response :success
+    assert_select ".h-section-label", text: "Scan visits"
+    assert_select ".text-13", text: /4.*QR.*2.*NFC/m
+  end
+
   test "show displays standard link notes" do
     get thing_path(things(:router))
 

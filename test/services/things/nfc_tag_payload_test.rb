@@ -5,7 +5,7 @@ class Things::NfcTagPayloadTest < ActiveSupport::TestCase
     @original_max_bytes = ENV["NFC_TAG_MAX_BYTES"]
     @thing = things(:router)
     @builder = Things::NfcTagPayload.new(@thing)
-    @url = @builder.send(:thing_url, @thing, **@builder.send(:route_url_options))
+    @url = ThingTracking.thing_url(@thing, utm_source: ThingTracking::NFC)
     @fields = @builder.send(:build_fields, @url)
   end
 
@@ -20,7 +20,7 @@ class Things::NfcTagPayloadTest < ActiveSupport::TestCase
   test "builds url and json for a thing" do
     result = Things::NfcTagPayload.call(@thing)
 
-    assert_match(%r{/things/#{@thing.id}\z}, result.url)
+    assert_match(%r{/things/#{@thing.id}\?utm_source=nfc\z}, result.url)
     payload = JSON.parse(result.json)
     assert_equal result.url, payload["url"]
     assert_equal "Router", payload["name"]
@@ -51,7 +51,7 @@ class Things::NfcTagPayloadTest < ActiveSupport::TestCase
 
     assert result.json_truncated
     assert_equal "Router", payload["name"]
-    assert_match(%r{/things/#{@thing.id}\z}, result.url)
+    assert_match(%r{/things/#{@thing.id}\?utm_source=nfc\z}, result.url)
     assert result.estimated_bytes <= ENV["NFC_TAG_MAX_BYTES"].to_i
   end
 end

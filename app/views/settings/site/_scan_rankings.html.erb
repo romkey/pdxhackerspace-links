@@ -1,0 +1,26 @@
+<%# locals: (title:, things:) %>
+<div class="mb-4">
+  <div class="h-section-label mb-2"><%= title %></div>
+  <div class="table-responsive">
+    <table class="table table-compact align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Thing</th>
+          <th class="text-end">QR</th>
+          <th class="text-end">NFC</th>
+          <th class="text-end">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% things.each do |thing| %>
+          <tr class="clickable-row" data-href="<%= thing_path(thing) %>">
+            <td><%= thing.name %></td>
+            <td class="num <%= thing.qr_scan_count.zero? ? 'text-secondary' : '' %>"><%= thing.qr_scan_count %></td>
+            <td class="num <%= thing.nfc_scan_count.zero? ? 'text-secondary' : '' %>"><%= thing.nfc_scan_count %></td>
+            <td class="num <%= thing.scan_total_count.zero? ? 'text-secondary' : '' %>"><%= thing.scan_total_count %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

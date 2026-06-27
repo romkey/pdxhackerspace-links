@@ -7,8 +7,6 @@ module Things
     DEFAULT_MAX_BYTES = 496
     TRUNCATABLE_FIELDS = %i[description notes name owner].freeze
 
-    include Rails.application.routes.url_helpers
-
     def self.call(thing)
       new(thing).call
     end
@@ -18,7 +16,7 @@ module Things
     end
 
     def call
-      url = thing_url(@thing, **route_url_options)
+      url = ThingTracking.thing_url(@thing, utm_source: ThingTracking::NFC)
       fields = build_fields(url)
       original_fields = fields.dup
 
@@ -85,10 +83,6 @@ module Things
 
     def max_bytes
       ENV.fetch("NFC_TAG_MAX_BYTES", DEFAULT_MAX_BYTES).to_i
-    end
-
-    def route_url_options
-      AppHost.url_options
     end
 
     def estimate_ndef_bytes(url, fields)

@@ -50,6 +50,13 @@ class ThingTest < ActiveSupport::TestCase
     assert_nil things(:keyboard).label_ip_line
   end
 
+  test "scan total count sums qr and nfc counts" do
+    thing = things(:router)
+    thing.update!(qr_scan_count: 4, nfc_scan_count: 2)
+
+    assert_equal 6, thing.scan_total_count
+  end
+
   test "validates ip address format" do
     thing = things(:keyboard)
     thing.ip_address = "not-an-ip"

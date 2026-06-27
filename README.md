@@ -152,9 +152,10 @@ Open PRs into `staging`, not `main`. See `.cursor/rules/deployment-rules.mdc` fo
 Production server (external PostgreSQL):
 
 ```bash
-docker compose -f docker-compose.server.yml --profile tools run --rm migrate
 docker compose -f docker-compose.server.yml up
 ```
+
+Pending migrations run automatically when the web container starts (`bin/docker-entrypoint` calls `db:prepare` before `./bin/rails server`).
 
 Set `DATABASE_URL`, `REDIS_URL`, `LINKS_IMAGE`, and either `SECRET_KEY_BASE` or `RAILS_MASTER_KEY`.
 

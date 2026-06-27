@@ -46,6 +46,16 @@
     <% end %>
   </div>
 
+  <% if @tracked_redirect %>
+    <div class="status-panel status-attention mb-3 text-13"
+         data-controller="redirect-countdown"
+         data-redirect-countdown-url-value="<%= @tracked_redirect[:url] %>"
+         data-redirect-countdown-seconds-value="<%= @tracked_redirect[:seconds] %>">
+      Redirecting to <%= link_to @tracked_redirect[:title], @tracked_redirect[:url], class: "fw-medium" %>
+      in <span data-redirect-countdown-target="countdown"><%= @tracked_redirect[:seconds] %></span> seconds…
+    </div>
+  <% end %>
+
   <div class="row g-4">
     <div class="col-lg-7">
       <div class="h-section-label mb-2">Links</div>
@@ -79,6 +89,16 @@
       <% else %>
         <p class="text-secondary text-13 mb-0">No links added yet.</p>
       <% end %>
+
+      <div class="mt-4">
+        <div class="h-section-label mb-2">Scan visits</div>
+        <div class="text-13">
+          <span class="<%= @thing.qr_scan_count.zero? ? 'text-secondary' : 'text-body' %>"><%= @thing.qr_scan_count %></span>
+          <span class="text-secondary"> QR · </span>
+          <span class="<%= @thing.nfc_scan_count.zero? ? 'text-secondary' : 'text-body' %>"><%= @thing.nfc_scan_count %></span>
+          <span class="text-secondary"> NFC</span>
+        </div>
+      </div>
     </div>
 
     <div class="col-lg-5">

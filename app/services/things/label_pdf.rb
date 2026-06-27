@@ -354,10 +354,9 @@ module Things
     end
 
     def thing_url
-      @qr_url || Rails.application.routes.url_helpers.thing_url(
-        thing,
-        **AppHost.url_options
-      )
+      return @qr_url if @qr_url
+
+      ThingTracking.thing_url(thing, utm_source: ThingTracking::QR_CODE)
     end
 
     def mm_to_pt(value)

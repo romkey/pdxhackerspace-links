@@ -2,6 +2,7 @@ require_relative "boot"
 
 require "rails/all"
 require_relative "../lib/app_host"
+require_relative "../lib/thing_tracking"
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.

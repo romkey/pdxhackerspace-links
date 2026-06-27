@@ -8,7 +8,7 @@ class AppHostLabelUrlsRegressionTest < ActiveSupport::TestCase
       thing = things(:router)
       url = label_pdf_for(thing).send(:thing_url)
 
-      assert_equal "#{REGRESSION_HOST}/things/#{thing.id}", url
+      assert_equal "#{REGRESSION_HOST}/things/#{thing.id}?utm_source=qrcode", url
       assert_not_includes url, "example.com"
     end
   end
@@ -20,7 +20,7 @@ class AppHostLabelUrlsRegressionTest < ActiveSupport::TestCase
         label_pdf_for(thing).send(:qr_png_data, 72)
       end
 
-      assert_equal "#{REGRESSION_HOST}/things/#{thing.id}", encoded_url
+      assert_equal "#{REGRESSION_HOST}/things/#{thing.id}?utm_source=qrcode", encoded_url
       assert_not_includes encoded_url, "example.com"
     end
   end
@@ -30,7 +30,7 @@ class AppHostLabelUrlsRegressionTest < ActiveSupport::TestCase
       thing = things(:router)
       result = Things::NfcTagPayload.call(thing)
 
-      assert_equal "#{REGRESSION_HOST}/things/#{thing.id}", result.url
+      assert_equal "#{REGRESSION_HOST}/things/#{thing.id}?utm_source=nfc", result.url
       assert_not_includes result.url, "example.com"
       assert_equal result.url, JSON.parse(result.json)["url"]
     end

@@ -28,10 +28,10 @@ Use `-f docker-compose.<stack>.yml`; each stack sets a top-level `name:` so volu
 | `docker-compose.server.yml` | Prod/staging-style: external Postgres via `DATABASE_URL`; includes Redis for Sidekiq. |
 
 - **Dev startup:** `bin/docker-entrypoint` runs `bundle install` when gems are missing; `bin/dev` runs `db:prepare db:seed` and clears stale PIDs before starting the server
+- **Production startup:** `bin/docker-entrypoint` runs `db:prepare` before `./bin/rails server` — no separate migrate step on deploy
 - **Tests:** `docker compose -f docker-compose.test.yml run --rm test` — runs `bundle install` before the suite when the cached bundle volume is stale
 - **Lint (quick):** `docker compose -f docker-compose.lint.yml run --rm rubocop`
 - **Lint (build):** `docker compose -f docker-compose.lint.build.yml run --rm rubocop`
-- **Server migrate:** `docker compose -f docker-compose.server.yml --profile tools run --rm migrate`
 
 ## GitHub Actions
 

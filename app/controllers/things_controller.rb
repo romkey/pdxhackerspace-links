@@ -9,6 +9,10 @@ class ThingsController < ApplicationController
   end
 
   def show
+    if ThingTracking.tracked?(params[:utm_source])
+      Things::RecordScan.call(thing: @thing, utm_source: params[:utm_source])
+      prepare_tracked_redirect
+    end
   end
 
   def print
@@ -145,5 +149,19 @@ class ThingsController < ApplicationController
     else
       Things::LabelPdf.new(thing: @thing, printer: printer)
     end
+  end
+
+  def prepare_tracked_redirect
+    links = @thing.links_with_urls
+    return unless links.size == 1
+
+    url = links.first.safe_href
+    return if url.blank?
+
+    @tracked_redirect = {
+      url: url,
+      title: links.first.display_title,
+      seconds: ThingTracking::REDIRECT_SECONDS
+    }
   end
 end

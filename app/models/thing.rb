@@ -56,6 +56,10 @@ class Thing < ApplicationRecord
     ip_address.presence
   end
 
+  def scan_total_count
+    qr_scan_count + nfc_scan_count
+  end
+
   private
 
   def reject_blank_link?(attributes)
