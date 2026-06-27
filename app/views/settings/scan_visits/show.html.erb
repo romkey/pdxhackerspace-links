@@ -1,0 +1,56 @@
+<% content_for :title, "Scan visits" %>
+
+<%= settings_frame do %>
+  <div class="d-flex align-items-end justify-content-between mb-3">
+    <div>
+      <h1 class="h-page-title mb-0">Scan visits</h1>
+      <div class="text-13 text-secondary mt-1">
+        <span class="<%= @scan_stats.qr_total.zero? ? 'text-secondary' : 'text-body' %>"><%= @scan_stats.qr_total %></span> QR ·
+        <span class="<%= @scan_stats.nfc_total.zero? ? 'text-secondary' : 'text-body' %>"><%= @scan_stats.nfc_total %></span> NFC ·
+        <span class="<%= @scan_stats.total.zero? ? 'text-secondary' : 'text-body' %>"><%= @scan_stats.total %></span> total
+      </div>
+    </div>
+  </div>
+
+  <p class="text-secondary text-13 mb-3">
+    Counts increment when a thing page is opened with <code>utm_source=qrcode</code> or <code>utm_source=nfc</code>.
+  </p>
+
+  <div class="table-responsive">
+    <table class="table table-compact table-hover table-scan-visits align-middle mb-0">
+      <colgroup>
+        <col>
+        <col class="col-count">
+        <col class="col-count">
+        <col class="col-count">
+      </colgroup>
+      <thead>
+        <tr>
+          <th><%= scan_visits_sort_link("Thing", "name") %></th>
+          <th class="num"><%= scan_visits_sort_link("QR", "qr") %></th>
+          <th class="num"><%= scan_visits_sort_link("NFC", "nfc") %></th>
+          <th class="num"><%= scan_visits_sort_link("Total", "total") %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @scan_stats.things.each do |thing| %>
+          <tr class="clickable-row" data-href="<%= thing_path(thing) %>">
+            <td class="fw-medium"><%= thing.name %></td>
+            <td class="num <%= thing.qr_scan_count.zero? ? 'text-secondary' : '' %>"><%= thing.qr_scan_count %></td>
+            <td class="num <%= thing.nfc_scan_count.zero? ? 'text-secondary' : '' %>"><%= thing.nfc_scan_count %></td>
+            <td class="num <%= thing.scan_total_count.zero? ? 'text-secondary' : '' %>"><%= thing.scan_total_count %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>
+
+<script>
+  document.querySelectorAll(".clickable-row").forEach((row) => {
+    row.addEventListener("click", (event) => {
+      if (event.target.closest("a, button")) return;
+      window.location = row.dataset.href;
+    });
+  });
+</script>

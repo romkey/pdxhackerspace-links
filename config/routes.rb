@@ -18,6 +18,7 @@ Rails.application.routes.draw do
   namespace :settings do
     root to: "site#show"
     resource :site, only: %i[show update], controller: "site"
+    resource :scan_visits, only: %i[show], controller: "scan_visits"
     resources :printers do
       collection do
         get :cups_queues

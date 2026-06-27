@@ -1,5 +1,6 @@
 <nav class="settings-nav">
   <div class="settings-nav-item settings-nav-heading">Site settings</div>
   <%= link_to "General", settings_site_path, class: settings_nav_class(:site) %>
+  <%= link_to "Scan visits", settings_scan_visits_path, class: settings_nav_class(:scan_visits) %>
   <%= link_to "Printers", settings_printers_path, class: settings_nav_class(:printers) %>
 </nav>

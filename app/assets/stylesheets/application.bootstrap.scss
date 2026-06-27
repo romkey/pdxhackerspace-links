@@ -28,9 +28,28 @@
     color: var(--bs-secondary-color);
   }
 
+  th.num,
+  td.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
   td, th {
     padding: 0.35rem 0.5rem;
   }
+}
+
+.table-scan-visits {
+  table-layout: fixed;
+  width: 100%;
+
+  .col-count {
+    width: 5rem;
+  }
+}
+
+.scan-visits-sort:hover {
+  color: var(--bs-body-color);
 }
 
 .list-compact .list-group-item {

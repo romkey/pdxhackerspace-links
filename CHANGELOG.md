@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.3.1] - 2026-06-26
+
+### Changed
+
+- Scan visit rankings moved to a dedicated Scan visits page under Site settings with one sortable table
+
 ## [v0.3.0] - 2026-06-26
 
 ### Added
@@ -14,10 +20,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Scan counts on thing pages and aggregate totals plus ranked thing lists under Site settings
 - Label QR codes and NFC tag URLs include `utm_source=qrcode` or `utm_source=nfc`
 - Single-link things scanned via QR or NFC show a 5-second redirect countdown to that link
-
-### Changed
-
-- Production deploy docs: migrations run automatically on web container startup via `db:prepare`
 
 ## [v0.2.4] - 2026-06-26
 
