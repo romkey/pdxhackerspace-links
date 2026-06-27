@@ -24,7 +24,7 @@ gem "tzinfo-data", platforms: %i[ windows jruby ]
 
 gem "bootsnap", require: false
 gem "thruster", require: false
-gem "image_processing", "~> 1.2"
+gem "image_processing", "~> 2.0"
 gem "prawn", "~> 2.5"
 gem "rqrcode", "~> 2.2"
 
