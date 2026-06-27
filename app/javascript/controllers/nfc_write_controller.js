@@ -29,7 +29,7 @@ export default class extends Controller {
       await ndef.write({
         records: [
           { recordType: "url", data: this.urlValue },
-          { recordType: "mime", mediaType: "application/json", data: this.jsonValue }
+          { recordType: "mime", mediaType: "application/json", data: this.encodeRecordData(this.jsonValue) }
         ]
       })
 
@@ -42,6 +42,10 @@ export default class extends Controller {
 
   webNfcAvailable() {
     return "NDEFReader" in window
+  }
+
+  encodeRecordData(value) {
+    return new TextEncoder().encode(value)
   }
 
   errorMessage(error) {

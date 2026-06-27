@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.3.3] - 2026-06-26
+
+### Fixed
+
+- NFC tag writes encode JSON metadata as UTF-8 bytes so Web NFC accepts the mime record
+
+### Added
+
+- Regression test guarding NFC write mime record encoding
+
 ## [v0.3.2] - 2026-06-26
 
 ### Fixed
