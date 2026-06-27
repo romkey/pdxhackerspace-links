@@ -87,7 +87,7 @@ class Cups::ClientTest < ActiveSupport::TestCase
     end
 
     error = assert_raises(Cups::Client::Error) do
-      client.print_file(file.path, printer: printer, media: "Custom.24x56mm")
+      client.print_file(file.path, printer: printer, media: "Custom.24x57mm")
     end
     assert_match(/Page margins overlap/i, error.message)
   ensure
@@ -99,9 +99,9 @@ class Cups::ClientTest < ActiveSupport::TestCase
 
     assert_equal "4x6", client.resolve_media(printers(:shipping_printer))
     assert_equal "Custom.62x0mm", client.resolve_media(printers(:brother_printer))
-    assert_equal "Custom.24x56mm", client.resolve_media(
+    assert_equal "Custom.24x57mm", client.resolve_media(
       printers(:label_printer),
-      page_width_mm: 56,
+      page_width_mm: 57,
       page_height_mm: 24
     )
   end

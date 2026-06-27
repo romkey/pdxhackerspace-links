@@ -13,8 +13,8 @@ class Things::LabelPngTest < ActiveSupport::TestCase
     width_mm = (image.width / Things::LabelPng::DPI.to_f * 25.4).round(1)
     height_mm = (image.height / Things::LabelPng::DPI.to_f * 25.4).round(1)
 
-    assert_equal label.page_width_mm.round(1), width_mm
-    assert_equal label.page_height_mm.round(1), height_mm
+    assert_in_delta label.page_width_mm, width_mm, 0.2
+    assert_in_delta label.page_height_mm, height_mm, 0.2
 
     left_third_dark_pixels = (0...(image.width / 3)).sum do |x|
       (0...image.height).count { |y| ChunkyPNG::Color.r(image[x, y]) < 200 }

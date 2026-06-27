@@ -26,7 +26,7 @@ class Things::PrintLabelTest < ActiveSupport::TestCase
     assert_includes lp_args, printer.cups_name
     assert_includes lp_args, "-n"
     assert_includes lp_args, "2"
-    assert_includes lp_args, "media=Custom.62x94mm"
+    assert_includes lp_args, "media=Custom.62x95mm"
     assert_includes lp_args, "print-scaling=none"
   end
 

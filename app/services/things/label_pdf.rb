@@ -164,15 +164,13 @@ module Things
     end
 
     def base_landscape_label_width_mm
-      margin = STRIP_24MM_MARGIN_MM
-      qr = roll_width_mm - (2 * margin)
-      (margin + qr + STRIP_24MM_TEXT_GAP_MM + LANDSCAPE_TEXT_MIN_WIDTH_MM + margin + LANDSCAPE_FEED_MARGIN_MM).round
+      qr = roll_width_mm
+      (qr + STRIP_24MM_TEXT_GAP_MM + LANDSCAPE_TEXT_MIN_WIDTH_MM + STRIP_24MM_MARGIN_MM + LANDSCAPE_FEED_MARGIN_MM).round
     end
 
     def base_strip_24mm_width_mm
-      margin = STRIP_24MM_MARGIN_MM
-      qr = strip_roll_width_mm - (2 * margin)
-      (margin + qr + STRIP_24MM_TEXT_GAP_MM + STRIP_24MM_TEXT_MIN_WIDTH_MM + margin + STRIP_24MM_FEED_MARGIN_MM).round
+      qr = strip_roll_width_mm
+      (qr + STRIP_24MM_TEXT_GAP_MM + STRIP_24MM_TEXT_MIN_WIDTH_MM + STRIP_24MM_MARGIN_MM + STRIP_24MM_FEED_MARGIN_MM).round
     end
 
     def ar_marker_reserved_width_mm
@@ -211,25 +209,23 @@ module Things
     end
 
     def render_landscape_roll_label(pdf, top_line: thing.name, bottom_line: thing.links_with_urls.first&.display_title)
-      margin = mm(STRIP_24MM_MARGIN_MM)
       feed_margin = mm(landscape_feed_margin_mm)
       strip_height = page_height
-      qr_size = strip_height - (2 * margin)
-      qr_bottom = margin
+      qr_size = strip_height
       marker_size = ar_marker_attached? ? strip_height : 0
       marker_gap = ar_marker_attached? ? mm(AR_MARKER_GAP_MM) : 0
       marker_reserved = marker_size + marker_gap
 
-      draw_qr_code(pdf, x: margin, y: qr_bottom, size: qr_size)
+      draw_qr_code(pdf, x: 0, y: 0, size: qr_size)
 
-      text_left = margin + qr_size + mm(STRIP_24MM_TEXT_GAP_MM)
+      text_left = qr_size + mm(STRIP_24MM_TEXT_GAP_MM)
       text_width = page_width - text_left - feed_margin - marker_reserved
-      text_width -= margin unless ar_marker_attached?
+      text_width -= mm(STRIP_24MM_MARGIN_MM) unless ar_marker_attached?
       text_rows = bottom_line.present? ? 2 : 1
       text_row_height = mm(STRIP_24MM_TEXT_ROW_MM)
       text_gap = mm(STRIP_24MM_TEXT_GAP_MM)
       text_block_height = (text_rows * text_row_height) + ((text_rows - 1) * text_gap)
-      row_top = margin + ((strip_height - (2 * margin) - text_block_height) / 2) + text_block_height
+      row_top = ((strip_height - text_block_height) / 2) + text_block_height
       font_size = strip_text_size
 
       pdf.text_box top_line.to_s,

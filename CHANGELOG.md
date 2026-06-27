@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.3.11] - 2026-06-27
+
+### Fixed
+
+- Strip and roll label QR codes now use the full tape height (24 mm on 24 mm strip), matching the documented layout and AR marker sizing
+
 ## [v0.3.10] - 2026-06-27
 
 ### Changed

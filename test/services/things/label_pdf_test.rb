@@ -41,15 +41,56 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
 
   test "24mm strip label is landscape with feed margin along the width" do
     pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer))
-    margin = Things::LabelPdf::STRIP_24MM_MARGIN_MM
-    qr = Things::LabelPdf::STRIP_24MM_ROLL_WIDTH_MM - (2 * margin)
-    expected_width = (margin + qr + Things::LabelPdf::STRIP_24MM_TEXT_GAP_MM +
-                     Things::LabelPdf::STRIP_24MM_TEXT_MIN_WIDTH_MM + margin +
+    qr = Things::LabelPdf::STRIP_24MM_ROLL_WIDTH_MM
+    expected_width = (qr + Things::LabelPdf::STRIP_24MM_TEXT_GAP_MM +
+                     Things::LabelPdf::STRIP_24MM_TEXT_MIN_WIDTH_MM +
+                     Things::LabelPdf::STRIP_24MM_MARGIN_MM +
                      Things::LabelPdf::STRIP_24MM_FEED_MARGIN_MM).round
 
     assert_equal expected_width, pdf.page_width_mm
     assert_equal expected_width, pdf.cups_media[/Custom\.24x(\d+)mm/, 1].to_i
     assert_in_delta 24, pdf.page_height_mm, 0.1
+  end
+
+  test "24mm strip qr code uses full strip height" do
+    label_pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer))
+    path = label_pdf.generate
+    png_path = rasterize_label_pdf(path)
+    image = ChunkyPNG::Image.from_file(png_path)
+    qr_top, qr_bottom = qr_vertical_extent(image, x_range: 0...(image.width / 3))
+
+    assert_operator qr_bottom - qr_top, :>=, (image.height * 0.9).round
+  ensure
+    label_pdf&.cleanup!
+    File.delete(png_path) if png_path && File.exist?(png_path)
+  end
+
+  test "command printer qr code uses full strip height" do
+    label_pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:command_printer))
+    path = label_pdf.generate
+    png_path = rasterize_label_pdf(path)
+    image = ChunkyPNG::Image.from_file(png_path)
+    qr_top, qr_bottom = qr_vertical_extent(image, x_range: 0...(image.width / 3))
+
+    assert_in_delta 24, label_pdf.page_height_mm, 0.1
+    assert_operator qr_bottom - qr_top, :>=, (image.height * 0.9).round
+  ensure
+    label_pdf&.cleanup!
+    File.delete(png_path) if png_path && File.exist?(png_path)
+  end
+
+  test "brother roll qr code uses full roll width height" do
+    label_pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:brother_printer))
+    path = label_pdf.generate
+    png_path = rasterize_label_pdf(path)
+    image = ChunkyPNG::Image.from_file(png_path)
+    qr_top, qr_bottom = qr_vertical_extent(image, x_range: 0...(image.width / 3))
+
+    assert_in_delta 62, label_pdf.page_height_mm, 0.1
+    assert_operator qr_bottom - qr_top, :>=, (image.height * 0.9).round
+  ensure
+    label_pdf&.cleanup!
+    File.delete(png_path) if png_path && File.exist?(png_path)
   end
 
   test "landscape label embeds qr image" do
@@ -92,10 +133,10 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
   test "24mm strip label grows when ar marker is attached" do
     thing = attach_ar_anchor(things(:router))
     pdf = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer))
-    margin = Things::LabelPdf::STRIP_24MM_MARGIN_MM
-    qr = Things::LabelPdf::STRIP_24MM_ROLL_WIDTH_MM - (2 * margin)
-    base_width = (margin + qr + Things::LabelPdf::STRIP_24MM_TEXT_GAP_MM +
-                  Things::LabelPdf::STRIP_24MM_TEXT_MIN_WIDTH_MM + margin +
+    qr = Things::LabelPdf::STRIP_24MM_ROLL_WIDTH_MM
+    base_width = (qr + Things::LabelPdf::STRIP_24MM_TEXT_GAP_MM +
+                  Things::LabelPdf::STRIP_24MM_TEXT_MIN_WIDTH_MM +
+                  Things::LabelPdf::STRIP_24MM_MARGIN_MM +
                   Things::LabelPdf::STRIP_24MM_FEED_MARGIN_MM).round
     marker_width = Things::LabelPdf::AR_MARKER_GAP_MM + Things::LabelPdf::STRIP_24MM_ROLL_WIDTH_MM
 
@@ -170,5 +211,21 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
     end
 
     count
+  end
+
+  def qr_vertical_extent(image, x_range:)
+    top = nil
+    bottom = nil
+
+    x_range.each do |x|
+      image.height.times do |y|
+        next unless ChunkyPNG::Color.r(image[x, y]) < 200
+
+        top = y if top.nil? || y < top
+        bottom = y if bottom.nil? || y > bottom
+      end
+    end
+
+    [ top || 0, bottom || 0 ]
   end
 end
