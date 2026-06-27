@@ -64,6 +64,22 @@ class AppHostLabelUrlsRegressionTest < ActiveSupport::TestCase
     assert_equal custom_url, label_pdf.send(:thing_url)
   end
 
+  test "label qr url updates when APP_HOST changes" do
+    thing = things(:router)
+    label_pdf = label_pdf_for(thing)
+
+    old_url = with_app_host("https://old.regression.test") do
+      label_pdf.send(:thing_url)
+    end
+
+    new_url = with_app_host("https://new.regression.test") do
+      label_pdf.send(:thing_url)
+    end
+
+    assert_equal "https://old.regression.test/things/#{thing.id}?utm_source=qrcode", old_url
+    assert_equal "https://new.regression.test/things/#{thing.id}?utm_source=qrcode", new_url
+  end
+
   private
 
   def label_pdf_for(thing)

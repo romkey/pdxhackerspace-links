@@ -7,6 +7,7 @@ services:
       - "3000:80"
     environment:
       RAILS_ENV: production
+      APP_HOST: ${APP_HOST:-http://localhost:3000}
       CUPS_SERVER: ${CUPS_SERVER:-localhost:631}
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: ${REDIS_URL}
@@ -27,6 +28,7 @@ services:
     command: bundle exec sidekiq
     environment:
       RAILS_ENV: production
+      APP_HOST: ${APP_HOST:-http://localhost:3000}
       CUPS_SERVER: ${CUPS_SERVER:-localhost:631}
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: ${REDIS_URL}

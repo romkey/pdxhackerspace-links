@@ -157,7 +157,9 @@ docker compose -f docker-compose.server.yml up
 
 Pending migrations run automatically when the web container starts (`bin/docker-entrypoint` calls `db:prepare` before `./bin/rails server`).
 
-Set `DATABASE_URL`, `REDIS_URL`, `LINKS_IMAGE`, and either `SECRET_KEY_BASE` or `RAILS_MASTER_KEY`.
+Set `APP_HOST` (public URL for label QR codes, NFC tags, and OIDC redirects), `DATABASE_URL`, `REDIS_URL`, `LINKS_IMAGE`, and either `SECRET_KEY_BASE` or `RAILS_MASTER_KEY`.
+
+After changing `APP_HOST`, recreate the web and Sidekiq containers so they pick up the new value (`docker compose -f docker-compose.server.yml up -d`). Label previews are not cached by the app, but your browser may keep an old preview image until you hard-refresh.
 
 Generate a secret key:
 

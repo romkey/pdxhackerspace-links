@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.3.2] - 2026-06-26
+
+### Fixed
+
+- Production `docker-compose.server.yml` now passes `APP_HOST` into web and Sidekiq containers
+- Label preview PDF/PNG responses send `Cache-Control: no-store` so QR codes refresh after `APP_HOST` changes
+
+### Changed
+
+- Label preview shows the encoded QR URL for verification
+
+### Added
+
+- Regression tests for server compose `APP_HOST`, label preview caching, and runtime `APP_HOST` updates
+
 ## [v0.3.1] - 2026-06-26
 
 ### Changed

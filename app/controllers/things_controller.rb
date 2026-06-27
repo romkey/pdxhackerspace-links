@@ -31,12 +31,14 @@ class ThingsController < ApplicationController
   def label_preview
     @printer = Printer.enabled.find(params[:printer_id])
     @label = label_renderer_for(@printer)
+    @thing_qr_url = ThingTracking.thing_url(@thing, utm_source: ThingTracking::QR_CODE)
 
     respond_to do |format|
       format.html
       format.pdf do
         redirect_to label_preview_thing_path(@thing, printer_id: @printer.id, format: :png), allow_other_host: false if @printer.command?
 
+        prevent_label_preview_caching
         send_data @label.pdf_data,
                   filename: label_preview_filename(@printer, "pdf"),
                   type: "application/pdf",
@@ -45,6 +47,7 @@ class ThingsController < ApplicationController
       format.png do
         redirect_to label_preview_thing_path(@thing, printer_id: @printer.id, format: :pdf), allow_other_host: false unless @printer.command?
 
+        prevent_label_preview_caching
         send_data @label.png_data,
                   filename: label_preview_filename(@printer, "png"),
                   type: "image/png",
@@ -149,6 +152,11 @@ class ThingsController < ApplicationController
     else
       Things::LabelPdf.new(thing: @thing, printer: printer)
     end
+  end
+
+  def prevent_label_preview_caching
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Pragma"] = "no-cache"
   end
 
   def prepare_tracked_redirect
