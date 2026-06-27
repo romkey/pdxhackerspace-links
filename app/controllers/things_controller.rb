@@ -11,8 +11,15 @@ class ThingsController < ApplicationController
   def show
     if ThingTracking.tracked?(params[:utm_source])
       Things::RecordScan.call(thing: @thing, utm_source: params[:utm_source])
-      prepare_tracked_redirect
+      Things::RecordVisit.call(thing: @thing)
+      store_tracked_redirect_in_session
+      session[:skip_visit_count_for] = @thing.id
+      redirect_to thing_path(@thing), status: :see_other
+      return
     end
+
+    Things::RecordVisit.call(thing: @thing) unless skip_visit_count?
+    load_tracked_redirect_from_session
   end
 
   def print
@@ -159,17 +166,34 @@ class ThingsController < ApplicationController
     response.headers["Pragma"] = "no-cache"
   end
 
-  def prepare_tracked_redirect
+  def skip_visit_count?
+    session.delete(:skip_visit_count_for) == @thing.id
+  end
+
+  def store_tracked_redirect_in_session
     links = @thing.links_with_urls
     return unless links.size == 1
 
     url = links.first.safe_href
     return if url.blank?
 
+    session[:thing_tracked_redirect] = {
+      "thing_id" => @thing.id,
+      "url" => url,
+      "title" => links.first.display_title,
+      "seconds" => ThingTracking::REDIRECT_SECONDS
+    }
+  end
+
+  def load_tracked_redirect_from_session
+    payload = session.delete(:thing_tracked_redirect)
+    return unless payload
+    return unless payload["thing_id"] == @thing.id
+
     @tracked_redirect = {
-      url: url,
-      title: links.first.display_title,
-      seconds: ThingTracking::REDIRECT_SECONDS
+      url: payload["url"],
+      title: payload["title"],
+      seconds: payload["seconds"]
     }
   end
 end

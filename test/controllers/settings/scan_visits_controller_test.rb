@@ -3,8 +3,8 @@ require "test_helper"
 class Settings::ScanVisitsControllerTest < ActionDispatch::IntegrationTest
   setup do
     sign_in_as(users(:local_admin))
-    things(:keyboard).update!(qr_scan_count: 3, nfc_scan_count: 1)
-    things(:router).update!(qr_scan_count: 2, nfc_scan_count: 0)
+    things(:keyboard).update!(qr_scan_count: 3, nfc_scan_count: 1, visit_count: 8)
+    things(:router).update!(qr_scan_count: 2, nfc_scan_count: 0, visit_count: 5)
   end
 
   test "show displays scan visit totals and table" do
@@ -12,10 +12,11 @@ class Settings::ScanVisitsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "h1", "Scan visits"
-    assert_select ".text-13", text: /5 QR · 1 NFC · 6 total/
+    assert_select ".text-13", text: /5 QR · 1 NFC · 6 scans · 13 visits/
     assert_select "table.table-scan-visits"
     assert_select "tr.clickable-row", count: Thing.count
     assert_select "tr.clickable-row td.num", text: "3"
+    assert_select "tr.clickable-row td.num", text: "8"
   end
 
   test "sorts by total descending by default" do

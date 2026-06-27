@@ -14,4 +14,8 @@ module ApplicationHelper
   def nfc_tag_payload(thing)
     Things::NfcTagPayload.call(thing)
   end
+
+  def site_setting
+    @site_setting ||= SiteSetting.instance
+  end
 end

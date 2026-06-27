@@ -10,7 +10,7 @@ module Settings
 
     def update
       if @site_setting.update(site_setting_params)
-        redirect_to settings_site_path, notice: "Site settings were updated."
+        redirect_to settings_site_path, notice: "Settings were updated."
       else
         @cups_client = Cups::Client.new(server: @site_setting.cups_server)
         @cups_reachable = @cups_client.reachable?
@@ -26,7 +26,7 @@ module Settings
     end
 
     def site_setting_params
-      params.require(:site_setting).permit(:cups_server)
+      params.require(:site_setting).permit(:cups_server, :matomo_url, :matomo_site_id)
     end
   end
 end

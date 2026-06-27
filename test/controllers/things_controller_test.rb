@@ -47,6 +47,9 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
       get thing_path(thing, utm_source: "qrcode")
     end
 
+    assert_redirected_to thing_path(thing)
+    follow_redirect!
+
     assert_response :success
     assert_select "[data-controller='redirect-countdown']"
     assert_select "[data-redirect-countdown-url-value=?]", thing_links(:keyboard_wiki).url
@@ -61,22 +64,28 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
       get thing_path(thing, utm_source: "nfc")
     end
 
+    assert_redirected_to thing_path(thing)
+    follow_redirect!
+
     assert_response :success
     assert_select "[data-controller='redirect-countdown']"
   end
 
-  test "show with utm_source qrcode and multiple links does not redirect" do
+  test "show with utm_source qrcode and multiple links does not redirect countdown" do
     thing = things(:keyboard)
 
     assert_difference -> { thing.reload.qr_scan_count }, 1 do
       get thing_path(thing, utm_source: "qrcode")
     end
 
+    assert_redirected_to thing_path(thing)
+    follow_redirect!
+
     assert_response :success
     assert_select "[data-controller='redirect-countdown']", count: 0
   end
 
-  test "show with unknown utm_source does not redirect or increment scans" do
+  test "show with unknown utm_source does not increment scans" do
     thing = things(:keyboard)
     thing.links.find_by(link_type: :slack).destroy!
 
@@ -90,14 +99,23 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "[data-controller='redirect-countdown']", count: 0
   end
 
+  test "show increments visit count" do
+    thing = things(:router)
+    thing.update!(visit_count: 0)
+
+    assert_difference -> { thing.reload.visit_count }, 1 do
+      get thing_path(thing)
+    end
+  end
+
   test "show displays scan visit counts" do
-    things(:router).update!(qr_scan_count: 4, nfc_scan_count: 2)
+    things(:router).update!(qr_scan_count: 4, nfc_scan_count: 2, visit_count: 10)
 
     get thing_path(things(:router))
 
     assert_response :success
     assert_select ".h-section-label", text: "Scan visits"
-    assert_select ".text-13", text: /4.*QR.*2.*NFC/m
+    assert_match(/4.*QR.*2.*NFC.*11.*visits/m, response.body)
   end
 
   test "show displays standard link notes" do

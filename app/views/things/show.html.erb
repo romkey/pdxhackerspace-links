@@ -96,7 +96,9 @@
           <span class="<%= @thing.qr_scan_count.zero? ? 'text-secondary' : 'text-body' %>"><%= @thing.qr_scan_count %></span>
           <span class="text-secondary"> QR · </span>
           <span class="<%= @thing.nfc_scan_count.zero? ? 'text-secondary' : 'text-body' %>"><%= @thing.nfc_scan_count %></span>
-          <span class="text-secondary"> NFC</span>
+          <span class="text-secondary"> NFC · </span>
+          <span class="<%= @thing.visit_count.zero? ? 'text-secondary' : 'text-body' %>"><%= @thing.visit_count %></span>
+          <span class="text-secondary"> visits</span>
         </div>
       </div>
     </div>

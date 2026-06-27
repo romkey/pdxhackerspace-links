@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.3.4] - 2026-06-26
+
+### Added
+
+- Optional Matomo analytics tracking configured under Settings → General
+- Per-thing visit counts for every thing page view
+- Visits column and totals on Scan visits settings page
+- Regression tests for server compose `APP_HOST`, label preview caching, runtime `APP_HOST` updates, tracked scan redirects, and Matomo tracking
+
+### Changed
+
+- “Site settings” renamed to “Settings” in the navbar and settings sidebar
+- QR and NFC tag visits redirect to a clean thing URL without `utm_source`, so bookmarks and reloads do not inflate scan counts
+
 ## [v0.3.3] - 2026-06-26
 
 ### Fixed

@@ -208,9 +208,9 @@ Remote printing supports two printer types:
 
 **Command** — renders a PNG label and runs a user-defined shell command. Set `FILENAME` in the command as a placeholder for the saved PNG path (for example, `/usr/local/bin/print-label FILENAME`). Command printers use a configurable label height (strip width in mm) and the same landscape QR + text layout as roll labels.
 
-**Site settings → General** sets the default CUPS server (`CUPS_SERVER` in `.env`, Docker dev default: `host.docker.internal:631`) used when adding new CUPS printers.
+**Settings → General** sets the default CUPS server (`CUPS_SERVER` in `.env`, Docker dev default: `host.docker.internal:631`) used when adding new CUPS printers. Optional Matomo URL and site ID add analytics tracking to every page when both are set.
 
-**Site settings → Printers** registers a printer with either type. CUPS printers need a remote queue with:
+**Settings → Printers** registers a printer with either type. CUPS printers need a remote queue with:
 
 | Category | Examples |
 |----------|----------|

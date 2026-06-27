@@ -7,13 +7,14 @@
       <div class="text-13 text-secondary mt-1">
         <span class="<%= @scan_stats.qr_total.zero? ? 'text-secondary' : 'text-body' %>"><%= @scan_stats.qr_total %></span> QR ·
         <span class="<%= @scan_stats.nfc_total.zero? ? 'text-secondary' : 'text-body' %>"><%= @scan_stats.nfc_total %></span> NFC ·
-        <span class="<%= @scan_stats.total.zero? ? 'text-secondary' : 'text-body' %>"><%= @scan_stats.total %></span> total
+        <span class="<%= @scan_stats.total.zero? ? 'text-secondary' : 'text-body' %>"><%= @scan_stats.total %></span> scans ·
+        <span class="<%= @scan_stats.visit_total.zero? ? 'text-secondary' : 'text-body' %>"><%= @scan_stats.visit_total %></span> visits
       </div>
     </div>
   </div>
 
   <p class="text-secondary text-13 mb-3">
-    Counts increment when a thing page is opened with <code>utm_source=qrcode</code> or <code>utm_source=nfc</code>.
+    QR and NFC counts increment once when a tag is scanned. Visit counts include every thing page view.
   </p>
 
   <div class="table-responsive">
@@ -23,13 +24,15 @@
         <col class="col-count">
         <col class="col-count">
         <col class="col-count">
+        <col class="col-count">
       </colgroup>
       <thead>
         <tr>
           <th><%= scan_visits_sort_link("Thing", "name") %></th>
           <th class="num"><%= scan_visits_sort_link("QR", "qr") %></th>
           <th class="num"><%= scan_visits_sort_link("NFC", "nfc") %></th>
-          <th class="num"><%= scan_visits_sort_link("Total", "total") %></th>
+          <th class="num"><%= scan_visits_sort_link("Scans", "total") %></th>
+          <th class="num"><%= scan_visits_sort_link("Visits", "visits") %></th>
         </tr>
       </thead>
       <tbody>
@@ -39,6 +42,7 @@
             <td class="num <%= thing.qr_scan_count.zero? ? 'text-secondary' : '' %>"><%= thing.qr_scan_count %></td>
             <td class="num <%= thing.nfc_scan_count.zero? ? 'text-secondary' : '' %>"><%= thing.nfc_scan_count %></td>
             <td class="num <%= thing.scan_total_count.zero? ? 'text-secondary' : '' %>"><%= thing.scan_total_count %></td>
+            <td class="num <%= thing.visit_count.zero? ? 'text-secondary' : '' %>"><%= thing.visit_count %></td>
           </tr>
         <% end %>
       </tbody>

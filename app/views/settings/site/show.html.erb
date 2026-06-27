@@ -1,10 +1,10 @@
-<% content_for :title, "Site settings" %>
+<% content_for :title, "Settings" %>
 
 <%= settings_frame do %>
   <div class="d-flex align-items-end justify-content-between mb-3">
     <div>
       <h1 class="h-page-title mb-0">General</h1>
-      <div class="text-13 text-secondary mt-1">Print server and site-wide options</div>
+      <div class="text-13 text-secondary mt-1">Print server, analytics, and site-wide options</div>
     </div>
   </div>
 
@@ -25,6 +25,24 @@
           <%= form.label :cups_server, "CUPS server", class: "form-label" %>
           <%= form.text_field :cups_server, class: "form-control", placeholder: "host.docker.internal:631", required: true %>
           <div class="form-text text-12">Example: <code>192.168.1.10:631</code> or <code>host.docker.internal:631</code></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="h-section-label mb-2">Analytics</div>
+      <p class="text-secondary text-13 mb-3">
+        Optional Matomo tracking code is added to every page when both fields are set.
+      </p>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <%= form.label :matomo_url, "Matomo URL", class: "form-label" %>
+          <%= form.text_field :matomo_url, class: "form-control", placeholder: "https://matomo.example.com/" %>
+          <div class="form-text text-12">Base URL of your Matomo installation.</div>
+        </div>
+        <div class="col-md-3">
+          <%= form.label :matomo_site_id, "Site ID", class: "form-label" %>
+          <%= form.text_field :matomo_site_id, class: "form-control", placeholder: "1", inputmode: "numeric" %>
         </div>
       </div>
     </div>

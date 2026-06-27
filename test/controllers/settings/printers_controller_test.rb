@@ -13,9 +13,9 @@ class Settings::PrintersControllerTest < ActionDispatch::IntegrationTest
     assert_select "td", text: "CUPS"
   end
 
-  test "navbar includes site settings link" do
+  test "navbar includes settings link" do
     get settings_printers_path
-    assert_select "a[href=?]", settings_root_path, text: "Site settings"
+    assert_select "a[href=?]", settings_root_path, text: "Settings"
   end
 
   test "creates remote brother label printer" do

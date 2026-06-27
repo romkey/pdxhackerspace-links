@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_06_27_000004) do
+ActiveRecord::Schema[8.1].define(version: 2025_06_27_000006) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -64,6 +64,8 @@ ActiveRecord::Schema[8.1].define(version: 2025_06_27_000004) do
   create_table "site_settings", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "cups_server", default: "localhost:631", null: false
+    t.string "matomo_site_id"
+    t.string "matomo_url"
     t.datetime "updated_at", null: false
   end
 
@@ -92,6 +94,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_06_27_000004) do
     t.string "owner"
     t.integer "qr_scan_count", default: 0, null: false
     t.datetime "updated_at", null: false
+    t.integer "visit_count", default: 0, null: false
     t.index ["name"], name: "index_things_on_name"
   end
 

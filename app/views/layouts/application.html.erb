@@ -14,6 +14,7 @@
 
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
+    <%= render "shared/matomo_tracking" %>
   </head>
 
   <body class="d-flex flex-column min-vh-100">
@@ -23,7 +24,7 @@
           <%= link_to "Links", root_path, class: "navbar-brand me-0" %>
           <%= link_to "Things", things_path, class: "btn btn-outline-secondary btn-sm" %>
           <% if logged_in? %>
-            <%= link_to "Site settings", settings_root_path, class: "btn btn-outline-secondary btn-sm" %>
+            <%= link_to "Settings", settings_root_path, class: "btn btn-outline-secondary btn-sm" %>
           <% end %>
 
           <%= form_with url: things_path, method: :get, class: "navbar-search flex-grow-1 mx-2", html: { role: "search" } do %>
