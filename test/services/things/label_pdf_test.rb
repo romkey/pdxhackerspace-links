@@ -97,7 +97,7 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
     base_width = (margin + qr + Things::LabelPdf::STRIP_24MM_TEXT_GAP_MM +
                   Things::LabelPdf::STRIP_24MM_TEXT_MIN_WIDTH_MM + margin +
                   Things::LabelPdf::STRIP_24MM_FEED_MARGIN_MM).round
-    marker_width = Things::LabelPdf::AR_MARKER_GAP_MM + qr
+    marker_width = Things::LabelPdf::AR_MARKER_GAP_MM + Things::LabelPdf::STRIP_24MM_ROLL_WIDTH_MM
 
     assert_equal base_width + marker_width, pdf.page_width_mm
   ensure

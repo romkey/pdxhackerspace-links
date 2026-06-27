@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.3.6] - 2026-06-27
+
+### Fixed
+
+- AR markers on strip labels now print at full strip size (24×24 mm on 24 mm tape); marker images already include their own whitespace
+
 ## [v0.3.5] - 2026-06-27
 
 ### Changed

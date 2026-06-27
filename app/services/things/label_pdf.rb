@@ -182,7 +182,7 @@ module Things
     end
 
     def marker_display_size_mm
-      strip_roll_width_mm - (2 * STRIP_24MM_MARGIN_MM)
+      strip_roll_width_mm
     end
 
     def ar_marker_attached?
@@ -213,14 +213,15 @@ module Things
       strip_height = page_height
       qr_size = strip_height - (2 * margin)
       qr_bottom = margin
-      marker_size = ar_marker_attached? ? qr_size : 0
+      marker_size = ar_marker_attached? ? strip_height : 0
       marker_gap = ar_marker_attached? ? mm(AR_MARKER_GAP_MM) : 0
       marker_reserved = marker_size + marker_gap
 
       draw_qr_code(pdf, x: margin, y: qr_bottom, size: qr_size)
 
       text_left = margin + qr_size + mm(STRIP_24MM_TEXT_GAP_MM)
-      text_width = page_width - text_left - margin - feed_margin - marker_reserved
+      text_width = page_width - text_left - feed_margin - marker_reserved
+      text_width -= margin unless ar_marker_attached?
       text_rows = bottom_line.present? ? 2 : 1
       text_row_height = mm(STRIP_24MM_TEXT_ROW_MM)
       text_gap = mm(STRIP_24MM_TEXT_GAP_MM)
@@ -253,8 +254,8 @@ module Things
 
       return unless ar_marker_attached?
 
-      marker_x = page_width - feed_margin - margin - marker_size
-      draw_ar_marker(pdf, x: marker_x, y: margin, size: marker_size)
+      marker_x = page_width - feed_margin - marker_size
+      draw_ar_marker(pdf, x: marker_x, y: 0, size: marker_size)
     end
 
     def draw_qr_code(pdf, x:, y:, size:)
