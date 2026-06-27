@@ -32,7 +32,7 @@ module Things
       runner = command_runner || Printers::RunPrintCommand.method(:call)
 
       copies.times do
-        runner.call(path: path, command: printer.print_command)
+        runner.call(path: path, command: printer.print_command, precut_before: printer.precut_before?)
       end
     ensure
       label_png&.cleanup!

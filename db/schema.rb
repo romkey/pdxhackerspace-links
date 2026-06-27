@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_06_27_000006) do
+ActiveRecord::Schema[8.1].define(version: 2025_06_27_000007) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -51,6 +51,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_06_27_000006) do
     t.integer "label_height_mm"
     t.string "name", null: false
     t.string "page_size"
+    t.boolean "precut_before", default: false, null: false
     t.text "print_command"
     t.string "printer_type", default: "cups", null: false
     t.datetime "updated_at", null: false

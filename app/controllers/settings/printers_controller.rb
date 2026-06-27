@@ -112,6 +112,7 @@ module Settings
         :avery_template,
         :label_height_mm,
         :print_command,
+        :precut_before,
         :description,
         :enabled
       )

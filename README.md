@@ -208,7 +208,7 @@ Remote printing supports two printer types:
 
 **CUPS** — sends PDF labels to a remote queue via `lp`/`lpstat` from Docker. Each printer points at its own CUPS server — Brother label printers, Avery sheet lasers, and receipt printers do not need to share a host.
 
-**Command** — renders a PNG label and runs a user-defined shell command. Set `FILENAME` in the command as a placeholder for the saved PNG path (for example, `/usr/local/bin/print-label FILENAME`). Command printers use a configurable label height (strip width in mm) and the same landscape QR + text layout as roll labels.
+**Command** — renders a PNG label and runs a user-defined shell command. Set `FILENAME` in the command as a placeholder for the saved PNG path (for example, `/usr/local/bin/print-label FILENAME`). Command printers use a configurable label height (strip width in mm) and the same landscape QR + text layout as roll labels. Enable **Cut before label** for ptouch commands to send `--precut` and trim blank feed before each label starts.
 
 **Settings → General** sets the default CUPS server (`CUPS_SERVER` in `.env`, Docker dev default: `host.docker.internal:631`) used when adding new CUPS printers. Optional Matomo URL and site ID add analytics tracking to every page when both are set.
 

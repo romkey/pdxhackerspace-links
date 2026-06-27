@@ -44,7 +44,6 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
     qr = Things::LabelPdf::STRIP_24MM_ROLL_WIDTH_MM
     expected_width = (qr + Things::LabelPdf::STRIP_24MM_TEXT_GAP_MM +
                      Things::LabelPdf::STRIP_24MM_TEXT_MIN_WIDTH_MM +
-                     Things::LabelPdf::STRIP_24MM_MARGIN_MM +
                      Things::LabelPdf::STRIP_24MM_FEED_MARGIN_MM).round
 
     assert_equal expected_width, pdf.page_width_mm
@@ -136,7 +135,6 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
     qr = Things::LabelPdf::STRIP_24MM_ROLL_WIDTH_MM
     base_width = (qr + Things::LabelPdf::STRIP_24MM_TEXT_GAP_MM +
                   Things::LabelPdf::STRIP_24MM_TEXT_MIN_WIDTH_MM +
-                  Things::LabelPdf::STRIP_24MM_MARGIN_MM +
                   Things::LabelPdf::STRIP_24MM_FEED_MARGIN_MM).round
     marker_width = Things::LabelPdf::AR_MARKER_GAP_MM + Things::LabelPdf::STRIP_24MM_ROLL_WIDTH_MM
 

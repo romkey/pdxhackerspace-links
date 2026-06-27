@@ -120,6 +120,13 @@
                               data: { printer_form_target: "printCommand" } %>
           <div class="form-text text-12">Runs under bash. <%= Printer::PRINT_COMMAND_FILENAME %> is replaced with the escaped PNG path.</div>
         </div>
+        <div class="col-12">
+          <div class="form-check">
+            <%= form.check_box :precut_before, class: "form-check-input", data: { printer_form_target: "precutBefore" } %>
+            <%= form.label :precut_before, "Cut before label", class: "form-check-label" %>
+          </div>
+          <div class="form-text text-12">For ptouch commands, adds <code>--precut</code> to trim blank feed before the label starts.</div>
+        </div>
       </div>
     </div>
 

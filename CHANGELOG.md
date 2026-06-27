@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.3.12] - 2026-06-27
+
+### Fixed
+
+- Strip and roll label QR codes fill the tape edge to edge with no layout margins or QR quiet-zone padding
+
+### Added
+
+- Command printers can cut before the label (`--precut` for ptouch) to trim blank feed at the start of each job
+
 ## [v0.3.11] - 2026-06-27
 
 ### Fixed

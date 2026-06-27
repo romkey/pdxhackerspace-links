@@ -96,4 +96,9 @@ class PrinterTest < ActiveSupport::TestCase
     assert_nil printer.cups_server
     assert_nil printer.page_size
   end
+
+  test "precut_before applies only to command printers" do
+    assert printers(:command_printer).precut_before?
+    assert_not printers(:label_printer).precut_before?
+  end
 end

@@ -41,5 +41,6 @@ command_printer:
   printer_type: command
   label_height_mm: 24
   print_command: "/usr/local/bin/print-label FILENAME"
+  precut_before: true
   description: Local script printer
   enabled: true

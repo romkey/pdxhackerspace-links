@@ -9,7 +9,6 @@ module Things
     LETTER_WIDTH = 8.5 * IN_TO_PT
     LETTER_HEIGHT = 11 * IN_TO_PT
     STRIP_24MM_ROLL_WIDTH_MM = 24
-    STRIP_24MM_MARGIN_MM = 1
     STRIP_24MM_TEXT_ROW_MM = 6
     STRIP_24MM_TEXT_GAP_MM = 0.75
     STRIP_24MM_TEXT_MIN_WIDTH_MM = 28
@@ -165,12 +164,12 @@ module Things
 
     def base_landscape_label_width_mm
       qr = roll_width_mm
-      (qr + STRIP_24MM_TEXT_GAP_MM + LANDSCAPE_TEXT_MIN_WIDTH_MM + STRIP_24MM_MARGIN_MM + LANDSCAPE_FEED_MARGIN_MM).round
+      (qr + STRIP_24MM_TEXT_GAP_MM + LANDSCAPE_TEXT_MIN_WIDTH_MM + LANDSCAPE_FEED_MARGIN_MM).round
     end
 
     def base_strip_24mm_width_mm
       qr = strip_roll_width_mm
-      (qr + STRIP_24MM_TEXT_GAP_MM + STRIP_24MM_TEXT_MIN_WIDTH_MM + STRIP_24MM_MARGIN_MM + STRIP_24MM_FEED_MARGIN_MM).round
+      (qr + STRIP_24MM_TEXT_GAP_MM + STRIP_24MM_TEXT_MIN_WIDTH_MM + STRIP_24MM_FEED_MARGIN_MM).round
     end
 
     def ar_marker_reserved_width_mm
@@ -216,11 +215,10 @@ module Things
       marker_gap = ar_marker_attached? ? mm(AR_MARKER_GAP_MM) : 0
       marker_reserved = marker_size + marker_gap
 
-      draw_qr_code(pdf, x: 0, y: 0, size: qr_size)
+      draw_qr_code(pdf, x: 0, y: 0, size: qr_size, border_modules: 0)
 
       text_left = qr_size + mm(STRIP_24MM_TEXT_GAP_MM)
       text_width = page_width - text_left - feed_margin - marker_reserved
-      text_width -= mm(STRIP_24MM_MARGIN_MM) unless ar_marker_attached?
       text_rows = bottom_line.present? ? 2 : 1
       text_row_height = mm(STRIP_24MM_TEXT_ROW_MM)
       text_gap = mm(STRIP_24MM_TEXT_GAP_MM)
@@ -257,8 +255,8 @@ module Things
       draw_ar_marker(pdf, x: marker_x, y: 0, size: marker_size)
     end
 
-    def draw_qr_code(pdf, x:, y:, size:)
-      pdf.image StringIO.new(qr_png_data(size)), at: [ x, y + size ], width: size, height: size
+    def draw_qr_code(pdf, x:, y:, size:, border_modules: 1)
+      pdf.image StringIO.new(qr_png_data(size, border_modules: border_modules)), at: [ x, y + size ], width: size, height: size
     end
 
     def draw_ar_marker(pdf, x:, y:, size:)
@@ -271,7 +269,7 @@ module Things
       Rails.logger.warn("Skipping unsupported AR marker for thing #{thing.id}: #{error.message}")
     end
 
-    def qr_png_data(size_pt)
+    def qr_png_data(size_pt, border_modules: 1)
       pixel_size = [ (size_pt / 72.0 * 300).round, 120 ].max
       RQRCode::QRCode.new(thing_url, level: :l).as_png(
         resize_gte_to: false,
@@ -279,7 +277,7 @@ module Things
         fill: "white",
         color: "black",
         size: pixel_size,
-        border_modules: 1
+        border_modules: border_modules
       ).to_s
     end
 

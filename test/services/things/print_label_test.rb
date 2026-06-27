@@ -26,7 +26,7 @@ class Things::PrintLabelTest < ActiveSupport::TestCase
     assert_includes lp_args, printer.cups_name
     assert_includes lp_args, "-n"
     assert_includes lp_args, "2"
-    assert_includes lp_args, "media=Custom.62x95mm"
+    assert_includes lp_args, "media=Custom.62x94mm"
     assert_includes lp_args, "print-scaling=none"
   end
 
@@ -62,8 +62,8 @@ class Things::PrintLabelTest < ActiveSupport::TestCase
   test "command printer runs print command with generated png" do
     printer = printers(:command_printer)
     captured = []
-    runner = lambda do |path:, command:|
-      captured << { path: path, command: command }
+    runner = lambda do |path:, command:, precut_before: false|
+      captured << { path: path, command: command, precut_before: precut_before }
       assert File.exist?(path)
       assert_equal ".png", File.extname(path)
       assert_equal printer.print_command, command
@@ -78,5 +78,6 @@ class Things::PrintLabelTest < ActiveSupport::TestCase
     )
 
     assert_equal 2, captured.size
+    assert captured.all? { |entry| entry[:precut_before] }
   end
 end

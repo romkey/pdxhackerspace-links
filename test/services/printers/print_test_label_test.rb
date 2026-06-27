@@ -41,8 +41,8 @@ class Printers::PrintTestLabelTest < ActiveSupport::TestCase
   test "command printer submits png via print command" do
     printer = printers(:command_printer)
     captured = []
-    runner = lambda do |path:, command:|
-      captured << { path: path, command: command }
+    runner = lambda do |path:, command:, precut_before: false|
+      captured << { path: path, command: command, precut_before: precut_before }
       assert File.exist?(path)
       assert_equal ".png", File.extname(path)
       assert_equal printer.print_command, command

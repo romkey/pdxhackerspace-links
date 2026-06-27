@@ -208,6 +208,10 @@ class Printer < ApplicationRecord
     continuous_roll?
   end
 
+  def precut_before?
+    command? && precut_before
+  end
+
   def self.default_cups_server
     SiteSetting.instance.cups_server
   end

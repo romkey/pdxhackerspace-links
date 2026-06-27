@@ -58,6 +58,8 @@
           <dd class="col-sm-8"><%= @printer.label_height_mm %> mm</dd>
           <dt class="col-sm-4 text-secondary">Print command</dt>
           <dd class="col-sm-8"><code class="text-12"><%= @printer.print_command %></code></dd>
+          <dt class="col-sm-4 text-secondary">Cut before label</dt>
+          <dd class="col-sm-8"><%= @printer.precut_before? ? "Yes" : "No" %></dd>
         </dl>
       <% end %>
       <dl class="row text-13 mb-0 mt-3">

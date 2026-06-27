@@ -32,7 +32,7 @@ module Printers
       path = label_png.generate
       runner = command_runner || RunPrintCommand.method(:call)
 
-      runner.call(path: path, command: printer.print_command)
+      runner.call(path: path, command: printer.print_command, precut_before: printer.precut_before?)
     ensure
       label_png&.cleanup!
     end
