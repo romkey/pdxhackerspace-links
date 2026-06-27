@@ -1,0 +1,83 @@
+<% content_for :title, "Label preview" %>
+
+<div class="container-fluid py-4">
+  <div class="mb-3">
+    <div class="text-12 text-secondary mb-1">
+      <%= link_to "Things", things_path, class: "text-secondary text-decoration-none" %>
+      <span class="mx-1">/</span>
+      <%= link_to @thing.name, thing_path(@thing), class: "text-secondary text-decoration-none" %>
+      <span class="mx-1">/</span>
+      <span class="text-body">Label preview</span>
+    </div>
+    <div class="d-flex align-items-end justify-content-between">
+      <div>
+        <h1 class="h-page-title mb-0">Label preview</h1>
+        <div class="text-13 text-secondary mt-1">
+          <%= @thing.name %> · <%= @printer.name %>
+          <% if @label.landscape? %>
+            · Landscape · <%= number_with_precision(@label.page_width_mm, precision: 1, strip_insignificant_zeros: true) %>×<%= number_with_precision(@label.page_height_mm, precision: 1, strip_insignificant_zeros: true) %> mm
+          <% else %>
+            · <%= number_with_precision(@label.page_width_mm, precision: 1, strip_insignificant_zeros: true) %>×<%= number_with_precision(@label.page_height_mm, precision: 1, strip_insignificant_zeros: true) %> mm
+          <% end %>
+        </div>
+      </div>
+      <div class="d-flex gap-2">
+        <%= link_to "Back", thing_path(@thing), class: "btn btn-outline-secondary btn-sm" %>
+        <%= button_to "Print label",
+                      print_thing_path(@thing, printer_id: @printer.id),
+                      class: "btn btn-primary btn-sm",
+                      form: { class: "d-inline" } %>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="border border-secondary-subtle rounded bg-body-tertiary p-3">
+        <div class="label-preview-frame mx-auto bg-white border border-secondary-subtle shadow-sm"
+             style="width: min(100%, <%= (@label.page_width_mm * 5).round %>px); aspect-ratio: <%= @label.page_width_mm %> / <%= @label.page_height_mm %>;">
+          <% if @printer.command? %>
+            <%= image_tag label_preview_thing_path(@thing, printer_id: @printer.id, format: :png),
+                          alt: "Label preview for #{@thing.name}",
+                          class: "w-100 h-100 object-fit-contain" %>
+          <% else %>
+            <iframe src="<%= label_preview_thing_path(@thing, printer_id: @printer.id, format: :pdf) %>"
+                    title="Label preview for <%= @thing.name %>"
+                    class="w-100 h-100 border-0"
+                    loading="lazy"></iframe>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="h-section-label mb-2">Layout</div>
+      <dl class="row text-13 mb-4">
+        <dt class="col-sm-5 text-secondary">Format</dt>
+        <dd class="col-sm-7"><%= @printer.command? ? "PNG" : "PDF" %></dd>
+        <dt class="col-sm-5 text-secondary">Orientation</dt>
+        <dd class="col-sm-7"><%= @label.landscape? ? "Landscape (feed left to right)" : "Portrait" %></dd>
+        <dt class="col-sm-5 text-secondary">Label size</dt>
+        <dd class="col-sm-7"><%= number_with_precision(@label.page_width_mm, precision: 1, strip_insignificant_zeros: true) %>×<%= number_with_precision(@label.page_height_mm, precision: 1, strip_insignificant_zeros: true) %> mm</dd>
+        <% if @label.landscape? %>
+          <dt class="col-sm-5 text-secondary">Strip width</dt>
+          <dd class="col-sm-7"><%= number_with_precision(@label.page_height_mm, precision: 1, strip_insignificant_zeros: true) %> mm</dd>
+          <dt class="col-sm-5 text-secondary">Feed + cut</dt>
+          <dd class="col-sm-7"><%= number_with_precision(@printer.command? || @printer.page_size == "label_strip_24mm" ? Things::LabelPdf::STRIP_24MM_FEED_MARGIN_MM : Things::LabelPdf::LANDSCAPE_FEED_MARGIN_MM, precision: 1, strip_insignificant_zeros: true) %> mm trailing margin before cut</dd>
+        <% end %>
+      </dl>
+
+      <div class="h-section-label mb-2">Content</div>
+      <dl class="row text-13 mb-0">
+        <dt class="col-sm-5 text-secondary">Line 1</dt>
+        <dd class="col-sm-7"><%= @thing.label_title_line %></dd>
+        <% if @thing.label_ip_line.present? %>
+          <dt class="col-sm-5 text-secondary">Line 2</dt>
+          <dd class="col-sm-7"><code class="text-12"><%= @thing.label_ip_line %></code></dd>
+        <% end %>
+        <dt class="col-sm-5 text-secondary">QR code</dt>
+        <dd class="col-sm-7 text-secondary">Links to this thing page</dd>
+      </dl>
+    </div>
+  </div>
+</div>

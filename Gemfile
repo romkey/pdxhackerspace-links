@@ -16,12 +16,17 @@ gem "omniauth_openid_connect", "~> 0.8"
 gem "omniauth-rails_csrf_protection"
 gem "redis", "~> 5.4"
 gem "sidekiq", "~> 8.0"
+gem "sentry-ruby"
+gem "sentry-rails"
+gem "sentry-sidekiq"
 
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 
 gem "bootsnap", require: false
 gem "thruster", require: false
 gem "image_processing", "~> 1.2"
+gem "prawn", "~> 2.5"
+gem "rqrcode", "~> 2.2"
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"

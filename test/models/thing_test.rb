@@ -21,10 +21,30 @@ class ThingTest < ActiveSupport::TestCase
     assert_not_includes titles, "Asset"
   end
 
-  test "search matches name, description, and links" do
+  test "label title line includes owner when set" do
+    router = things(:router)
+    assert_equal "Router romkey", router.label_title_line
+    assert_equal "192.168.1.1", router.label_ip_line
+  end
+
+  test "label title line omits blank owner" do
+    assert_equal "Keyboard", things(:keyboard).label_title_line
+    assert_nil things(:keyboard).label_ip_line
+  end
+
+  test "validates ip address format" do
+    thing = things(:keyboard)
+    thing.ip_address = "not-an-ip"
+    assert_not thing.valid?
+    assert_includes thing.errors[:ip_address], "must be a valid IPv4 address"
+  end
+
+  test "search matches name, description, owner, and links" do
     assert_includes Thing.search("keyboard"), things(:keyboard)
     assert_includes Thing.search("network"), things(:router)
     assert_includes Thing.search("Manual"), things(:router)
+    assert_includes Thing.search("romkey"), things(:router)
+    assert_includes Thing.search("192.168.1.1"), things(:router)
     assert_not_includes Thing.search("keyboard"), things(:router)
     assert_equal Thing.count, Thing.search("").count
   end

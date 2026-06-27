@@ -24,4 +24,38 @@ class ActiveSupport::TestCase
       value.nil? ? ENV.delete(key) : ENV[key] = value
     end
   end
+
+  def with_fake_cups_client(server: "cups.example.com:631", fail_print: false, &block)
+    runner = lambda do |*_args|
+      case _args[1]
+      when "lp"
+        if fail_print
+          [ "", "lp: unable to connect", Struct.new(:success?).new(false) ]
+        else
+          [ "request id is Test-1 (1 file(s))\n", "", Struct.new(:success?).new(true) ]
+        end
+      when "lpstat"
+        [ "", "", Struct.new(:success?).new(true) ]
+      else
+        [ "", "", Struct.new(:success?).new(false) ]
+      end
+    end
+    client = Cups::Client.new(server: server, runner: runner)
+    patches = [
+      [ Things::PrintLabel, :call ],
+      [ Printers::PrintTestLabel, :call ]
+    ].map do |klass, method_name|
+      original = klass.method(method_name)
+      klass.define_singleton_method(method_name) do |**kwargs|
+        original.call(**kwargs, cups_client: kwargs.fetch(:cups_client, client))
+      end
+      [ klass, method_name, original ]
+    end
+
+    yield client
+  ensure
+    patches&.each do |klass, method_name, original|
+      klass.define_singleton_method(method_name, original)
+    end
+  end
 end

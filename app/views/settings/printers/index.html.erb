@@ -20,7 +20,8 @@
         <thead>
           <tr>
             <th>Name</th>
-            <th>CUPS queue</th>
+            <th>Type</th>
+            <th>Connection</th>
             <th>Page size</th>
             <th>Status</th>
             <th></th>
@@ -30,13 +31,29 @@
           <% @printers.each do |printer| %>
             <tr class="clickable-row" data-href="<%= settings_printer_path(printer) %>">
               <td class="fw-medium"><%= printer.name %></td>
-              <td class="text-secondary"><%= printer.cups_name %></td>
-              <td class="text-secondary"><%= printer.page_size_label %></td>
+              <td class="text-secondary"><%= printer.printer_type_label %></td>
+              <td class="text-secondary text-12">
+                <% if printer.cups? %>
+                  <%= printer.cups_name %> @ <%= printer.cups_server %>
+                <% else %>
+                  <code class="text-12"><%= truncate(printer.print_command, length: 48) %></code>
+                <% end %>
+              </td>
+              <td class="text-secondary">
+                <% if printer.cups? %>
+                  <%= printer.page_size_label %>
+                  <% if printer.avery_template.present? %>
+                    <span class="text-12"> · <%= printer.avery_template_label %></span>
+                  <% end %>
+                <% else %>
+                  <%= printer.label_height_mm %> mm strip
+                <% end %>
+              </td>
               <td>
                 <% if printer.enabled? %>
                   <span class="status-dot status-success" title="Enabled"></span>
                 <% else %>
-                  <span class="text-bg-secondary-subtle badge"><%= "Disabled" %></span>
+                  <span class="text-bg-secondary-subtle badge">Disabled</span>
                 <% end %>
               </td>
               <td class="text-end">
@@ -48,7 +65,7 @@
       </table>
     </div>
   <% else %>
-    <p class="text-secondary text-13 mb-0">No printers yet. Add one to get started.</p>
+    <p class="text-secondary text-13 mb-0">No printers yet. Add a CUPS queue or a command printer that runs a script on generated PNG labels.</p>
   <% end %>
 <% end %>
 

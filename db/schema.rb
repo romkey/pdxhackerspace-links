@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_06_07_000002) do
+ActiveRecord::Schema[8.1].define(version: 2025_06_25_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -42,16 +42,23 @@ ActiveRecord::Schema[8.1].define(version: 2025_06_07_000002) do
   end
 
   create_table "printers", force: :cascade do |t|
+    t.string "avery_template"
     t.datetime "created_at", null: false
-    t.string "cups_name", null: false
+    t.string "cups_name"
+    t.string "cups_server"
     t.text "description"
     t.boolean "enabled", default: true, null: false
+    t.integer "label_height_mm"
     t.string "name", null: false
-    t.string "page_size", null: false
+    t.string "page_size"
+    t.text "print_command"
+    t.string "printer_type", default: "cups", null: false
     t.datetime "updated_at", null: false
-    t.index ["cups_name"], name: "index_printers_on_cups_name", unique: true
+    t.index ["cups_server", "cups_name"], name: "index_printers_on_cups_server_and_cups_name", unique: true
+    t.index ["cups_server"], name: "index_printers_on_cups_server"
     t.index ["enabled"], name: "index_printers_on_enabled"
     t.index ["name"], name: "index_printers_on_name"
+    t.index ["printer_type"], name: "index_printers_on_printer_type"
   end
 
   create_table "site_settings", force: :cascade do |t|
@@ -76,7 +83,9 @@ ActiveRecord::Schema[8.1].define(version: 2025_06_07_000002) do
   create_table "things", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "description"
+    t.string "ip_address"
     t.string "name", null: false
+    t.string "owner"
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_things_on_name"
   end

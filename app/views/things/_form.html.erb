@@ -12,6 +12,14 @@
         <%= form.label :name, class: "form-label" %>
         <%= form.text_field :name, class: "form-control", required: true %>
       </div>
+      <div class="col-md-6">
+        <%= form.label :owner, class: "form-label" %>
+        <%= form.text_field :owner, class: "form-control", placeholder: "Optional" %>
+      </div>
+      <div class="col-md-6">
+        <%= form.label :ip_address, "IP address", class: "form-label" %>
+        <%= form.text_field :ip_address, class: "form-control", placeholder: "192.168.1.10" %>
+      </div>
       <div class="col-12">
         <%= form.label :description, class: "form-label" %>
         <%= form.text_area :description, class: "form-control", rows: 4 %>

@@ -9,11 +9,25 @@
         <span class="text-body"><%= @thing.name %></span>
       </div>
       <h1 class="h-page-title mb-0"><%= @thing.name %></h1>
+      <% if @thing.owner.present? || @thing.ip_address.present? %>
+        <div class="text-13 text-secondary mt-1">
+          <% if @thing.owner.present? %>
+            <span><%= @thing.owner %></span>
+          <% end %>
+          <% if @thing.owner.present? && @thing.ip_address.present? %>
+            <span class="mx-1">·</span>
+          <% end %>
+          <% if @thing.ip_address.present? %>
+            <code class="text-12"><%= @thing.ip_address %></code>
+          <% end %>
+        </div>
+      <% end %>
       <% if @thing.description.present? %>
         <div class="text-13 text-secondary mt-2"><%= simple_format(@thing.description) %></div>
       <% end %>
     </div>
     <div class="d-flex gap-2">
+      <%= render "print_controls", thing: @thing, printers: @printers, align_end: true %>
       <%= link_to "Edit", edit_thing_path(@thing), class: "btn btn-primary btn-sm" %>
     </div>
   </div>

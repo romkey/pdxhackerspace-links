@@ -36,7 +36,34 @@
               <td class="num text-secondary"><%= thing.links_with_urls.size %></td>
               <td class="num text-secondary"><%= thing.photos.count %></td>
               <td class="text-end">
-                <%= link_to "Edit", edit_thing_path(thing), class: "btn btn-outline-secondary btn-sm" %>
+                <div class="dropdown">
+                  <button type="button"
+                          class="btn btn-outline-secondary btn-sm"
+                          data-bs-toggle="dropdown"
+                          aria-expanded="false"
+                          aria-label="Actions for <%= thing.name %>">
+                    <i class="bi bi-three-dots"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><%= link_to "Edit", edit_thing_path(thing), class: "dropdown-item" %></li>
+                    <% if @printers.any? %>
+                      <li><hr class="dropdown-divider"></li>
+                      <% @printers.each do |printer| %>
+                        <li>
+                          <%= link_to "Preview on #{printer.name}",
+                                      label_preview_thing_path(thing, printer_id: printer.id),
+                                      class: "dropdown-item" %>
+                        </li>
+                        <li>
+                          <%= button_to "Print on #{printer.name}",
+                                        print_thing_path(thing, printer_id: printer.id),
+                                        class: "dropdown-item",
+                                        form: { class: "d-inline" } %>
+                        </li>
+                      <% end %>
+                    <% end %>
+                  </ul>
+                </div>
               </td>
             </tr>
           <% end %>

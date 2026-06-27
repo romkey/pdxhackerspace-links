@@ -5,6 +5,8 @@ class Thing < ApplicationRecord
   accepts_nested_attributes_for :links, allow_destroy: true, reject_if: :reject_blank_link?
 
   validates :name, presence: true
+  validates :ip_address, format: { with: /\A(?:\d{1,3}\.){3}\d{1,3}\z/, allow_blank: true,
+                                   message: "must be a valid IPv4 address" }
   validate :acceptable_photos
 
   scope :search, lambda { |query|
@@ -13,7 +15,7 @@ class Thing < ApplicationRecord
 
     pattern = "%#{sanitize_sql_like(term)}%"
     left_joins(:links).where(
-      "things.name ILIKE :q OR things.description ILIKE :q OR thing_links.title ILIKE :q OR thing_links.url ILIKE :q",
+      "things.name ILIKE :q OR things.description ILIKE :q OR things.owner ILIKE :q OR things.ip_address ILIKE :q OR thing_links.title ILIKE :q OR thing_links.url ILIKE :q",
       q: pattern
     ).distinct
   }
@@ -36,6 +38,14 @@ class Thing < ApplicationRecord
 
   def links_with_urls
     links.select(&:present_link?).sort_by { |link| [ link.standard? ? 0 : 1, link.position || 0, link.display_title ] }
+  end
+
+  def label_title_line
+    [ name, owner.presence ].compact.join(" ")
+  end
+
+  def label_ip_line
+    ip_address.presence
   end
 
   private

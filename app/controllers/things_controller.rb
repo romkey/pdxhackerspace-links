@@ -1,5 +1,6 @@
 class ThingsController < ApplicationController
-  before_action :set_thing, only: %i[show edit update destroy purge_photo]
+  before_action :set_thing, only: %i[show edit update destroy purge_photo print label_preview]
+  before_action :load_printers, only: %i[index show label_preview]
 
   def index
     @search_query = params[:q].to_s.strip.presence
@@ -7,6 +8,46 @@ class ThingsController < ApplicationController
   end
 
   def show
+  end
+
+  def print
+    printer = Printer.enabled.find(params[:printer_id])
+    copies = params[:copies].to_i
+    copies = 1 if copies < 1
+
+    Things::PrintLabel.call(thing: @thing, printer: printer, copies: copies)
+    redirect_back_or_to thing_path(@thing), notice: "Sent “#{@thing.name}” to #{printer.name}."
+  rescue ActiveRecord::RecordNotFound
+    redirect_back_or_to thing_path(@thing), alert: "Printer not found or disabled."
+  rescue Cups::Client::Error, Printers::CommandError => error
+    redirect_back_or_to thing_path(@thing), alert: error.message
+  end
+
+  def label_preview
+    @printer = Printer.enabled.find(params[:printer_id])
+    @label = label_renderer_for(@printer)
+
+    respond_to do |format|
+      format.html
+      format.pdf do
+        redirect_to label_preview_thing_path(@thing, printer_id: @printer.id, format: :png), allow_other_host: false if @printer.command?
+
+        send_data @label.pdf_data,
+                  filename: label_preview_filename(@printer, "pdf"),
+                  type: "application/pdf",
+                  disposition: "inline"
+      end
+      format.png do
+        redirect_to label_preview_thing_path(@thing, printer_id: @printer.id, format: :pdf), allow_other_host: false unless @printer.command?
+
+        send_data @label.png_data,
+                  filename: label_preview_filename(@printer, "png"),
+                  type: "image/png",
+                  disposition: "inline"
+      end
+    end
+  rescue ActiveRecord::RecordNotFound
+    redirect_back_or_to thing_path(@thing), alert: "Printer not found or disabled."
   end
 
   def new
@@ -59,6 +100,8 @@ class ThingsController < ApplicationController
     params.require(:thing).permit(
       :name,
       :description,
+      :owner,
+      :ip_address,
       photos: [],
       links_attributes: %i[id link_type title url position _destroy]
     )
@@ -72,5 +115,21 @@ class ThingsController < ApplicationController
     return if @thing.links.any?(&:link_custom?)
 
     @thing.links.build(link_type: :custom, position: next_custom_link_position)
+  end
+
+  def load_printers
+    @printers = Printer.enabled.ordered
+  end
+
+  def label_preview_filename(printer, extension)
+    "#{@thing.name.parameterize}-#{printer.name.parameterize}.#{extension}"
+  end
+
+  def label_renderer_for(printer)
+    if printer.command?
+      Things::LabelPng.new(thing: @thing, printer: printer)
+    else
+      Things::LabelPdf.new(thing: @thing, printer: printer)
+    end
   end
 end

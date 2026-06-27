@@ -2,6 +2,7 @@ class ApplicationController < ActionController::Base
   allow_browser versions: :modern
 
   before_action :require_login
+  before_action :set_sentry_user
 
   helper_method :current_user, :logged_in?, :oidc_login_available?, :local_login_available?
 
@@ -29,5 +30,15 @@ class ApplicationController < ActionController::Base
 
   def local_login_available?
     User.local_auth_configured?
+  end
+
+  def set_sentry_user
+    return unless Links::SentryConfig.enabled?
+
+    if logged_in?
+      Sentry.set_user(id: current_user.id.to_s, username: current_user.name)
+    else
+      Sentry.set_user({})
+    end
   end
 end

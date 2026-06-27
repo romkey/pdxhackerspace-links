@@ -45,6 +45,7 @@ services:
       RAILS_ENV: development
     volumes:
       - .:/rails
+      - ./apps:/apps
       - bundle_cache:/usr/local/bundle
       - node_modules:/rails/node_modules
     depends_on:
@@ -67,6 +68,7 @@ services:
       RAILS_ENV: development
     volumes:
       - .:/rails
+      - ./apps:/apps
       - bundle_cache:/usr/local/bundle
     depends_on:
       web:

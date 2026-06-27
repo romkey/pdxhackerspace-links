@@ -12,6 +12,9 @@ services:
       REDIS_URL: ${REDIS_URL}
       RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
       APP_VERSION: ${APP_VERSION:-dev}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-production}
+      SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0}
     depends_on:
       redis:
         condition: service_healthy
@@ -26,6 +29,9 @@ services:
       REDIS_URL: ${REDIS_URL}
       RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
       APP_VERSION: ${APP_VERSION:-dev}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-production}
+      SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0}
     depends_on:
       redis:
         condition: service_healthy

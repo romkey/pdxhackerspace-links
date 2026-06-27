@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- Sentry error monitoring for production and staging, including Sidekiq job failures, release tracking via `APP_VERSION`, and signed-in user context
+- Command printers that render PNG labels and invoke a user-defined shell command with `FILENAME` replaced by the saved file path
+- Per-printer remote CUPS servers so Brother label printers, office lasers, and receipt printers can live on different hosts
+- Brother label page sizes (12mm–102mm continuous and 62×100mm die-cut) with matching CUPS media options
+- Avery sheet templates for letter-size laser and inkjet printers (5160, 5161, 5163, 5164, 5260, 5520, 8460)
+- CUPS queue discovery per server when adding a printer, plus connection test on the printer detail page
+- Test print on the printer detail page to verify label layout and CUPS submission
+- Print label buttons on thing pages, sending a name and QR code label to an enabled printer via CUPS
+- Thing owner and IP address fields, used on 24mm strip labels with a large QR code and two text rows
+
+### Fixed
+
+- Label printing no longer sends `fit-to-page` to CUPS, which caused “Page margins overlap” on roll and strip printers; jobs now use `print-scaling=none` with explicit media height for continuous stock
+- Roll and strip labels print in landscape with a trailing feed margin; PDF page size now matches the CUPS `media`/`PageSize` options exactly
+- Label preview page shows the exact PDF layout before printing
+- Removed unsupported default CUPS options (`Cut=EveryPage`, `orientation-requested=4`) that could stall jobs; use `CUPS_LABEL_OPTIONS` when your queue supports them
+- Docker dev and test stacks run `bundle install` automatically when `Gemfile.lock` changes instead of failing with missing gems
+
+### Changed
+
+- CUPS queue names are unique per server instead of globally
+- Site settings CUPS server is now the default for new printers only
+
 ## [v0.1.4] - 2026-06-10
 
 ### Fixed

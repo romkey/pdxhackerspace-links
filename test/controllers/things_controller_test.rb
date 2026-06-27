@@ -35,6 +35,47 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h1", things(:keyboard).name
     assert_select "a[href=?]", thing_links(:keyboard_wiki).url
+    assert_select "a[href*=?]", "label_preview"
+  end
+
+  test "label preview shows scaled pdf and print action" do
+    get label_preview_thing_path(things(:router), printer_id: printers(:label_printer).id)
+
+    assert_response :success
+    assert_select "h1", "Label preview"
+    assert_select "iframe[src=?]", label_preview_thing_path(things(:router), printer_id: printers(:label_printer).id, format: :pdf)
+    assert_select "button", text: /Print label/
+  end
+
+  test "label preview pdf format returns inline pdf" do
+    get label_preview_thing_path(things(:router), printer_id: printers(:label_printer).id, format: :pdf)
+
+    assert_response :success
+    assert_equal "application/pdf", response.media_type
+    assert response.body.start_with?("%PDF")
+    assert_match(/inline/, response.headers["Content-Disposition"])
+  end
+
+  test "index includes print actions when printers are enabled" do
+    get things_path
+    assert_response :success
+    assert_select "button", text: /Print on #{printers(:brother_printer).name}/
+  end
+
+  test "print sends label to selected printer" do
+    with_fake_cups_client do
+      post print_thing_path(things(:keyboard)), params: { printer_id: printers(:brother_printer).id }
+    end
+
+    assert_redirected_to thing_path(things(:keyboard))
+    assert_equal "Sent “#{things(:keyboard).name}” to #{printers(:brother_printer).name}.", flash[:notice]
+  end
+
+  test "print rejects disabled printer" do
+    post print_thing_path(things(:keyboard)), params: { printer_id: printers(:receipt_printer).id }
+
+    assert_redirected_to thing_path(things(:keyboard))
+    assert_equal "Printer not found or disabled.", flash[:alert]
   end
 
   test "creates thing with standard and custom links" do

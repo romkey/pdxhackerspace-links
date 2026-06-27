@@ -1,0 +1,41 @@
+<% return if printers.empty? %>
+
+<% label = local_assigns.fetch(:label, "Print label") %>
+<% preview_label = local_assigns.fetch(:preview_label, "Preview") %>
+<% button_class = local_assigns.fetch(:button_class, "btn btn-outline-secondary btn-sm") %>
+<% form_class = local_assigns.fetch(:form_class, "d-inline") %>
+<% align_end = local_assigns.fetch(:align_end, false) %>
+
+<% if printers.one? %>
+  <%= link_to preview_label,
+              label_preview_thing_path(thing, printer_id: printers.first.id),
+              class: button_class %>
+  <%= button_to label,
+                print_thing_path(thing, printer_id: printers.first.id),
+                class: button_class,
+                form: { class: form_class } %>
+<% else %>
+  <div class="dropdown">
+    <button type="button"
+            class="<%= button_class %> dropdown-toggle"
+            data-bs-toggle="dropdown"
+            aria-expanded="false">
+      <%= label %>
+    </button>
+    <ul class="dropdown-menu <%= "dropdown-menu-end" if align_end %>">
+      <% printers.each do |printer| %>
+        <li>
+          <%= link_to "Preview on #{printer.name}",
+                      label_preview_thing_path(thing, printer_id: printer.id),
+                      class: "dropdown-item" %>
+        </li>
+        <li>
+          <%= button_to "Print on #{printer.name}",
+                        print_thing_path(thing, printer_id: printer.id),
+                        class: "dropdown-item",
+                        form: { class: "d-inline" } %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

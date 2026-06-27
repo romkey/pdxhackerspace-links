@@ -1,24 +1,45 @@
 label_printer:
   name: Label printer
+  cups_server: cups.example.com:631
   cups_name: DYMO_LabelWriter
   page_size: label_strip_24mm
   description: Front desk label printer
   enabled: true
 
+brother_printer:
+  name: Brother QL workshop
+  cups_server: 192.168.1.20:631
+  cups_name: Brother_QL_820NWB
+  page_size: label_brother_62mm
+  description: Brother QL-820NWB on workshop PC
+  enabled: true
+
 shipping_printer:
   name: Shipping station
+  cups_server: cups.example.com:631
   cups_name: Zebra_ZP450
   page_size: label_4x6
   enabled: true
 
 office_laser:
   name: Office laser
+  cups_server: 192.168.1.10:631
   cups_name: HP_LaserJet
   page_size: letter
+  avery_template: avery_5160
   enabled: true
 
 receipt_printer:
   name: POS receipt
+  cups_server: pos.example.com:631
   cups_name: Epson_TM-T88
   page_size: receipt_80mm
   enabled: false
+
+command_printer:
+  name: Script label printer
+  printer_type: command
+  label_height_mm: 24
+  print_command: "/usr/local/bin/print-label FILENAME"
+  description: Local script printer
+  enabled: true

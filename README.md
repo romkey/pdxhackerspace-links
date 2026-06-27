@@ -37,7 +37,7 @@ A Rails application for managing links. This repository contains the application
    docker compose -f docker-compose.dev.yml up --build
    ```
 
-   The web service creates the database if needed, runs migrations, and seeds the local account on every startup.
+   The web service installs any missing gems, creates the database if needed, runs migrations, and seeds the local account on every startup.
 
 5. Open [http://localhost:3000](http://localhost:3000) and sign in with the credentials from `.env`.
 
@@ -124,6 +124,18 @@ docker compose -f docker-compose.server.yml up
 
 Set `DATABASE_URL`, `REDIS_URL`, `RAILS_MASTER_KEY`, and `LINKS_IMAGE`.
 
+### Error monitoring
+
+Set `SENTRY_DSN` on production and staging to enable [Sentry](https://sentry.io) error reporting. The SDK is inactive in development and test unless a DSN is set, and only runs in the `production` and `staging` Rails environments.
+
+| Variable | Purpose |
+|----------|---------|
+| `SENTRY_DSN` | Project DSN from Sentry |
+| `SENTRY_ENVIRONMENT` | Override environment name (default: `RAILS_ENV`) |
+| `SENTRY_TRACES_SAMPLE_RATE` | Performance tracing sample rate, 0–1 (default: `0`) |
+
+Release versions are tagged automatically from `APP_VERSION`. Signed-in users are attached to events by ID. Sidekiq job failures are reported via `sentry-sidekiq`.
+
 ## Architecture
 
 ```
@@ -134,29 +146,39 @@ app/
   views/         # Bootstrap 5.3 templates
   jobs/          # ActiveJob → Sidekiq
 config/
-  initializers/  # Sidekiq, OmniAuth, version
-lib/links/       # Version helper
+  initializers/  # Sidekiq, OmniAuth, Sentry, version
+lib/links/       # Version and Sentry configuration helpers
 test/            # Minitest suite
 ```
 
 ### Things
 
-Each **Thing** has a name, optional description, optional standard links (Asset, Wiki, Slack, Where), optional custom links with titles, and one or more photos (Active Storage).
+Each **Thing** has a name, optional description, optional owner, optional IP address, optional standard links (Asset, Wiki, Slack, Where), optional custom links with titles, and one or more photos (Active Storage).
 
 ### Printing
 
-**Site settings → General** configures the CUPS print server (`CUPS_SERVER`, hostname:port). Docker images include `cups-client` (`lp`, `lpstat`) for submitting jobs to a remote CUPS server.
+Remote printing supports two printer types:
 
-**Site settings → Printers** registers queues with a page size:
+**CUPS** — sends PDF labels to a remote queue via `lp`/`lpstat` from Docker. Each printer points at its own CUPS server — Brother label printers, Avery sheet lasers, and receipt printers do not need to share a host.
 
-| Page size | Use |
-|-----------|-----|
-| 24mm label strip | Continuous narrow label printers |
-| 4×6" label | Shipping and parcel labels |
-| Letter | Laser and inkjet office printers |
-| 80mm receipt | Thermal POS receipt printers |
+**Command** — renders a PNG label and runs a user-defined shell command. Set `FILENAME` in the command as a placeholder for the saved PNG path (for example, `/usr/local/bin/print-label FILENAME`). Command printers use a configurable label height (strip width in mm) and the same landscape QR + text layout as roll labels.
 
-Set `CUPS_SERVER` in `.env` (default in Docker dev: `host.docker.internal:631`) to reach a CUPS server on your host or network. Queues discovered on the server appear when adding a printer.
+**Site settings → General** sets the default CUPS server (`CUPS_SERVER` in `.env`, Docker dev default: `host.docker.internal:631`) used when adding new CUPS printers.
+
+**Site settings → Printers** registers a printer with either type. CUPS printers need a remote queue with:
+
+| Category | Examples |
+|----------|----------|
+| Brother label | 12mm–102mm continuous rolls, 62×100mm die-cut (QL series) |
+| Label | 24mm strip, 4×6" shipping |
+| Letter | US letter laser/inkjet, optional Avery templates (5160, 5163, …) |
+| Receipt | 80mm thermal |
+
+When editing a printer, enter the CUPS server (`hostname:631`) and queue name. Queues are fetched from that server when reachable; use **Test connection** on the printer detail page to verify. **Test print** sends a sample label (same layout as thing labels) even when the printer is disabled.
+
+From a thing’s detail page or the things list, use **Preview** to see the exact label layout, then **Print label** to send it to an enabled printer. On roll and strip printers, labels print in landscape (feed along the long edge) with a trailing margin for feed and cut. The 24mm strip layout uses a full-height QR code on the left, name and owner on the first text row, and IP address on the second when set.
+
+If a label queue supports auto-cut (Brother QL, some DYMO drivers), set `CUPS_LABEL_OPTIONS=Cut=EveryPage` in `.env`. If CUPS shows “waiting for job to complete” but nothing prints, check `/var/log/cups/error_log` on the print server for filter errors. Queues added via IPP/DNS-SD sometimes never release jobs even when printing works — switching the queue connection to AppSocket/JetDirect (`socket://printer:9100`) often fixes that.
 
 ## Changelog
 
