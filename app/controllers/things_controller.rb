@@ -112,7 +112,7 @@ class ThingsController < ApplicationController
 
   def purge_ar_anchor
     @thing.ar_anchor.purge
-    redirect_to @thing, notice: "AR marker was removed."
+    redirect_back_or_to @thing, notice: "AR marker was removed."
   end
 
   private

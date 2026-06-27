@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.3.7] - 2026-06-27
+
+### Fixed
+
+- Thing edit form no longer nests delete buttons inside the save form, so AR marker removal and file uploads work reliably
+
 ## [v0.3.6] - 2026-06-27
 
 ### Fixed

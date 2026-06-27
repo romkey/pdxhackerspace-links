@@ -1,4 +1,4 @@
-<%= form_with model: thing, class: "vstack gap-4" do |form| %>
+<%= form_with model: thing, class: "vstack gap-4", html: { multipart: true } do |form| %>
   <% if thing.errors.any? %>
     <div class="alert alert-danger text-13">
       <%= thing.errors.full_messages.to_sentence %>
@@ -83,8 +83,9 @@
         <%= image_tag thing.ar_anchor, class: "img-fluid rounded border border-secondary-subtle", style: "max-height: 120px" %>
         <% if thing.persisted? %>
           <div class="mt-2">
-            <%= button_to "Remove AR marker", ar_anchor_thing_path(thing), method: :delete,
-                          class: "btn btn-outline-danger btn-sm" %>
+            <%= link_to "Remove AR marker", ar_anchor_thing_path(thing),
+                        class: "btn btn-outline-danger btn-sm",
+                        data: { turbo_method: :delete, turbo_confirm: "Remove AR marker?" } %>
           </div>
         <% end %>
       </div>
@@ -110,8 +111,9 @@
             <%= image_tag photo, class: "img-fluid rounded border border-secondary-subtle w-100" %>
             <% if thing.persisted? %>
               <div class="mt-1">
-                <%= button_to "Remove", photo_thing_path(thing, photo), method: :delete,
-                              class: "btn btn-outline-danger btn-sm w-100" %>
+                <%= link_to "Remove", photo_thing_path(thing, photo),
+                            class: "btn btn-outline-danger btn-sm w-100",
+                            data: { turbo_method: :delete, turbo_confirm: "Remove this photo?" } %>
               </div>
             <% end %>
           </div>
@@ -126,8 +128,9 @@
     <%= form.submit class: "btn btn-primary btn-sm" %>
     <%= link_to "Cancel", thing.persisted? ? thing_path(thing) : things_path, class: "btn btn-outline-secondary btn-sm" %>
     <% if thing.persisted? %>
-      <%= button_to "Delete", thing_path(thing), method: :delete, class: "btn btn-outline-danger btn-sm",
-                    form: { data: { turbo_confirm: "Delete #{thing.name}?" } } %>
+      <%= link_to "Delete", thing_path(thing),
+                  class: "btn btn-outline-danger btn-sm",
+                  data: { turbo_method: :delete, turbo_confirm: "Delete #{thing.name}?" } %>
     <% end %>
   </div>
 <% end %>
