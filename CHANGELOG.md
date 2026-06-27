@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.3.10] - 2026-06-27
+
+### Changed
+
+- Docker images include libusb for USB command-based label printing
+
 ## [v0.3.9] - 2026-06-27
 
 ### Fixed

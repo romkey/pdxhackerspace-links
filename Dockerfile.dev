@@ -7,7 +7,7 @@ FROM ruby:${RUBY_VERSION}-slim
 WORKDIR /rails
 
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential curl cups-client git libpq-dev libpoppler-glib8 poppler-utils libyaml-dev pkg-config python-is-python3 && \
+    apt-get install --no-install-recommends -y build-essential curl cups-client git libpq-dev libpoppler-glib8 libusb-1.0-0 poppler-utils libyaml-dev pkg-config python-is-python3 && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 ARG NODE_VERSION
