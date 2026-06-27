@@ -25,6 +25,14 @@ class ActiveSupport::TestCase
     end
   end
 
+  def with_app_host(app_host)
+    previous = ENV["APP_HOST"]
+    ENV["APP_HOST"] = app_host
+    yield
+  ensure
+    previous.nil? ? ENV.delete("APP_HOST") : ENV["APP_HOST"] = previous
+  end
+
   def with_network_whitelist(value)
     previous = ENV["NETWORK_WHITELIST"]
     value.nil? ? ENV.delete("NETWORK_WHITELIST") : ENV["NETWORK_WHITELIST"] = value

@@ -59,6 +59,7 @@ The account is created/updated on `db:seed`.
 
 Set in `.env`:
 
+- `APP_HOST` — public URL of this app (e.g. `https://links.example.com`). Used for OIDC redirects, label QR codes, and NFC tag URLs.
 - `OIDC_ISSUER`
 - `OIDC_CLIENT_ID`
 - `OIDC_CLIENT_SECRET`

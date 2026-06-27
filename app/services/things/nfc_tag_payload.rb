@@ -88,7 +88,7 @@ module Things
     end
 
     def route_url_options
-      Rails.application.config.action_mailer.default_url_options.symbolize_keys
+      AppHost.url_options
     end
 
     def estimate_ndef_bytes(url, fields)

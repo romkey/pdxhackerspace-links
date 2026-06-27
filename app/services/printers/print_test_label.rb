@@ -2,9 +2,7 @@ module Printers
   class PrintTestLabel
     def self.call(printer:, cups_client: nil, command_runner: nil)
       thing = TestLabel.for_printer(printer)
-      qr_url = Rails.application.routes.url_helpers.root_url(
-        **Rails.application.config.action_mailer.default_url_options
-      )
+      qr_url = Rails.application.routes.url_helpers.root_url(**AppHost.url_options)
 
       if printer.command?
         print_via_command(thing: thing, printer: printer, qr_url: qr_url, command_runner: command_runner)

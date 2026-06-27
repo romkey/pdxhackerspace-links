@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.2.3] - 2026-06-26
+
+### Fixed
+
+- Label QR codes and NFC tag URLs now use `APP_HOST` instead of the Rails default `example.com` host
+
+### Added
+
+- Regression tests for label QR codes, NFC tag URLs, and printer test labels using `APP_HOST`
+
 ## [v0.2.2] - 2026-06-26
 
 ### Changed

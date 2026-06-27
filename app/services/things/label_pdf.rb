@@ -314,7 +314,7 @@ module Things
     def thing_url
       @qr_url || Rails.application.routes.url_helpers.thing_url(
         thing,
-        **Rails.application.config.action_mailer.default_url_options
+        **AppHost.url_options
       )
     end
 
