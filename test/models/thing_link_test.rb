@@ -4,6 +4,9 @@ class ThingLinkTest < ActiveSupport::TestCase
   test "standard link display title comes from type" do
     link = thing_links(:keyboard_wiki)
     assert_equal "Wiki", link.display_title
+
+    ar_link = ThingLink.new(link_type: :ar)
+    assert_equal "AR", ar_link.display_title
   end
 
   test "custom link requires title and url" do
@@ -21,6 +24,14 @@ class ThingLinkTest < ActiveSupport::TestCase
 
     assert_not link.valid?
     assert_includes link.errors[:link_type], "has already been taken"
+
+    ar_link = ThingLink.new(
+      thing: things(:router),
+      link_type: :ar,
+      url: "https://example.com/ar"
+    )
+
+    assert ar_link.valid?
   end
 
   test "validates url format when present" do

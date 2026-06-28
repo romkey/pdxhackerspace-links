@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.3.13] - 2026-06-27
+
+### Added
+
+- AR as a standard link type on things, alongside Asset, Wiki, Slack, and Where
+
 ## [v0.3.12] - 2026-06-27
 
 ### Fixed

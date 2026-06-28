@@ -205,7 +205,8 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
             "1" => { link_type: "wiki", url: "" },
             "2" => { link_type: "slack", url: "" },
             "3" => { link_type: "where", url: "" },
-            "4" => { link_type: "custom", title: "Support", url: "https://example.com/support", position: 0 }
+            "4" => { link_type: "ar", url: "" },
+            "5" => { link_type: "custom", title: "Support", url: "https://example.com/support", position: 0 }
           }
         }
       }
@@ -227,8 +228,9 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
           "1" => { link_type: "wiki", url: "" },
           "2" => { link_type: "slack", url: "" },
           "3" => { link_type: "where", url: "" },
-          "4" => { link_type: "custom", title: "Support", url: "https://example.com/support" },
-          "5" => { link_type: "custom", title: "Drivers", url: "https://example.com/drivers" }
+          "4" => { link_type: "ar", url: "" },
+          "5" => { link_type: "custom", title: "Support", url: "https://example.com/support" },
+          "6" => { link_type: "custom", title: "Drivers", url: "https://example.com/drivers" }
         }
       }
     }
