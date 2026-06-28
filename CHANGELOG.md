@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.3.14] - 2026-06-27
+
+### Changed
+
+- Updated rqrcode to 3.2.0 for faster QR code generation and rendering
+
 ## [v0.3.13] - 2026-06-27
 
 ### Added
