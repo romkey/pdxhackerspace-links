@@ -1,4 +1,7 @@
 class Thing < ApplicationRecord
+  IPV4_REGEX = /\A(?:\d{1,3}\.){3}\d{1,3}\z/
+  HOSTNAME_REGEX = /\A(?=.{1,253}\z)(?!-)[a-zA-Z0-9-]{1,63}(?<!-)(?:\.(?!-)[a-zA-Z0-9-]{1,63}(?<!-))*\z/
+
   has_many :links, class_name: "ThingLink", dependent: :destroy, inverse_of: :thing
   has_many_attached :photos
   has_one_attached :ar_anchor
@@ -6,8 +9,7 @@ class Thing < ApplicationRecord
   accepts_nested_attributes_for :links, allow_destroy: true, reject_if: :reject_blank_link?
 
   validates :name, presence: true
-  validates :ip_address, format: { with: /\A(?:\d{1,3}\.){3}\d{1,3}\z/, allow_blank: true,
-                                   message: "must be a valid IPv4 address" }
+  validate :ip_address_or_hostname
   validate :acceptable_photos
   validate :acceptable_ar_anchor
 
@@ -61,6 +63,15 @@ class Thing < ApplicationRecord
   end
 
   private
+
+  def ip_address_or_hostname
+    value = ip_address.to_s.strip
+    return if value.blank?
+    return if value.match?(IPV4_REGEX)
+    return if value.match?(HOSTNAME_REGEX)
+
+    errors.add(:ip_address, "must be a valid IPv4 address or hostname")
+  end
 
   def reject_blank_link?(attributes)
     attributes["note"].blank? && attributes["url"].blank? && attributes["title"].blank?

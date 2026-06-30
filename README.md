@@ -200,7 +200,7 @@ test/            # Minitest suite
 
 ### Things
 
-Each **Thing** has a name, optional description, optional owner, optional IP address, optional standard links (Asset, Wiki, Slack, Where, AR), optional custom links with titles, and one or more photos (Active Storage).
+Each **Thing** has a name, optional description, optional owner, optional IP address or hostname, optional standard links (Asset, Wiki, Slack, Where, AR), optional custom links with titles, and one or more photos (Active Storage).
 
 ### Printing
 

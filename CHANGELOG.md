@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.3.15] - 2026-06-29
+
+### Changed
+
+- The thing IP address field now accepts a hostname or fully qualified domain name as well as an IPv4 address, and is labeled "IP address / Hostname"
+
 ## [v0.3.14] - 2026-06-27
 
 ### Changed

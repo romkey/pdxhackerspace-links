@@ -57,11 +57,41 @@ class ThingTest < ActiveSupport::TestCase
     assert_equal 6, thing.scan_total_count
   end
 
-  test "validates ip address format" do
+  test "accepts a valid IPv4 address" do
     thing = things(:keyboard)
-    thing.ip_address = "not-an-ip"
+    thing.ip_address = "10.0.0.1"
+    assert thing.valid?
+  end
+
+  test "accepts a hostname" do
+    thing = things(:keyboard)
+    thing.ip_address = "router.local"
+    assert thing.valid?
+  end
+
+  test "accepts a single-label hostname" do
+    thing = things(:keyboard)
+    thing.ip_address = "router"
+    assert thing.valid?
+  end
+
+  test "accepts a fully qualified domain name" do
+    thing = things(:keyboard)
+    thing.ip_address = "host.example.com"
+    assert thing.valid?
+  end
+
+  test "allows a blank ip address or hostname" do
+    thing = things(:keyboard)
+    thing.ip_address = ""
+    assert thing.valid?
+  end
+
+  test "rejects an invalid ip address or hostname" do
+    thing = things(:keyboard)
+    thing.ip_address = "not a host!"
     assert_not thing.valid?
-    assert_includes thing.errors[:ip_address], "must be a valid IPv4 address"
+    assert_includes thing.errors[:ip_address], "must be a valid IPv4 address or hostname"
   end
 
   test "search matches name, description, owner, notes, and links" do
