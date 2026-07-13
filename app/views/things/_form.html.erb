@@ -20,6 +20,11 @@
         <%= form.label :ip_address, "IP address / Hostname", class: "form-label" %>
         <%= form.text_field :ip_address, class: "form-control", placeholder: "192.168.1.10 or host.example.com" %>
       </div>
+      <div class="col-md-6">
+        <%= form.label :ble_beacon_uuid, "BLE beacon UUID", class: "form-label" %>
+        <%= form.text_field :ble_beacon_uuid, class: "form-control", placeholder: "fda50693-f4c2-4a1b-8fb9-9d9458836f36" %>
+        <div class="form-text text-12">Optional iBeacon UUID for lookup at /things/by_beacon/&lt;uuid&gt;</div>
+      </div>
       <div class="col-12">
         <%= form.label :description, class: "form-label" %>
         <%= form.text_area :description, class: "form-control", rows: 4 %>

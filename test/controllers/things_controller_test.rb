@@ -39,6 +39,47 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "button", text: "Duplicate"
   end
 
+  test "show displays ble beacon uuid when set" do
+    get thing_path(things(:router))
+    assert_response :success
+    assert_select "code", text: things(:router).ble_beacon_uuid
+  end
+
+  test "by_beacon redirects to thing show page" do
+    get by_beacon_things_path(ble_beacon_uuid: things(:router).ble_beacon_uuid)
+    assert_redirected_to thing_path(things(:router))
+    follow_redirect!
+    assert_response :success
+    assert_select "h1", things(:router).name
+  end
+
+  test "by_beacon accepts uppercase uuid" do
+    get by_beacon_things_path(ble_beacon_uuid: things(:router).ble_beacon_uuid.upcase)
+    assert_redirected_to thing_path(things(:router))
+  end
+
+  test "by_beacon returns not found for unknown uuid" do
+    get by_beacon_things_path(ble_beacon_uuid: "00000000-0000-0000-0000-000000000000")
+    assert_response :not_found
+  end
+
+  test "by_beacon requires authentication for private thing" do
+    delete logout_path
+
+    get by_beacon_things_path(ble_beacon_uuid: things(:router).ble_beacon_uuid)
+    assert_redirected_to login_path
+  end
+
+  test "by_beacon allows public thing without authentication" do
+    delete logout_path
+    things(:keyboard).update!(ble_beacon_uuid: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
+
+    with_network_whitelist(nil) do
+      get by_beacon_things_path(ble_beacon_uuid: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
+      assert_redirected_to thing_path(things(:keyboard))
+    end
+  end
+
   test "show with utm_source qrcode and single link shows redirect countdown" do
     thing = things(:keyboard)
     thing.links.find_by(link_type: :slack).destroy!
@@ -286,6 +327,7 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
       thing: {
         name: "Core Router",
         notes: "Moved to rack 3",
+        ble_beacon_uuid: "12345678-1234-1234-1234-123456789abc",
         links_attributes: {
           "0" => { id: thing_links(:router_asset).id, link_type: "asset", url: thing_links(:router_asset).url }
         }
@@ -296,6 +338,7 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     router = things(:router).reload
     assert_equal "Core Router", router.name
     assert_equal "Moved to rack 3", router.notes
+    assert_equal "12345678-1234-1234-1234-123456789abc", router.ble_beacon_uuid
   end
 
   test "updates standard link notes" do

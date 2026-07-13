@@ -44,4 +44,10 @@ class Things::DuplicateTest < ActiveSupport::TestCase
     assert copy.ar_anchor.attached?
     assert_equal "Scan marker", copy.ar_anchor_note
   end
+
+  test "does not copy ble beacon uuid" do
+    copy = Things::Duplicate.call(thing: things(:router))
+
+    assert_nil copy.ble_beacon_uuid
+  end
 end

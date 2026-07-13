@@ -101,8 +101,36 @@ class ThingTest < ActiveSupport::TestCase
     assert_includes Thing.search("romkey"), things(:router)
     assert_includes Thing.search("192.168.1.1"), things(:router)
     assert_includes Thing.search("front of shelf"), things(:router)
+    assert_includes Thing.search("fda50693-f4c2-4a1b-8fb9-9d9458836f36"), things(:router)
     assert_not_includes Thing.search("keyboard"), things(:router)
     assert_equal Thing.count, Thing.search("").count
+  end
+
+  test "allows blank ble beacon uuid" do
+    thing = things(:keyboard)
+    thing.ble_beacon_uuid = ""
+    assert thing.valid?
+  end
+
+  test "normalizes ble beacon uuid to lowercase" do
+    thing = things(:keyboard)
+    thing.ble_beacon_uuid = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE"
+    assert thing.valid?
+    assert_equal "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee", thing.ble_beacon_uuid
+  end
+
+  test "rejects invalid ble beacon uuid" do
+    thing = things(:keyboard)
+    thing.ble_beacon_uuid = "not-a-uuid"
+    assert_not thing.valid?
+    assert_includes thing.errors[:ble_beacon_uuid], "must be a valid UUID"
+  end
+
+  test "requires unique ble beacon uuid" do
+    thing = things(:keyboard)
+    thing.ble_beacon_uuid = things(:router).ble_beacon_uuid
+    assert_not thing.valid?
+    assert_includes thing.errors[:ble_beacon_uuid], "has already been taken"
   end
 
   test "assigns positions to custom links on save" do

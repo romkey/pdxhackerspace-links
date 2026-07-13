@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_07_13_000001) do
+ActiveRecord::Schema[8.1].define(version: 2025_07_13_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -86,6 +86,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_07_13_000001) do
 
   create_table "things", force: :cascade do |t|
     t.text "ar_anchor_note"
+    t.string "ble_beacon_uuid"
     t.datetime "created_at", null: false
     t.text "description"
     t.string "ip_address"
@@ -97,6 +98,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_07_13_000001) do
     t.integer "qr_scan_count", default: 0, null: false
     t.datetime "updated_at", null: false
     t.integer "visit_count", default: 0, null: false
+    t.index ["ble_beacon_uuid"], name: "index_things_on_ble_beacon_uuid", unique: true, where: "(ble_beacon_uuid IS NOT NULL)"
     t.index ["name"], name: "index_things_on_name"
   end
 

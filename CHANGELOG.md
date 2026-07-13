@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.4.1] - 2026-07-13
+
+### Added
+
+- Optional BLE beacon UUID on things, searchable in the things list and resolvable at `/things/by_beacon/<uuid>`
+
 ## [v0.4.0] - 2026-07-13
 
 ### Added

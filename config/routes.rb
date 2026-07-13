@@ -6,6 +6,10 @@ Rails.application.routes.draw do
   root "things#index"
 
   resources :things do
+    collection do
+      get "by_beacon/:ble_beacon_uuid", action: :by_beacon, as: :by_beacon
+    end
+
     member do
       delete "photos/:photo_id", to: "things#purge_photo", as: :photo
       delete :ar_anchor, to: "things#purge_ar_anchor"

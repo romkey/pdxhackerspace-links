@@ -1,8 +1,9 @@
 class ThingsController < ApplicationController
-  skip_before_action :require_login, only: :show
+  skip_before_action :require_login, only: %i[show by_beacon]
   before_action :require_full_access, only: %i[new create edit update destroy duplicate purge_photo purge_ar_anchor print label_preview]
   before_action :set_thing, only: %i[show edit update destroy duplicate purge_photo purge_ar_anchor print label_preview]
-  before_action :require_login_or_public_thing, only: :show
+  before_action :set_thing_by_beacon, only: :by_beacon
+  before_action :require_login_or_public_thing, only: %i[show by_beacon]
   before_action :load_printers, only: %i[index show label_preview], if: :can_manage_things?
 
   def index
@@ -22,6 +23,10 @@ class ThingsController < ApplicationController
 
     Things::RecordVisit.call(thing: @thing) unless skip_visit_count?
     load_tracked_redirect_from_session
+  end
+
+  def by_beacon
+    redirect_to thing_path(@thing), status: :see_other
   end
 
   def print
@@ -123,6 +128,11 @@ class ThingsController < ApplicationController
     @thing = Thing.find(params[:id])
   end
 
+  def set_thing_by_beacon
+    uuid = params[:ble_beacon_uuid].to_s.strip.downcase
+    @thing = Thing.find_by!(ble_beacon_uuid: uuid)
+  end
+
   def thing_params
     params.require(:thing).permit(
       :name,
@@ -130,6 +140,7 @@ class ThingsController < ApplicationController
       :notes,
       :owner,
       :ip_address,
+      :ble_beacon_uuid,
       :ar_anchor_note,
       :public_access,
       :ar_anchor,
