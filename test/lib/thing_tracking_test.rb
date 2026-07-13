@@ -13,6 +13,15 @@ class ThingTrackingTest < ActiveSupport::TestCase
       thing = things(:keyboard)
       url = ThingTracking.thing_url(thing, utm_source: ThingTracking::QR_CODE)
 
+      assert_equal "https://links.example.org/things/#{thing.slug}?utm_source=qrcode", url
+    end
+  end
+
+  test "thing_url uses id when slug is blank" do
+    with_app_host("https://links.example.org") do
+      thing = things(:router)
+      url = ThingTracking.thing_url(thing, utm_source: ThingTracking::QR_CODE)
+
       assert_equal "https://links.example.org/things/#{thing.id}?utm_source=qrcode", url
     end
   end

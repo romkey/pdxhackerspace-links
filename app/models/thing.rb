@@ -2,6 +2,8 @@ class Thing < ApplicationRecord
   IPV4_REGEX = /\A(?:\d{1,3}\.){3}\d{1,3}\z/
   HOSTNAME_REGEX = /\A(?=.{1,253}\z)(?!-)[a-zA-Z0-9-]{1,63}(?<!-)(?:\.(?!-)[a-zA-Z0-9-]{1,63}(?<!-))*\z/
   BLE_BEACON_UUID_REGEX = /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/
+  SLUG_REGEX = /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/
+  RESERVED_SLUGS = %w[by_beacon new edit].freeze
 
   has_many :links, class_name: "ThingLink", dependent: :destroy, inverse_of: :thing
   has_many_attached :photos
@@ -10,10 +12,13 @@ class Thing < ApplicationRecord
   accepts_nested_attributes_for :links, allow_destroy: true, reject_if: :reject_blank_link?
 
   validates :name, presence: true
+  validates :slug, uniqueness: { allow_blank: true }
   validates :ble_beacon_uuid, uniqueness: { allow_blank: true }
   validate :ip_address_or_hostname
   validate :ble_beacon_uuid_format
+  validate :slug_format
 
+  before_validation :normalize_slug
   before_validation :normalize_ble_beacon_uuid
   validate :acceptable_photos
   validate :acceptable_ar_anchor
@@ -26,7 +31,7 @@ class Thing < ApplicationRecord
 
     pattern = "%#{sanitize_sql_like(term)}%"
     left_joins(:links).where(
-      "things.name ILIKE :q OR things.description ILIKE :q OR things.notes ILIKE :q OR things.ar_anchor_note ILIKE :q OR things.owner ILIKE :q OR things.ip_address ILIKE :q OR things.ble_beacon_uuid ILIKE :q OR thing_links.title ILIKE :q OR thing_links.url ILIKE :q OR thing_links.note ILIKE :q",
+      "things.name ILIKE :q OR things.slug ILIKE :q OR things.description ILIKE :q OR things.notes ILIKE :q OR things.ar_anchor_note ILIKE :q OR things.owner ILIKE :q OR things.ip_address ILIKE :q OR things.ble_beacon_uuid ILIKE :q OR thing_links.title ILIKE :q OR thing_links.url ILIKE :q OR thing_links.note ILIKE :q",
       q: pattern
     ).distinct
   }
@@ -69,7 +74,31 @@ class Thing < ApplicationRecord
     qr_scan_count + nfc_scan_count
   end
 
+  def to_param
+    slug.presence || id.to_s
+  end
+
+  def self.find_by_slug_or_id!(param)
+    find_by(slug: param) || find(param)
+  end
+
   private
+
+  def normalize_slug
+    self.slug = slug.to_s.strip.downcase.presence
+  end
+
+  def slug_format
+    value = slug.to_s
+    return if value.blank?
+    return if value.match?(SLUG_REGEX) && !RESERVED_SLUGS.include?(value)
+
+    if RESERVED_SLUGS.include?(value)
+      errors.add(:slug, "is reserved")
+    else
+      errors.add(:slug, "must contain only lowercase letters, numbers, and hyphens")
+    end
+  end
 
   def normalize_ble_beacon_uuid
     self.ble_beacon_uuid = ble_beacon_uuid.to_s.strip.downcase.presence

@@ -50,4 +50,10 @@ class Things::DuplicateTest < ActiveSupport::TestCase
 
     assert_nil copy.ble_beacon_uuid
   end
+
+  test "does not copy slug" do
+    copy = Things::Duplicate.call(thing: things(:keyboard))
+
+    assert_nil copy.slug
+  end
 end

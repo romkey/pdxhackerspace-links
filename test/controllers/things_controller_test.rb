@@ -39,6 +39,58 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "button", text: "Duplicate"
   end
 
+  test "show resolves thing by slug" do
+    get thing_path("front-door-keyboard")
+    assert_response :success
+    assert_select "h1", things(:keyboard).name
+  end
+
+  test "show still resolves thing by id when slug is not set" do
+    get thing_path(things(:router).id)
+    assert_response :success
+    assert_select "h1", things(:router).name
+  end
+
+  test "show displays slug when set" do
+    get thing_path(things(:keyboard))
+    assert_response :success
+    assert_select "code", text: things(:keyboard).slug
+  end
+
+  test "creates thing with slug" do
+    assert_difference -> { Thing.count }, 1 do
+      post things_path, params: {
+        thing: {
+          name: "Door Lock",
+          slug: "door-lock",
+          links_attributes: {
+            "0" => { link_type: "asset", url: "" },
+            "1" => { link_type: "wiki", url: "" },
+            "2" => { link_type: "slack", url: "" },
+            "3" => { link_type: "where", url: "" },
+            "4" => { link_type: "ar", url: "" }
+          }
+        }
+      }
+    end
+
+    thing = Thing.order(:created_at).last
+    assert_redirected_to thing_path("door-lock")
+    assert_equal "door-lock", thing.slug
+  end
+
+  test "update redirects to slug path when slug is set" do
+    patch thing_path(things(:router)), params: {
+      thing: {
+        name: things(:router).name,
+        slug: "core-router"
+      }
+    }
+
+    assert_redirected_to thing_path("core-router")
+    assert_equal "core-router", things(:router).reload.slug
+  end
+
   test "show displays ble beacon uuid when set" do
     get thing_path(things(:router))
     assert_response :success
@@ -46,8 +98,9 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "by_beacon redirects to thing show page" do
+    things(:router).update!(slug: "core-router")
     get by_beacon_things_path(ble_beacon_uuid: things(:router).ble_beacon_uuid)
-    assert_redirected_to thing_path(things(:router))
+    assert_redirected_to thing_path("core-router")
     follow_redirect!
     assert_response :success
     assert_select "h1", things(:router).name

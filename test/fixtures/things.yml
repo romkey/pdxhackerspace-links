@@ -2,6 +2,7 @@ keyboard:
   name: Keyboard
   description: Front door entry system
   public_access: true
+  slug: front-door-keyboard
 
 router:
   name: Router

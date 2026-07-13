@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.5.0] - 2026-07-13
+
+### Added
+
+- Optional URL slug on things for readable paths at `/things/<slug>` instead of `/things/<id>`
+
 ## [v0.4.1] - 2026-07-13
 
 ### Added

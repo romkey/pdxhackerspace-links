@@ -85,6 +85,10 @@ Individual things can be marked **Public** when creating or editing them. Anyone
 
 Things can have an optional **BLE beacon UUID** (iBeacon format). Set it when creating or editing a thing. The UUID is searchable from the things list. BLE apps can resolve a thing at `/things/by_beacon/<uuid>` — the same access rules as viewing the thing directly apply (sign-in, network whitelist, or public access).
 
+### URL slugs
+
+Things can have an optional **slug** for a shorter, readable URL path. When set, the thing is available at `/things/<slug>` instead of `/things/<id>`. Slugs are lowercase letters, numbers, and hyphens; they are searchable from the things list. QR codes and NFC tags use the slug URL when one is set. Duplicating a thing does not copy its slug.
+
 When the app runs behind a reverse proxy, set `TRUSTED_REVERSE_PROXIES` to the proxy IP addresses or CIDR blocks so Rails uses the client IP from `X-Forwarded-For` (for example when evaluating `NETWORK_WHITELIST`). These entries are merged with Rails' default private-network proxies.
 
 ```bash

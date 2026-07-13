@@ -17,6 +17,11 @@
         <%= form.text_field :owner, class: "form-control", placeholder: "Optional" %>
       </div>
       <div class="col-md-6">
+        <%= form.label :slug, class: "form-label" %>
+        <%= form.text_field :slug, class: "form-control", placeholder: "Optional" %>
+        <div class="form-text text-12">Optional short URL path, e.g. /things/front-door-keyboard</div>
+      </div>
+      <div class="col-md-6">
         <%= form.label :ip_address, "IP address / Hostname", class: "form-label" %>
         <%= form.text_field :ip_address, class: "form-control", placeholder: "192.168.1.10 or host.example.com" %>
       </div>

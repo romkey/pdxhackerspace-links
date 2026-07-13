@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_07_13_000002) do
+ActiveRecord::Schema[8.1].define(version: 2025_07_13_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -96,10 +96,12 @@ ActiveRecord::Schema[8.1].define(version: 2025_07_13_000002) do
     t.string "owner"
     t.boolean "public_access", default: false, null: false
     t.integer "qr_scan_count", default: 0, null: false
+    t.string "slug"
     t.datetime "updated_at", null: false
     t.integer "visit_count", default: 0, null: false
     t.index ["ble_beacon_uuid"], name: "index_things_on_ble_beacon_uuid", unique: true, where: "(ble_beacon_uuid IS NOT NULL)"
     t.index ["name"], name: "index_things_on_name"
+    t.index ["slug"], name: "index_things_on_slug", unique: true, where: "(slug IS NOT NULL)"
   end
 
   create_table "users", force: :cascade do |t|

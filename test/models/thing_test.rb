@@ -133,6 +133,60 @@ class ThingTest < ActiveSupport::TestCase
     assert_includes thing.errors[:ble_beacon_uuid], "has already been taken"
   end
 
+  test "allows blank slug" do
+    thing = things(:router)
+    thing.slug = ""
+    assert thing.valid?
+  end
+
+  test "normalizes slug to lowercase" do
+    thing = things(:router)
+    thing.slug = "Core-Router"
+    assert thing.valid?
+    assert_equal "core-router", thing.slug
+  end
+
+  test "rejects invalid slug format" do
+    thing = things(:router)
+    thing.slug = "bad slug!"
+    assert_not thing.valid?
+    assert_includes thing.errors[:slug], "must contain only lowercase letters, numbers, and hyphens"
+  end
+
+  test "rejects reserved slug" do
+    thing = things(:router)
+    thing.slug = "by_beacon"
+    assert_not thing.valid?
+    assert_includes thing.errors[:slug], "is reserved"
+  end
+
+  test "requires unique slug" do
+    thing = things(:router)
+    thing.slug = things(:keyboard).slug
+    assert_not thing.valid?
+    assert_includes thing.errors[:slug], "has already been taken"
+  end
+
+  test "to_param returns slug when set" do
+    assert_equal "front-door-keyboard", things(:keyboard).to_param
+  end
+
+  test "to_param returns id when slug is blank" do
+    assert_equal things(:router).id.to_s, things(:router).to_param
+  end
+
+  test "find_by_slug_or_id finds by slug" do
+    assert_equal things(:keyboard), Thing.find_by_slug_or_id!("front-door-keyboard")
+  end
+
+  test "find_by_slug_or_id finds by id" do
+    assert_equal things(:router), Thing.find_by_slug_or_id!(things(:router).id)
+  end
+
+  test "search matches slug" do
+    assert_includes Thing.search("front-door"), things(:keyboard)
+  end
+
   test "assigns positions to custom links on save" do
     thing = Thing.create!(
       name: "Positioned Thing",
