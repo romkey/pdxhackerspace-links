@@ -2,8 +2,8 @@ class ApplicationController < ActionController::Base
   before_action :require_login
   before_action :set_sentry_user
 
-  helper_method :current_user, :logged_in?, :network_guest?, :can_manage_things?,
-                :oidc_login_available?, :local_login_available?
+  helper_method :current_user, :logged_in?, :network_guest?, :public_guest?, :show_navigation?,
+                :can_manage_things?, :oidc_login_available?, :local_login_available?
 
   private
 
@@ -17,6 +17,14 @@ class ApplicationController < ActionController::Base
 
   def network_guest?
     !logged_in? && network_whitelist_access?
+  end
+
+  def public_guest?
+    !logged_in? && !network_whitelist_access? && controller_name == "things" && action_name == "show" && @thing&.public_access?
+  end
+
+  def show_navigation?
+    logged_in? || network_guest? || public_guest?
   end
 
   def can_manage_things?

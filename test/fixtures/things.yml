@@ -1,6 +1,7 @@
 keyboard:
   name: Keyboard
   description: Front door entry system
+  public_access: true
 
 router:
   name: Router

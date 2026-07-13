@@ -1,6 +1,8 @@
 class ThingsController < ApplicationController
+  skip_before_action :require_login, only: :show
   before_action :require_full_access, only: %i[new create edit update destroy duplicate purge_photo purge_ar_anchor print label_preview]
   before_action :set_thing, only: %i[show edit update destroy duplicate purge_photo purge_ar_anchor print label_preview]
+  before_action :require_login_or_public_thing, only: :show
   before_action :load_printers, only: %i[index show label_preview], if: :can_manage_things?
 
   def index
@@ -129,6 +131,7 @@ class ThingsController < ApplicationController
       :owner,
       :ip_address,
       :ar_anchor_note,
+      :public_access,
       :ar_anchor,
       photos: [],
       links_attributes: %i[id link_type title url note position _destroy]
@@ -168,6 +171,14 @@ class ThingsController < ApplicationController
 
   def skip_visit_count?
     session.delete(:skip_visit_count_for) == @thing.id
+  end
+
+  def require_login_or_public_thing
+    return if logged_in?
+    return if network_whitelist_access?
+    return if @thing.public_access?
+
+    redirect_to login_path, alert: "Please sign in to continue."
   end
 
   def store_tracked_redirect_in_session

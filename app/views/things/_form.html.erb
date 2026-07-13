@@ -28,6 +28,13 @@
         <%= form.label :notes, class: "form-label" %>
         <%= form.text_area :notes, class: "form-control", rows: 3, placeholder: "Optional" %>
       </div>
+      <div class="col-12">
+        <div class="form-check">
+          <%= form.check_box :public_access, class: "form-check-input" %>
+          <%= form.label :public_access, "Public", class: "form-check-label" %>
+        </div>
+        <div class="form-text text-12">Anyone with the link can view this thing without signing in.</div>
+      </div>
     </div>
   </div>
 

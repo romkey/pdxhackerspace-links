@@ -77,6 +77,10 @@ NETWORK_WHITELIST=192.168.0.0/16,10.0.0.0/8
 
 Sign-in is still available for full access from whitelisted networks.
 
+### Public things
+
+Individual things can be marked **Public** when creating or editing them. Anyone with the thing’s URL can view it without signing in, including from QR codes and NFC tags. Public things do not appear in the things list or search for visitors who are not signed in.
+
 When the app runs behind a reverse proxy, set `TRUSTED_REVERSE_PROXIES` to the proxy IP addresses or CIDR blocks so Rails uses the client IP from `X-Forwarded-For` (for example when evaluating `NETWORK_WHITELIST`). These entries are merged with Rails' default private-network proxies.
 
 ```bash

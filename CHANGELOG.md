@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.4.0] - 2026-07-13
+
+### Added
+
+- Things can be marked public so anyone with the link can view them without signing in
+
 ## [v0.3.15] - 2026-06-29
 
 ### Changed
