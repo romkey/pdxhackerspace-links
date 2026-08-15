@@ -103,7 +103,7 @@ GEM
       regexp_parser (>= 1.5, < 3.0)
       xpath (~> 3.2)
     chunky_png (1.4.0)
-    concurrent-ruby (1.3.7)
+    concurrent-ruby (1.3.8)
     connection_pool (3.0.2)
     crass (1.0.7)
     cssbundling-rails (1.4.3)
@@ -144,7 +144,7 @@ GEM
       prism (>= 1.3.0)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
-    json (2.20.0)
+    json (2.21.2)
     json-jwt (1.17.1)
       activesupport (>= 4.2)
       aes_key_wrap
@@ -244,7 +244,7 @@ GEM
     puma (8.0.2)
       nio4r (~> 2.0)
     racc (1.8.1)
-    rack (3.2.6)
+    rack (3.2.7)
     rack-oauth2 (2.3.0)
       activesupport
       attr_required
@@ -306,7 +306,7 @@ GEM
       tsort
     redis (5.4.1)
       redis-client (>= 0.22.0)
-    redis-client (0.30.0)
+    redis-client (0.30.1)
       connection_pool
     regexp_parser (2.12.0)
     reline (0.6.3)
@@ -353,15 +353,15 @@ GEM
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 4.0)
       websocket (~> 1.0)
-    sentry-rails (6.6.2)
+    sentry-rails (6.7.0)
       railties (>= 5.2.0)
-      sentry-ruby (~> 6.6.2)
-    sentry-ruby (6.6.2)
+      sentry-ruby (~> 6.7.0)
+    sentry-ruby (6.7.0)
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
       logger
-    sentry-sidekiq (6.6.2)
-      sentry-ruby (~> 6.6.2)
+    sentry-sidekiq (6.7.0)
+      sentry-ruby (~> 6.7.0)
       sidekiq (>= 5.0)
     sidekiq (8.1.6)
       connection_pool (>= 3.0.0)
