@@ -1,5 +1,12 @@
 # Links
 
+[![CI](https://github.com/romkey/pdxhackerspace-links/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/romkey/pdxhackerspace-links/actions/workflows/ci.yml)
+[![Lint](https://img.shields.io/github/actions/workflow/status/romkey/pdxhackerspace-links/ci.yml?branch=main&label=lint)](https://github.com/romkey/pdxhackerspace-links/actions/workflows/ci.yml)
+[![Build](https://img.shields.io/github/actions/workflow/status/romkey/pdxhackerspace-links/staging.yml?label=build)](https://github.com/romkey/pdxhackerspace-links/actions/workflows/staging.yml)
+[![Ruby](https://img.shields.io/badge/Ruby-4.0.5-red?logo=ruby&logoColor=white)](https://www.ruby-lang.org/)
+[![Rails](https://img.shields.io/badge/Rails-8.1-red?logo=rubyonrails&logoColor=white)](https://rubyonrails.org/)
+[![License: MIT](https://img.shields.io/github/license/romkey/pdxhackerspace-links)](https://github.com/romkey/pdxhackerspace-links/blob/main/LICENSE)
+
 A Rails application for managing links. This repository contains the application scaffold, authentication, background jobs, and deployment tooling — ready for feature development.
 
 ## Requirements

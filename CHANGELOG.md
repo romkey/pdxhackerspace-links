@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.6.2] - 2026-08-16
+
+### Added
+
+- MIT LICENSE file
+- README badges for CI, lint, build, Ruby, Rails, and license status
+
 ## [v0.6.1] - 2026-08-16
 
 ### Changed
