@@ -33,6 +33,14 @@ class ActiveSupport::TestCase
     previous.nil? ? ENV.delete("APP_HOST") : ENV["APP_HOST"] = previous
   end
 
+  def with_short_url_host(short_url_host)
+    previous = ENV["SHORT_URL_HOST"]
+    short_url_host.nil? ? ENV.delete("SHORT_URL_HOST") : ENV["SHORT_URL_HOST"] = short_url_host
+    yield
+  ensure
+    previous.nil? ? ENV.delete("SHORT_URL_HOST") : ENV["SHORT_URL_HOST"] = previous
+  end
+
   def attach_ar_anchor(thing, filename: "ar_anchor.png")
     thing.ar_anchor.attach(
       io: file_fixture(filename).open,

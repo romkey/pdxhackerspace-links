@@ -167,6 +167,43 @@ class ThingTest < ActiveSupport::TestCase
     assert_includes thing.errors[:slug], "has already been taken"
   end
 
+  test "assigns unique key on create" do
+    thing = Thing.create!(name: "Keyed Thing", links_attributes: [
+      { link_type: :wiki, url: "https://example.com/wiki" }
+    ])
+
+    assert_match Thing::KEY_REGEX, thing.key
+  end
+
+  test "rejects invalid key format" do
+    thing = things(:router)
+    thing.key = "12345678"
+    assert_not thing.valid?
+    assert_includes thing.errors[:key], "is invalid"
+  end
+
+  test "requires unique key" do
+    thing = things(:router)
+    thing.key = things(:keyboard).key
+    assert_not thing.valid?
+    assert_includes thing.errors[:key], "has already been taken"
+  end
+
+  test "rejects reserved key" do
+    thing = things(:router)
+    thing.key = "settings"
+    assert_not thing.valid?
+    assert_includes thing.errors[:key], "is reserved"
+  end
+
+  test "find_by_param finds by key" do
+    assert_equal things(:keyboard), Thing.find_by_param!(things(:keyboard).key)
+  end
+
+  test "search matches key" do
+    assert_includes Thing.search(things(:router).key), things(:router)
+  end
+
   test "to_param returns slug when set" do
     assert_equal "front-door-keyboard", things(:keyboard).to_param
   end

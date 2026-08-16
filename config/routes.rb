@@ -42,4 +42,6 @@ Rails.application.routes.draw do
   get "/auth/failure", to: "omniauth_callbacks#failure"
 
   mount Sidekiq::Web => "/sidekiq"
+
+  get "/:key", to: "things#show", as: :short_thing, constraints: { key: /[a-z][a-z0-9]{7}/ }
 end

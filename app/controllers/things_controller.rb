@@ -125,7 +125,7 @@ class ThingsController < ApplicationController
   private
 
   def set_thing
-    @thing = Thing.find_by_slug_or_id!(params[:id])
+    @thing = Thing.find_by_param!(params[:id] || params[:key])
   end
 
   def set_thing_by_beacon

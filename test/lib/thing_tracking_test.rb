@@ -8,21 +8,23 @@ class ThingTrackingTest < ActiveSupport::TestCase
     assert_not ThingTracking.tracked?(nil)
   end
 
-  test "thing_url adds utm_source" do
-    with_app_host("https://links.example.org") do
+  test "thing_url uses short url host and thing key" do
+    with_short_url_host("http://l.ctrlh") do
       thing = things(:keyboard)
       url = ThingTracking.thing_url(thing, utm_source: ThingTracking::QR_CODE)
 
-      assert_equal "https://links.example.org/things/#{thing.slug}?utm_source=qrcode", url
+      assert_equal "http://l.ctrlh/#{thing.key}?utm_source=qrcode", url
     end
   end
 
-  test "thing_url uses id when slug is blank" do
+  test "thing_url falls back to APP_HOST when short url host is unset" do
     with_app_host("https://links.example.org") do
-      thing = things(:router)
-      url = ThingTracking.thing_url(thing, utm_source: ThingTracking::QR_CODE)
+      with_short_url_host(nil) do
+        thing = things(:router)
+        url = ThingTracking.thing_url(thing, utm_source: ThingTracking::QR_CODE)
 
-      assert_equal "https://links.example.org/things/#{thing.id}?utm_source=qrcode", url
+        assert_equal "https://links.example.org/#{thing.key}?utm_source=qrcode", url
+      end
     end
   end
 end

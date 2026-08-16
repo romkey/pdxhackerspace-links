@@ -2,36 +2,40 @@ require "test_helper"
 
 class AppHostLabelUrlsRegressionTest < ActiveSupport::TestCase
   REGRESSION_HOST = "https://links.regression.test"
+  SHORT_HOST = "http://l.regression"
 
-  test "label thing url uses APP_HOST not example.com" do
-    with_app_host(REGRESSION_HOST) do
+  test "label thing url uses SHORT_URL_HOST and thing key" do
+    with_short_url_host(SHORT_HOST) do
       thing = things(:router)
       url = label_pdf_for(thing).send(:thing_url)
 
-      assert_equal "#{REGRESSION_HOST}/things/#{thing.id}?utm_source=qrcode", url
+      assert_equal "#{SHORT_HOST}/#{thing.key}?utm_source=qrcode", url
       assert_not_includes url, "example.com"
+      assert_not_includes url, "/things/"
     end
   end
 
-  test "label qr png encodes APP_HOST thing url" do
-    with_app_host(REGRESSION_HOST) do
+  test "label qr png encodes short url host and thing key" do
+    with_short_url_host(SHORT_HOST) do
       thing = things(:router)
       encoded_url = capture_qr_payload do
         label_pdf_for(thing).send(:qr_png_data, 72)
       end
 
-      assert_equal "#{REGRESSION_HOST}/things/#{thing.id}?utm_source=qrcode", encoded_url
+      assert_equal "#{SHORT_HOST}/#{thing.key}?utm_source=qrcode", encoded_url
       assert_not_includes encoded_url, "example.com"
+      assert_not_includes encoded_url, "/things/"
     end
   end
 
-  test "nfc tag url uses APP_HOST not example.com" do
-    with_app_host(REGRESSION_HOST) do
+  test "nfc tag url uses SHORT_URL_HOST and thing key" do
+    with_short_url_host(SHORT_HOST) do
       thing = things(:router)
       result = Things::NfcTagPayload.call(thing)
 
-      assert_equal "#{REGRESSION_HOST}/things/#{thing.id}?utm_source=nfc", result.url
+      assert_equal "#{SHORT_HOST}/#{thing.key}?utm_source=nfc", result.url
       assert_not_includes result.url, "example.com"
+      assert_not_includes result.url, "/things/"
       assert_equal result.url, JSON.parse(result.json)["url"]
     end
   end
@@ -54,7 +58,7 @@ class AppHostLabelUrlsRegressionTest < ActiveSupport::TestCase
 
   test "custom qr_url override is preserved on labels" do
     thing = things(:keyboard)
-    custom_url = "https://custom.example.org/things/#{thing.id}"
+    custom_url = "https://custom.example.org/#{thing.key}"
     label_pdf = Things::LabelPdf.new(
       thing: thing,
       printer: printers(:brother_printer),
@@ -64,20 +68,20 @@ class AppHostLabelUrlsRegressionTest < ActiveSupport::TestCase
     assert_equal custom_url, label_pdf.send(:thing_url)
   end
 
-  test "label qr url updates when APP_HOST changes" do
+  test "label qr url updates when SHORT_URL_HOST changes" do
     thing = things(:router)
     label_pdf = label_pdf_for(thing)
 
-    old_url = with_app_host("https://old.regression.test") do
+    old_url = with_short_url_host("http://old.regression") do
       label_pdf.send(:thing_url)
     end
 
-    new_url = with_app_host("https://new.regression.test") do
+    new_url = with_short_url_host("http://new.regression") do
       label_pdf.send(:thing_url)
     end
 
-    assert_equal "https://old.regression.test/things/#{thing.id}?utm_source=qrcode", old_url
-    assert_equal "https://new.regression.test/things/#{thing.id}?utm_source=qrcode", new_url
+    assert_equal "http://old.regression/#{thing.key}?utm_source=qrcode", old_url
+    assert_equal "http://new.regression/#{thing.key}?utm_source=qrcode", new_url
   end
 
   private

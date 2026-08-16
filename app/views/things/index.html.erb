@@ -26,6 +26,7 @@
         <thead>
           <tr>
             <th>Name</th>
+            <th>Key</th>
             <th>Links</th>
             <th>Photos</th>
             <% if can_manage_things? %>
@@ -37,6 +38,7 @@
           <% @things.each do |thing| %>
             <tr class="clickable-row" data-href="<%= thing_path(thing) %>">
               <td class="fw-medium"><%= thing.name %></td>
+              <td><code class="text-12 text-secondary"><%= thing.key %></code></td>
               <td class="num text-secondary"><%= thing.links_with_urls.size %></td>
               <td class="num text-secondary"><%= thing.photos.count %></td>
               <% if can_manage_things? %>

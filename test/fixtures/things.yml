@@ -3,6 +3,7 @@ keyboard:
   description: Front door entry system
   public_access: true
   slug: front-door-keyboard
+  key: kbd12345
 
 router:
   name: Router
@@ -11,3 +12,4 @@ router:
   owner: romkey
   ip_address: 192.168.1.1
   ble_beacon_uuid: fda50693-f4c2-4a1b-8fb9-9d9458836f36
+  key: rtr12345

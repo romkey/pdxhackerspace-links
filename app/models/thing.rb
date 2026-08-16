@@ -3,7 +3,11 @@ class Thing < ApplicationRecord
   HOSTNAME_REGEX = /\A(?=.{1,253}\z)(?!-)[a-zA-Z0-9-]{1,63}(?<!-)(?:\.(?!-)[a-zA-Z0-9-]{1,63}(?<!-))*\z/
   BLE_BEACON_UUID_REGEX = /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/
   SLUG_REGEX = /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/
+  KEY_LENGTH = 8
+  KEY_REGEX = /\A[a-z][a-z0-9]{7}\z/
+  KEY_ALPHABET = ("a".."z").to_a + ("0".."9").to_a
   RESERVED_SLUGS = %w[by_beacon new edit].freeze
+  RESERVED_KEYS = (%w[login logout settings sidekiq things up auth] + RESERVED_SLUGS).freeze
 
   has_many :links, class_name: "ThingLink", dependent: :destroy, inverse_of: :thing
   has_many_attached :photos
@@ -12,14 +16,17 @@ class Thing < ApplicationRecord
   accepts_nested_attributes_for :links, allow_destroy: true, reject_if: :reject_blank_link?
 
   validates :name, presence: true
+  validates :key, presence: true, uniqueness: true, format: { with: KEY_REGEX }
   validates :slug, uniqueness: { allow_blank: true }
   validates :ble_beacon_uuid, uniqueness: { allow_blank: true }
   validate :ip_address_or_hostname
   validate :ble_beacon_uuid_format
   validate :slug_format
+  validate :reserved_key
 
   before_validation :normalize_slug
   before_validation :normalize_ble_beacon_uuid
+  before_validation :assign_key, on: :create
   validate :acceptable_photos
   validate :acceptable_ar_anchor
 
@@ -31,7 +38,7 @@ class Thing < ApplicationRecord
 
     pattern = "%#{sanitize_sql_like(term)}%"
     left_joins(:links).where(
-      "things.name ILIKE :q OR things.slug ILIKE :q OR things.description ILIKE :q OR things.notes ILIKE :q OR things.ar_anchor_note ILIKE :q OR things.owner ILIKE :q OR things.ip_address ILIKE :q OR things.ble_beacon_uuid ILIKE :q OR thing_links.title ILIKE :q OR thing_links.url ILIKE :q OR thing_links.note ILIKE :q",
+      "things.name ILIKE :q OR things.key ILIKE :q OR things.slug ILIKE :q OR things.description ILIKE :q OR things.notes ILIKE :q OR things.ar_anchor_note ILIKE :q OR things.owner ILIKE :q OR things.ip_address ILIKE :q OR things.ble_beacon_uuid ILIKE :q OR thing_links.title ILIKE :q OR thing_links.url ILIKE :q OR thing_links.note ILIKE :q",
       q: pattern
     ).distinct
   }
@@ -79,7 +86,17 @@ class Thing < ApplicationRecord
   end
 
   def self.find_by_slug_or_id!(param)
-    find_by(slug: param) || find(param)
+    find_by_param!(param)
+  end
+
+  def self.find_by_param!(param)
+    value = param.to_s
+    if value.match?(KEY_REGEX)
+      thing = find_by(key: value)
+      return thing if thing
+    end
+
+    find_by(slug: value) || find(value)
   end
 
   private
@@ -97,6 +114,31 @@ class Thing < ApplicationRecord
       errors.add(:slug, "is reserved")
     else
       errors.add(:slug, "must contain only lowercase letters, numbers, and hyphens")
+    end
+  end
+
+  def reserved_key
+    value = key.to_s
+    return if value.blank?
+    return unless RESERVED_KEYS.include?(value)
+
+    errors.add(:key, "is reserved")
+  end
+
+  def assign_key
+    return if key.present?
+
+    self.key = generate_unique_key
+  end
+
+  def generate_unique_key
+    loop do
+      candidate = ("a".."z").to_a.sample +
+                  (KEY_LENGTH - 1).times.map { KEY_ALPHABET[SecureRandom.random_number(KEY_ALPHABET.size)] }.join
+      next if RESERVED_KEYS.include?(candidate)
+      next if self.class.exists?(key: candidate)
+
+      return candidate
     end
   end
 

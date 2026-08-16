@@ -5,6 +5,14 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     sign_in_as(users(:local_admin))
   end
 
+  test "index lists things with keys" do
+    get things_path
+    assert_response :success
+    assert_select "td", text: things(:keyboard).name
+    assert_select "code", text: things(:keyboard).key
+    assert_select "nav input[type=search][name=q]"
+  end
+
   test "index lists things" do
     get things_path
     assert_response :success
@@ -49,6 +57,29 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     get thing_path(things(:router).id)
     assert_response :success
     assert_select "h1", things(:router).name
+  end
+
+  test "show resolves thing by key at short path" do
+    get short_thing_path(things(:keyboard).key)
+    assert_response :success
+    assert_select "h1", things(:keyboard).name
+  end
+
+  test "show with utm_source qrcode at short path tracks scan and redirects" do
+    thing = things(:keyboard)
+    thing.links.find_by(link_type: :slack).destroy!
+
+    assert_difference -> { thing.reload.qr_scan_count }, 1 do
+      get short_thing_path(thing.key, utm_source: "qrcode")
+    end
+
+    assert_redirected_to thing_path(thing)
+  end
+
+  test "show displays key" do
+    get thing_path(things(:keyboard))
+    assert_response :success
+    assert_select "code", text: things(:keyboard).key
   end
 
   test "show displays slug when set" do

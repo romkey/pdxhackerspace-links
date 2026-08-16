@@ -59,7 +59,8 @@ The account is created/updated on `db:seed`.
 
 Set in `.env`:
 
-- `APP_HOST` — public URL of this app (e.g. `https://links.example.com`). Used for OIDC redirects, label QR codes, and NFC tag URLs.
+- `APP_HOST` — public URL of this app (e.g. `https://links.example.com`). Used for OIDC redirects and admin links.
+- `SHORT_URL_HOST` — short URL base for label QR codes and NFC tags (e.g. `http://l.ctrlh`). Defaults to `APP_HOST` when unset. QR codes encode `SHORT_URL_HOST/<key>` so the hostname is not hardcoded in the app.
 - `OIDC_ISSUER`
 - `OIDC_CLIENT_ID`
 - `OIDC_CLIENT_SECRET`
@@ -85,9 +86,13 @@ Individual things can be marked **Public** when creating or editing them. Anyone
 
 Things can have an optional **BLE beacon UUID** (iBeacon format). Set it when creating or editing a thing. The UUID is searchable from the things list. BLE apps can resolve a thing at `/things/by_beacon/<uuid>` — the same access rules as viewing the thing directly apply (sign-in, network whitelist, or public access).
 
+### Short URL keys
+
+Every thing gets an auto-generated **8-character key** (lowercase letters and numbers). QR codes and NFC tags encode `SHORT_URL_HOST/<key>` — for example `http://l.ctrlh/kbd12345` when `SHORT_URL_HOST=http://l.ctrlh`. The same key works at `/<key>` on whatever host serves the app. Keys are shown on the things index and thing detail pages, and are searchable.
+
 ### URL slugs
 
-Things can have an optional **slug** for a shorter, readable URL path. When set, the thing is available at `/things/<slug>` instead of `/things/<id>`. Slugs are lowercase letters, numbers, and hyphens; they are searchable from the things list. QR codes and NFC tags use the slug URL when one is set. Duplicating a thing does not copy its slug.
+Things can have an optional **slug** for a readable admin URL path. When set, the thing is available at `/things/<slug>` instead of `/things/<id>`. Slugs are lowercase letters, numbers, and hyphens; they are searchable from the things list. Duplicating a thing does not copy its slug. QR codes and NFC tags use the short URL key, not the slug.
 
 When the app runs behind a reverse proxy, set `TRUSTED_REVERSE_PROXIES` to the proxy IP addresses or CIDR blocks so Rails uses the client IP from `X-Forwarded-For` (for example when evaluating `NETWORK_WHITELIST`). These entries are merged with Rails' default private-network proxies.
 
@@ -169,11 +174,11 @@ docker compose -f docker-compose.server.yml up
 
 Pending migrations run automatically when the web container starts (`bin/docker-entrypoint` calls `db:prepare` before `./bin/rails server`).
 
-Set `APP_HOST` (public URL for label QR codes, NFC tags, and OIDC redirects), `DATABASE_URL`, `REDIS_URL`, `LINKS_IMAGE`, and either `SECRET_KEY_BASE` or `RAILS_MASTER_KEY`.
+Set `APP_HOST` (public URL for OIDC redirects), `SHORT_URL_HOST` (short URL base for label QR codes and NFC tags; defaults to `APP_HOST`), `DATABASE_URL`, `REDIS_URL`, `LINKS_IMAGE`, and either `SECRET_KEY_BASE` or `RAILS_MASTER_KEY`.
 
 The server compose file mounts a persistent Docker volume at `/rails/storage` for thing photos and AR marker uploads. Without it, Active Storage files are lost when the web container is recreated and label previews for things with uploaded images will fail.
 
-After changing `APP_HOST`, recreate the web and Sidekiq containers so they pick up the new value (`docker compose -f docker-compose.server.yml up -d`). Label previews are not cached by the app, but your browser may keep an old preview image until you hard-refresh.
+After changing `APP_HOST` or `SHORT_URL_HOST`, recreate the web and Sidekiq containers so they pick up the new value (`docker compose -f docker-compose.server.yml up -d`). Label previews are not cached by the app, but your browser may keep an old preview image until you hard-refresh.
 
 Generate a secret key:
 
