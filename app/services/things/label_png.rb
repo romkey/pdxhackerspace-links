@@ -5,11 +5,11 @@ module Things
   class LabelPng
     DPI = 300
 
-    def initialize(thing:, printer:, qr_url: nil)
+    def initialize(thing:, printer:, qr_url: nil, layout: :standard)
       @thing = thing
       @printer = printer
       @qr_url = qr_url
-      @label_pdf = LabelPdf.new(thing: thing, printer: printer, qr_url: qr_url)
+      @label_pdf = LabelPdf.new(thing: thing, printer: printer, qr_url: qr_url, layout: layout)
     end
 
     def generate

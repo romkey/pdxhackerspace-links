@@ -1,5 +1,4 @@
 require "uri"
-require "cgi"
 
 module ShortUrl
   ENV_KEY = "SHORT_URL"
@@ -24,7 +23,7 @@ module ShortUrl
     "#{base}#{thing_path(thing)}"
   end
 
-  def scan_url(thing, utm_source:)
-    "#{display_url(thing)}?utm_source=#{CGI.escape(utm_source.to_s)}"
+  def scan_url(thing, param:)
+    "#{display_url(thing)}?#{param}"
   end
 end

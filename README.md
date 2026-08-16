@@ -95,7 +95,7 @@ Things can have an optional **BLE beacon UUID** (iBeacon format). Set it when cr
 
 ### Short URL keys
 
-Every thing gets an auto-generated **8-character key** (lowercase letters and numbers). QR codes and NFC tags encode `SHORT_URL/<key>` — for example `http://l.ctrlh/kbd12345` when `SHORT_URL=http://l.ctrlh`. The same key works at `/<key>` on whatever host serves the app. Keys are shown on the things index and thing detail pages, and are searchable.
+Every thing gets an auto-generated **8-character key** (lowercase letters and numbers). QR codes and NFC tags encode `SHORT_URL/<key>?q` or `?n` — for example `http://l.ctrlh/kbd12345?q` when `SHORT_URL=http://l.ctrlh`. Scanning redirects to the full thing URL on `APP_HOST` with `utm_source` set for tracking. Keys are shown on the things index and thing detail pages, and are searchable.
 
 ### URL slugs
 
@@ -241,13 +241,13 @@ Remote printing supports two printer types:
 | Category | Examples |
 |----------|----------|
 | Brother label | 12mm–102mm continuous rolls, 62×100mm die-cut (QL series) |
-| Label | 24mm strip, 24mm cable tag, 4×6" shipping |
+| Label | 24mm strip, 4×6" shipping |
 | Letter | US letter laser/inkjet, optional Avery templates (5160, 5163, …) |
 | Receipt | 80mm thermal |
 
 When editing a printer, enter the CUPS server (`hostname:631`) and queue name. Queues are fetched from that server when reachable; use **Test connection** on the printer detail page to verify. **Test print** sends a sample label (same layout as thing labels) even when the printer is disabled.
 
-From a thing’s detail page or the things list, use **Preview** to see the exact label layout, then **Print label** to send it to an enabled printer. On roll and strip printers, labels print in landscape (feed along the long edge) with a trailing margin for feed and cut. The 24mm strip layout uses a full-height QR code on the left, name and owner on the first text row, and IP address on the second when set. The **24mm cable tag** layout prints the same content twice with a center gap for wrapping around a cable; the first half is mirrored so both faces read correctly. When a thing has an **AR Marker** image, it prints at the end of the label after the QR code and text.
+From a thing’s detail page or the things list, use **Preview** to see the exact label layout, then **Print label** to send it to an enabled printer. On roll and strip printers, labels print in landscape (feed along the long edge) with a trailing margin for feed and cut. The 24mm strip layout uses a full-height QR code on the left, name and owner on the first text row, and IP address on the second when set. Things with an IP address or hostname also get **Print cable tag** and **Preview cable tag** buttons on 24mm strip and 24mm command printers; that layout prints the same content twice with a center gap for wrapping around a cable, with the first half mirrored so both faces read correctly. When a thing has an **AR Marker** image, it prints at the end of the label after the QR code and text.
 
 Standard links (Asset, Wiki, Slack, Where, AR) can include an optional **Note** shown on the thing page alongside the link.
 

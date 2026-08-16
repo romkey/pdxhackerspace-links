@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.6.3] - 2026-08-16
+
+### Added
+
+- Cable tag print and preview buttons on things with an IP address or hostname, using existing 24mm strip or command printers without extra settings
+
+### Changed
+
+- Cable tags are a separate print action instead of a printer page size setting
+- Short scan URLs use abbreviated query params (`?q` for QR, `?n` for NFC) and redirect to the full thing URL on `APP_HOST` with `utm_source` expanded
+
 ## [v0.6.2] - 2026-08-16
 
 ### Added

@@ -97,7 +97,7 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
       thing = things(:keyboard)
       url = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer)).send(:thing_url)
 
-      assert_equal "http://l.ctrlh/#{thing.key}?utm_source=qrcode", url
+      assert_equal "http://l.ctrlh/#{thing.key}?q", url
       assert_not_includes url, "/things/"
       assert_not_includes url, thing.slug
     end
@@ -141,19 +141,28 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
   end
 
   test "generates a pdf file for 24mm cable tag labels" do
-    label_pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:cable_tag_printer))
+    label_pdf = Things::LabelPdf.new(
+      thing: things(:router),
+      printer: printers(:label_printer),
+      layout: :cable_tag
+    )
     path = label_pdf.generate
 
     assert File.exist?(path)
     assert File.read(path, 4).start_with?("%PDF")
     assert label_pdf.landscape?
     assert_in_delta 24, label_pdf.page_height_mm, 0.1
+    assert label_pdf.cable_tag?
   ensure
     label_pdf&.cleanup!
   end
 
   test "cable tag label width includes two segments, wrap gap, and feed margin" do
-    pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:cable_tag_printer))
+    pdf = Things::LabelPdf.new(
+      thing: things(:router),
+      printer: printers(:label_printer),
+      layout: :cable_tag
+    )
     segment = Things::LabelPdf::CABLE_TAG_ROLL_WIDTH_MM +
               Things::LabelPdf::STRIP_24MM_TEXT_GAP_MM +
               Things::LabelPdf::STRIP_24MM_TEXT_MIN_WIDTH_MM
@@ -165,7 +174,11 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
   end
 
   test "cable tag label embeds two visible qr codes for wrap-around sides" do
-    label_pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:cable_tag_printer))
+    label_pdf = Things::LabelPdf.new(
+      thing: things(:router),
+      printer: printers(:label_printer),
+      layout: :cable_tag
+    )
     path = label_pdf.generate
     png_path = rasterize_label_pdf(path)
     image = ChunkyPNG::Image.from_file(png_path)

@@ -59,6 +59,49 @@ class Things::PrintLabelTest < ActiveSupport::TestCase
     end
   end
 
+  test "cable tag print uses wider media on 24mm strip printer" do
+    printer = printers(:label_printer)
+    label_pdf = Things::LabelPdf.new(thing: things(:router), printer: printer, layout: :cable_tag)
+    captured = []
+    runner = lambda do |*_args|
+      captured << _args
+      case _args[1]
+      when "lp" then [ "request id is DYMO-1 (1 file(s))\n", "", Struct.new(:success?).new(true) ]
+      when "lpstat" then [ "", "", Struct.new(:success?).new(true) ]
+      else [ "", "", Struct.new(:success?).new(false) ]
+      end
+    end
+    client = Cups::Client.new(server: printer.cups_server, runner: runner)
+
+    Things::PrintLabel.call(thing: things(:router), printer: printer, layout: :cable_tag, cups_client: client)
+
+    lp_args = captured.find { |args| args[1] == "lp" }
+    assert_includes lp_args.join(" "), "media=#{label_pdf.cups_media}"
+    assert_operator label_pdf.page_width_mm, :>, Things::LabelPdf.new(thing: things(:router), printer: printer).page_width_mm
+  ensure
+    label_pdf&.cleanup!
+  end
+
+  test "cable tag print requires ip address or hostname" do
+    assert_raises(ArgumentError, match: /IP address or hostname/) do
+      Things::PrintLabel.call(
+        thing: things(:keyboard),
+        printer: printers(:label_printer),
+        layout: :cable_tag
+      )
+    end
+  end
+
+  test "cable tag print requires cable tag capable printer" do
+    assert_raises(ArgumentError, match: /does not support cable tags/) do
+      Things::PrintLabel.call(
+        thing: things(:router),
+        printer: printers(:brother_printer),
+        layout: :cable_tag
+      )
+    end
+  end
+
   test "command printer runs print command with generated png" do
     printer = printers(:command_printer)
     captured = []

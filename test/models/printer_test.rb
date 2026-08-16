@@ -54,6 +54,12 @@ class PrinterTest < ActiveSupport::TestCase
     assert_equal "Custom.62x0mm", printer.cups_media
   end
 
+  test "cable tag capable printers include 24mm strip and 24mm command printers" do
+    assert printers(:label_printer).cable_tag_capable?
+    assert printers(:command_printer).cable_tag_capable?
+    assert_not printers(:brother_printer).cable_tag_capable?
+  end
+
   test "letter printer supports avery templates" do
     printer = printers(:office_laser)
     assert printer.supports_avery_templates?

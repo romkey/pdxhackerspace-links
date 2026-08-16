@@ -44,11 +44,3 @@ command_printer:
   precut_before: true
   description: Local script printer
   enabled: true
-
-cable_tag_printer:
-  name: Cable tag printer
-  cups_server: cups.example.com:631
-  cups_name: CableTag
-  page_size: label_cable_tag_24mm
-  description: 24mm wrap-around cable tags
-  enabled: true

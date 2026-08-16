@@ -12,6 +12,16 @@ class ThingsController < ApplicationController
   end
 
   def show
+    if params[:key].present?
+      utm_source = ThingTracking.scan_utm_source_from(params)
+      if utm_source
+        redirect_to ThingTracking.full_thing_url(@thing, utm_source: utm_source),
+                    allow_other_host: true,
+                    status: :found
+        return
+      end
+    end
+
     if ThingTracking.tracked?(params[:utm_source])
       Things::RecordScan.call(thing: @thing, utm_source: params[:utm_source])
       Things::RecordVisit.call(thing: @thing)
@@ -31,26 +41,40 @@ class ThingsController < ApplicationController
 
   def print
     printer = Printer.enabled.find(params[:printer_id])
+    layout = label_layout_param
+    return unless validate_label_layout!(printer, layout)
+
     copies = params[:copies].to_i
     copies = 1 if copies < 1
 
-    Things::PrintLabel.call(thing: @thing, printer: printer, copies: copies)
-    redirect_back_or_to thing_path(@thing), notice: "Sent “#{@thing.name}” to #{printer.name}."
+    Things::PrintLabel.call(thing: @thing, printer: printer, copies: copies, layout: layout)
+    notice = if layout == :cable_tag
+      "Sent cable tag for “#{@thing.name}” to #{printer.name}."
+    else
+      "Sent “#{@thing.name}” to #{printer.name}."
+    end
+    redirect_back_or_to thing_path(@thing), notice: notice
   rescue ActiveRecord::RecordNotFound
     redirect_back_or_to thing_path(@thing), alert: "Printer not found or disabled."
+  rescue ArgumentError => error
+    redirect_back_or_to thing_path(@thing), alert: error.message
   rescue Cups::Client::Error, Printers::CommandError => error
     redirect_back_or_to thing_path(@thing), alert: error.message
   end
 
   def label_preview
     @printer = Printer.enabled.find(params[:printer_id])
-    @label = label_renderer_for(@printer)
+    @layout = label_layout_param
+    return unless validate_label_layout!(@printer, @layout)
+
+    @label = label_renderer_for(@printer, layout: @layout)
     @thing_qr_url = ThingTracking.thing_url(@thing, utm_source: ThingTracking::QR_CODE)
+    @preview_params = @layout == :cable_tag ? { layout: :cable_tag } : {}
 
     respond_to do |format|
       format.html
       format.pdf do
-        redirect_to label_preview_thing_path(@thing, printer_id: @printer.id, format: :png), allow_other_host: false if @printer.command?
+        redirect_to label_preview_thing_path(@thing, printer_id: @printer.id, format: :png, **@preview_params), allow_other_host: false if @printer.command?
 
         prevent_label_preview_caching
         send_data @label.pdf_data,
@@ -59,7 +83,7 @@ class ThingsController < ApplicationController
                   disposition: "inline"
       end
       format.png do
-        redirect_to label_preview_thing_path(@thing, printer_id: @printer.id, format: :pdf), allow_other_host: false unless @printer.command?
+        redirect_to label_preview_thing_path(@thing, printer_id: @printer.id, format: :pdf, **@preview_params), allow_other_host: false unless @printer.command?
 
         prevent_label_preview_caching
         send_data @label.png_data,
@@ -165,15 +189,35 @@ class ThingsController < ApplicationController
   end
 
   def label_preview_filename(printer, extension)
-    "#{@thing.name.parameterize}-#{printer.name.parameterize}.#{extension}"
+    suffix = @layout == :cable_tag ? "-cable-tag" : ""
+    "#{@thing.name.parameterize}-#{printer.name.parameterize}#{suffix}.#{extension}"
   end
 
-  def label_renderer_for(printer)
+  def label_renderer_for(printer, layout: :standard)
     if printer.command?
-      Things::LabelPng.new(thing: @thing, printer: printer)
+      Things::LabelPng.new(thing: @thing, printer: printer, layout: layout)
     else
-      Things::LabelPdf.new(thing: @thing, printer: printer)
+      Things::LabelPdf.new(thing: @thing, printer: printer, layout: layout)
     end
+  end
+
+  def label_layout_param
+    params[:layout].to_s == "cable_tag" ? :cable_tag : :standard
+  end
+
+  def validate_label_layout!(printer, layout)
+    if layout == :cable_tag
+      unless printer.cable_tag_capable?
+        redirect_back_or_to thing_path(@thing), alert: "This printer does not support cable tags."
+        return false
+      end
+      if @thing.label_ip_line.blank?
+        redirect_back_or_to thing_path(@thing), alert: "Cable tags require an IP address or hostname."
+        return false
+      end
+    end
+
+    true
   end
 
   def prevent_label_preview_caching

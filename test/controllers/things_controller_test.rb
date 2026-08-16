@@ -65,15 +65,41 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "h1", things(:keyboard).name
   end
 
-  test "show with utm_source qrcode at short path tracks scan and redirects" do
+  test "abbreviated short url redirects to full thing url with utm_source" do
+    thing = things(:keyboard)
+
+    with_app_host("https://links.example.org") do
+      get "#{short_thing_path(thing.key)}?q"
+
+      assert_response :found
+      assert_equal "https://links.example.org/things/#{thing.slug}?utm_source=qrcode", response.location
+    end
+  end
+
+  test "abbreviated short url with legacy utm_source still redirects to full thing url" do
+    thing = things(:keyboard)
+
+    with_app_host("https://links.example.org") do
+      get short_thing_path(thing.key, utm_source: "qrcode")
+
+      assert_response :found
+      assert_equal "https://links.example.org/things/#{thing.slug}?utm_source=qrcode", response.location
+    end
+  end
+
+  test "abbreviated short url tracks scan after redirect to full thing url" do
     thing = things(:keyboard)
     thing.links.find_by(link_type: :slack).destroy!
 
-    assert_difference -> { thing.reload.qr_scan_count }, 1 do
-      get short_thing_path(thing.key, utm_source: "qrcode")
-    end
+    with_app_host("https://links.example.org") do
+      assert_difference -> { thing.reload.qr_scan_count }, 1 do
+        get "#{short_thing_path(thing.key)}?q"
+        follow_redirect!
+        follow_redirect!
+      end
 
-    assert_redirected_to thing_path(thing)
+      assert_response :success
+    end
   end
 
   test "show displays key" do
@@ -279,6 +305,39 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "application/pdf", response.media_type
     assert response.body.start_with?("%PDF")
     assert_match(/inline/, response.headers["Content-Disposition"])
+  end
+
+  test "show includes cable tag controls when thing has ip address" do
+    get thing_path(things(:router))
+
+    assert_response :success
+    assert_select "button", text: "Print cable tag"
+    assert_select "a[href=?]",
+                  label_preview_thing_path(things(:router), printer_id: printers(:label_printer).id, layout: :cable_tag)
+  end
+
+  test "show omits cable tag controls without ip address" do
+    get thing_path(things(:keyboard))
+
+    assert_response :success
+    assert_select "button", text: "Print cable tag", count: 0
+    assert_select "a", text: "Preview cable tag", count: 0
+  end
+
+  test "cable tag preview and print use wrap layout" do
+    get label_preview_thing_path(things(:router), printer_id: printers(:label_printer).id, layout: :cable_tag)
+
+    assert_response :success
+    assert_select "h1", "Cable tag preview"
+    assert_select "iframe[src=?]",
+                  label_preview_thing_path(things(:router), printer_id: printers(:label_printer).id, format: :pdf, layout: :cable_tag)
+
+    with_fake_cups_client do
+      post print_thing_path(things(:router)), params: { printer_id: printers(:label_printer).id, layout: :cable_tag }
+    end
+
+    assert_redirected_to thing_path(things(:router))
+    assert_match(/cable tag/i, flash[:notice])
   end
 
   test "index includes inline row actions when printers are enabled" do

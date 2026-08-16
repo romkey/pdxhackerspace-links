@@ -1,0 +1,14 @@
+<% return unless thing.label_ip_line.present? %>
+
+<% cable_tag_printers = printers.select(&:cable_tag_capable?) %>
+<% return if cable_tag_printers.empty? %>
+
+<%= render "print_controls",
+           thing: thing,
+           printers: cable_tag_printers,
+           layout: :cable_tag,
+           label: "Print cable tag",
+           preview_label: "Preview cable tag",
+           button_class: local_assigns.fetch(:button_class, "btn btn-outline-secondary btn-sm"),
+           form_class: local_assigns.fetch(:form_class, "d-inline"),
+           align_end: local_assigns.fetch(:align_end, false) %>

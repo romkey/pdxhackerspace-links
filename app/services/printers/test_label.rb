@@ -15,7 +15,7 @@ module Printers
     end
 
     def self.for_printer(printer)
-      strip = printer.page_size.in?(%w[label_strip_24mm label_cable_tag_24mm]) || printer.command?
+      strip = printer.page_size == "label_strip_24mm" || printer.command?
 
       new(
         name: "Test label",

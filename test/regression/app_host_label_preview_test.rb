@@ -14,7 +14,7 @@ class AppHostLabelPreviewRegressionTest < ActionDispatch::IntegrationTest
       get label_preview_thing_path(thing, printer_id: printers(:label_printer).id)
 
       assert_response :success
-      assert_select "code", text: "http://l.regression/#{thing.key}?utm_source=qrcode"
+      assert_select "code", text: "http://l.regression/#{thing.key}?q"
 
       get label_preview_thing_path(thing, printer_id: printers(:label_printer).id, format: :pdf)
 

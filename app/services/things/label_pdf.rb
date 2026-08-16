@@ -20,6 +20,7 @@ module Things
     LANDSCAPE_TEXT_MIN_WIDTH_MM = 28
     LANDSCAPE_TEXT_SIZE = 11
     AR_MARKER_GAP_MM = 0.75
+    LAYOUTS = %i[standard cable_tag].freeze
 
     PAGE_LAYOUTS = {
       "label_brother_12mm" => { width_mm: 12, height_mm: 40 },
@@ -29,16 +30,21 @@ module Things
       "label_brother_62x100" => { width_mm: 62, height_mm: 100 },
       "label_brother_102mm" => { width_mm: 102, height_mm: 50 },
       "label_strip_24mm" => { width_mm: 24, dynamic_width: true },
-      "label_cable_tag_24mm" => { width_mm: 24, dynamic_width: true },
       "label_4x6" => { width_in: 4, height_in: 6 },
       "letter" => { letter: true },
       "receipt_80mm" => { width_mm: 80, height_mm: 120 }
     }.freeze
 
-    def initialize(thing:, printer:, qr_url: nil)
+    def initialize(thing:, printer:, qr_url: nil, layout: :standard)
       @thing = thing
       @printer = printer
       @qr_url = qr_url
+      @layout = layout.to_sym
+      raise ArgumentError, "Invalid layout: #{layout}" unless LAYOUTS.include?(@layout)
+    end
+
+    def cable_tag?
+      @layout == :cable_tag
     end
 
     def generate
@@ -92,7 +98,7 @@ module Things
 
     private
 
-    attr_reader :thing, :printer
+    attr_reader :thing, :printer, :layout
 
     def build_pdf
       file = Tempfile.new([ "thing-label", ".pdf" ])
@@ -101,7 +107,7 @@ module Things
       Prawn::Document.generate(file.path, margin: 0, page_size: [ page_width, page_height ]) do |pdf|
         if letter_page?
           render_avery_label(pdf)
-        elsif cable_tag_label?
+        elsif cable_tag?
           render_cable_tag_label(pdf)
         elsif strip_style_label?
           render_strip_style_label(pdf)
@@ -133,10 +139,6 @@ module Things
       printer.page_size == "label_strip_24mm"
     end
 
-    def cable_tag_label?
-      printer.page_size == "label_cable_tag_24mm"
-    end
-
     def command_label?
       printer.command?
     end
@@ -162,7 +164,7 @@ module Things
     end
 
     def landscape_label_width_mm
-      return cable_tag_width_mm if cable_tag_label?
+      return cable_tag_width_mm if cable_tag?
       return strip_24mm_width_mm if strip_24mm_label?
 
       base_landscape_label_width_mm + ar_marker_reserved_width_mm
@@ -200,7 +202,7 @@ module Things
     end
 
     def strip_roll_width_mm
-      return CABLE_TAG_ROLL_WIDTH_MM if cable_tag_label?
+      return CABLE_TAG_ROLL_WIDTH_MM if cable_tag?
       return STRIP_24MM_ROLL_WIDTH_MM if strip_24mm_label?
 
       roll_width_mm

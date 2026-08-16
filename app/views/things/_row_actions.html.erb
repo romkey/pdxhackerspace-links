@@ -30,6 +30,34 @@
       </ul>
     </div>
   <% end %>
+  <% cable_tag_printers = printers.select(&:cable_tag_capable?) %>
+  <% if thing.label_ip_line.present? && cable_tag_printers.any? %>
+    <% if cable_tag_printers.one? %>
+      <%= button_to "Cable tag",
+                    print_thing_path(thing, printer_id: cable_tag_printers.first.id, layout: :cable_tag),
+                    class: "btn btn-outline-secondary btn-sm",
+                    form: { class: "d-inline" } %>
+    <% else %>
+      <div class="dropdown">
+        <button type="button"
+                class="btn btn-outline-secondary btn-sm dropdown-toggle"
+                data-bs-toggle="dropdown"
+                aria-expanded="false">
+          Cable tag
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <% cable_tag_printers.each do |printer| %>
+            <li>
+              <%= button_to "Print on #{printer.name}",
+                            print_thing_path(thing, printer_id: printer.id, layout: :cable_tag),
+                            class: "dropdown-item",
+                            form: { class: "d-inline" } %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+  <% end %>
   <%= button_to "Delete",
                 thing_path(thing),
                 method: :delete,

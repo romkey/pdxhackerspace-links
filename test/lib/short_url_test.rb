@@ -30,12 +30,13 @@ class ShortUrlTest < ActiveSupport::TestCase
     end
   end
 
-  test "scan_url encodes short host, key, and utm_source" do
+  test "scan_url encodes short host, key, and abbreviated param" do
     with_short_url_host("http://l.ctrlh") do
-      url = ShortUrl.scan_url(things(:keyboard), utm_source: "qrcode")
+      url = ShortUrl.scan_url(things(:keyboard), param: "q")
 
-      assert_equal "http://l.ctrlh/#{things(:keyboard).key}?utm_source=qrcode", url
+      assert_equal "http://l.ctrlh/#{things(:keyboard).key}?q", url
       assert_not_includes url, "/things/"
+      assert_not_includes url, "utm_source"
     end
   end
 end
