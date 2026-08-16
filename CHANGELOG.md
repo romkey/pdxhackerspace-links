@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- 24mm cable tag page size prints a wrap-around label twice with a center gap; the first half is mirrored so name, IP, and QR stay readable on both sides of the cable
+
 ## [v0.5.0] - 2026-07-13
 
 ### Added

@@ -54,6 +54,12 @@ class Printer < ApplicationRecord
       media: "Custom.24x0mm",
       description: "Continuous 24mm-wide label stock"
     },
+    "label_cable_tag_24mm" => {
+      label: "24mm cable tag",
+      group: "label",
+      media: "Custom.24x0mm",
+      description: "24mm wrap-around cable tag with mirrored duplicate (name, IP, QR on both sides)"
+    },
     "label_4x6" => {
       label: '4×6" label',
       group: "label",

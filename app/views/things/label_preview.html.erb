@@ -62,8 +62,12 @@
         <% if @label.landscape? %>
           <dt class="col-sm-5 text-secondary">Strip width</dt>
           <dd class="col-sm-7"><%= number_with_precision(@label.page_height_mm, precision: 1, strip_insignificant_zeros: true) %> mm</dd>
+          <% if @printer.page_size == "label_cable_tag_24mm" %>
+            <dt class="col-sm-5 text-secondary">Wrap gap</dt>
+            <dd class="col-sm-7"><%= number_with_precision(Things::LabelPdf::CABLE_TAG_GAP_MM, precision: 1, strip_insignificant_zeros: true) %> mm center gap for cable wrap; first half is mirrored</dd>
+          <% end %>
           <dt class="col-sm-5 text-secondary">Feed + cut</dt>
-          <dd class="col-sm-7"><%= number_with_precision(@printer.command? || @printer.page_size == "label_strip_24mm" ? Things::LabelPdf::STRIP_24MM_FEED_MARGIN_MM : Things::LabelPdf::LANDSCAPE_FEED_MARGIN_MM, precision: 1, strip_insignificant_zeros: true) %> mm trailing margin before cut</dd>
+          <dd class="col-sm-7"><%= number_with_precision(@printer.command? || @printer.page_size.in?(%w[label_strip_24mm label_cable_tag_24mm]) ? Things::LabelPdf::STRIP_24MM_FEED_MARGIN_MM : Things::LabelPdf::LANDSCAPE_FEED_MARGIN_MM, precision: 1, strip_insignificant_zeros: true) %> mm trailing margin before cut</dd>
         <% end %>
       </dl>
 

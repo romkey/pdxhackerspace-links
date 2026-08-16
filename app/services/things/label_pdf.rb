@@ -14,6 +14,8 @@ module Things
     STRIP_24MM_TEXT_MIN_WIDTH_MM = 28
     STRIP_24MM_FEED_MARGIN_MM = 3
     STRIP_24MM_TEXT_SIZE = 10
+    CABLE_TAG_ROLL_WIDTH_MM = 24
+    CABLE_TAG_GAP_MM = 10
     LANDSCAPE_FEED_MARGIN_MM = 3
     LANDSCAPE_TEXT_MIN_WIDTH_MM = 28
     LANDSCAPE_TEXT_SIZE = 11
@@ -27,6 +29,7 @@ module Things
       "label_brother_62x100" => { width_mm: 62, height_mm: 100 },
       "label_brother_102mm" => { width_mm: 102, height_mm: 50 },
       "label_strip_24mm" => { width_mm: 24, dynamic_width: true },
+      "label_cable_tag_24mm" => { width_mm: 24, dynamic_width: true },
       "label_4x6" => { width_in: 4, height_in: 6 },
       "letter" => { letter: true },
       "receipt_80mm" => { width_mm: 80, height_mm: 120 }
@@ -98,6 +101,8 @@ module Things
       Prawn::Document.generate(file.path, margin: 0, page_size: [ page_width, page_height ]) do |pdf|
         if letter_page?
           render_avery_label(pdf)
+        elsif cable_tag_label?
+          render_cable_tag_label(pdf)
         elsif strip_style_label?
           render_strip_style_label(pdf)
         elsif landscape_label?
@@ -128,6 +133,10 @@ module Things
       printer.page_size == "label_strip_24mm"
     end
 
+    def cable_tag_label?
+      printer.page_size == "label_cable_tag_24mm"
+    end
+
     def command_label?
       printer.command?
     end
@@ -153,6 +162,7 @@ module Things
     end
 
     def landscape_label_width_mm
+      return cable_tag_width_mm if cable_tag_label?
       return strip_24mm_width_mm if strip_24mm_label?
 
       base_landscape_label_width_mm + ar_marker_reserved_width_mm
@@ -190,7 +200,78 @@ module Things
     end
 
     def strip_roll_width_mm
-      strip_24mm_label? ? STRIP_24MM_ROLL_WIDTH_MM : roll_width_mm
+      return CABLE_TAG_ROLL_WIDTH_MM if cable_tag_label?
+      return STRIP_24MM_ROLL_WIDTH_MM if strip_24mm_label?
+
+      roll_width_mm
+    end
+
+    def cable_tag_segment_width_mm
+      qr = CABLE_TAG_ROLL_WIDTH_MM
+      (qr + STRIP_24MM_TEXT_GAP_MM + STRIP_24MM_TEXT_MIN_WIDTH_MM).round
+    end
+
+    def cable_tag_width_mm
+      segment = cable_tag_segment_width_mm
+      (segment + CABLE_TAG_GAP_MM + segment + STRIP_24MM_FEED_MARGIN_MM).round
+    end
+
+    def render_cable_tag_label(pdf)
+      segment_mm = cable_tag_segment_width_mm
+      segment_width = mm(segment_mm)
+      gap_width = mm(CABLE_TAG_GAP_MM)
+      strip_height = page_height
+
+      pdf.canvas do
+        pdf.transformation_matrix(-1, 0, 0, 1, segment_width, 0) do
+          render_cable_tag_segment(pdf, x: 0, strip_height: strip_height, segment_width_mm: segment_mm)
+        end
+      end
+
+      render_cable_tag_segment(
+        pdf,
+        x: segment_width + gap_width,
+        strip_height: strip_height,
+        segment_width_mm: segment_mm
+      )
+    end
+
+    def render_cable_tag_segment(pdf, x:, strip_height:, segment_width_mm:)
+      qr_size = strip_height
+      text_left = x + qr_size + mm(STRIP_24MM_TEXT_GAP_MM)
+      text_width = mm(segment_width_mm) - qr_size - mm(STRIP_24MM_TEXT_GAP_MM)
+      top_line = thing.label_title_line
+      bottom_line = thing.label_ip_line
+      text_rows = bottom_line.present? ? 2 : 1
+      text_row_height = mm(STRIP_24MM_TEXT_ROW_MM)
+      text_gap = mm(STRIP_24MM_TEXT_GAP_MM)
+      text_block_height = (text_rows * text_row_height) + ((text_rows - 1) * text_gap)
+      row_top = ((strip_height - text_block_height) / 2) + text_block_height
+
+      draw_qr_code(pdf, x: x, y: 0, size: qr_size, border_modules: 0)
+
+      pdf.text_box top_line.to_s,
+                   at: [ text_left, row_top ],
+                   width: text_width,
+                   height: text_row_height,
+                   size: STRIP_24MM_TEXT_SIZE,
+                   style: :bold,
+                   overflow: :truncate,
+                   single_line: true,
+                   valign: :center
+
+      return if bottom_line.blank?
+
+      row_top -= text_row_height + text_gap
+      pdf.text_box bottom_line.to_s,
+                   at: [ text_left, row_top ],
+                   width: text_width,
+                   height: text_row_height,
+                   size: STRIP_24MM_TEXT_SIZE,
+                   overflow: :truncate,
+                   single_line: true,
+                   valign: :center,
+                   color: "444444"
     end
 
     def render_strip_style_label(pdf)

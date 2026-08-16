@@ -129,6 +129,45 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
     assert_not label_pdf.instance_variable_get(:@generated_path)
   end
 
+  test "generates a pdf file for 24mm cable tag labels" do
+    label_pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:cable_tag_printer))
+    path = label_pdf.generate
+
+    assert File.exist?(path)
+    assert File.read(path, 4).start_with?("%PDF")
+    assert label_pdf.landscape?
+    assert_in_delta 24, label_pdf.page_height_mm, 0.1
+  ensure
+    label_pdf&.cleanup!
+  end
+
+  test "cable tag label width includes two segments, wrap gap, and feed margin" do
+    pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:cable_tag_printer))
+    segment = Things::LabelPdf::CABLE_TAG_ROLL_WIDTH_MM +
+              Things::LabelPdf::STRIP_24MM_TEXT_GAP_MM +
+              Things::LabelPdf::STRIP_24MM_TEXT_MIN_WIDTH_MM
+    expected_width = (segment.round + Things::LabelPdf::CABLE_TAG_GAP_MM + segment.round +
+                     Things::LabelPdf::STRIP_24MM_FEED_MARGIN_MM).round
+
+    assert_equal expected_width, pdf.page_width_mm
+    assert_equal expected_width, pdf.cups_media[/Custom\.24x(\d+)mm/, 1].to_i
+  end
+
+  test "cable tag label embeds two visible qr codes for wrap-around sides" do
+    label_pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:cable_tag_printer))
+    path = label_pdf.generate
+    png_path = rasterize_label_pdf(path)
+    image = ChunkyPNG::Image.from_file(png_path)
+    left_third = 0...(image.width / 3)
+    right_third = (2 * image.width / 3)...image.width
+
+    assert_operator dark_pixel_count(image, x_range: left_third), :>, 100
+    assert_operator dark_pixel_count(image, x_range: right_third), :>, 100
+  ensure
+    label_pdf&.cleanup!
+    File.delete(png_path) if png_path && File.exist?(png_path)
+  end
+
   test "24mm strip label grows when ar marker is attached" do
     thing = attach_ar_anchor(things(:router))
     pdf = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer))
