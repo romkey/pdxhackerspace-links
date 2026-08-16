@@ -6,17 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.6.0] - 2026-08-16
+
 ### Added
 
 - Auto-generated 8-character keys on things for compact QR codes and NFC tags at `/<key>` (for example `http://l.ctrlh/abc12345` when `SHORT_URL_HOST` is set)
 - `SHORT_URL_HOST` environment variable for the short URL base used in QR codes and NFC tags (defaults to `APP_HOST` when unset)
 - Key column on the things index and thing detail pages
+- 24mm cable tag page size prints a wrap-around label twice with a center gap; the first half is mirrored so name, IP, and QR stay readable on both sides of the cable
 
 ### Changed
 
 - Label QR codes and NFC tag URLs now encode the short URL host and thing key instead of `/things/<slug-or-id>`
-
-- 24mm cable tag page size prints a wrap-around label twice with a center gap; the first half is mirrored so name, IP, and QR stay readable on both sides of the cable
 
 ## [v0.5.0] - 2026-07-13
 
