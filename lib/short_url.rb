@@ -1,12 +1,14 @@
 require "uri"
+require "cgi"
 
 module ShortUrl
-  ENV_KEY = "SHORT_URL_HOST"
+  ENV_KEY = "SHORT_URL"
+  LEGACY_ENV_KEY = "SHORT_URL_HOST"
 
   module_function
 
   def host
-    ENV[ENV_KEY].presence || ENV.fetch("APP_HOST", AppHost::DEFAULT)
+    ENV[ENV_KEY].presence || ENV[LEGACY_ENV_KEY].presence || ENV.fetch("APP_HOST", AppHost::DEFAULT)
   end
 
   def url_options
@@ -20,5 +22,9 @@ module ShortUrl
   def display_url(thing)
     base = host.to_s.chomp("/")
     "#{base}#{thing_path(thing)}"
+  end
+
+  def scan_url(thing, utm_source:)
+    "#{display_url(thing)}?utm_source=#{CGI.escape(utm_source.to_s)}"
   end
 end

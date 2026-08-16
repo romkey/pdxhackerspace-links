@@ -10,6 +10,7 @@ services:
     environment:
       RAILS_ENV: production
       APP_HOST: ${APP_HOST:-http://localhost:3000}
+      SHORT_URL: ${SHORT_URL:-}
       CUPS_SERVER: ${CUPS_SERVER:-localhost:631}
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: ${REDIS_URL}
@@ -31,6 +32,7 @@ services:
     environment:
       RAILS_ENV: production
       APP_HOST: ${APP_HOST:-http://localhost:3000}
+      SHORT_URL: ${SHORT_URL:-}
       CUPS_SERVER: ${CUPS_SERVER:-localhost:631}
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: ${REDIS_URL}

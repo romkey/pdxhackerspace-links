@@ -92,6 +92,17 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
     File.delete(png_path) if png_path && File.exist?(png_path)
   end
 
+  test "qr code encodes SHORT_URL and thing key even when slug is set" do
+    with_short_url_host("http://l.ctrlh") do
+      thing = things(:keyboard)
+      url = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer)).send(:thing_url)
+
+      assert_equal "http://l.ctrlh/#{thing.key}?utm_source=qrcode", url
+      assert_not_includes url, "/things/"
+      assert_not_includes url, thing.slug
+    end
+  end
+
   test "landscape label embeds qr image" do
     label_pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer))
     path = label_pdf.generate

@@ -34,11 +34,19 @@ class ActiveSupport::TestCase
   end
 
   def with_short_url_host(short_url_host)
-    previous = ENV["SHORT_URL_HOST"]
-    short_url_host.nil? ? ENV.delete("SHORT_URL_HOST") : ENV["SHORT_URL_HOST"] = short_url_host
+    previous_short = ENV["SHORT_URL"]
+    previous_host = ENV["SHORT_URL_HOST"]
+    if short_url_host.nil?
+      ENV.delete("SHORT_URL")
+      ENV.delete("SHORT_URL_HOST")
+    else
+      ENV["SHORT_URL"] = short_url_host
+      ENV.delete("SHORT_URL_HOST")
+    end
     yield
   ensure
-    previous.nil? ? ENV.delete("SHORT_URL_HOST") : ENV["SHORT_URL_HOST"] = previous
+    previous_short.nil? ? ENV.delete("SHORT_URL") : ENV["SHORT_URL"] = previous_short
+    previous_host.nil? ? ENV.delete("SHORT_URL_HOST") : ENV["SHORT_URL_HOST"] = previous_host
   end
 
   def attach_ar_anchor(thing, filename: "ar_anchor.png")

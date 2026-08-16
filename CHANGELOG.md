@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.6.1] - 2026-08-16
+
+### Changed
+
+- Label QR codes and NFC tags build URLs from `SHORT_URL` (or legacy `SHORT_URL_HOST`) and the thing key via `ShortUrl.scan_url`, never `/things/<slug-or-id>`
+- Server compose passes `SHORT_URL` to web and Sidekiq containers
+
 ## [v0.6.0] - 2026-08-16
 
 ### Added

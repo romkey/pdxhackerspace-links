@@ -39,7 +39,7 @@ Rails.application.configure do
   # Make template changes take effect immediately.
   config.action_mailer.perform_caching = false
 
-  # QR codes, NFC tags, and mailers use APP_HOST for absolute URLs.
+  # QR codes and NFC tags use SHORT_URL; mailers use APP_HOST for absolute URLs.
   config.action_mailer.default_url_options = AppHost.url_options
 
   # Print deprecation notices to the Rails logger.

@@ -60,7 +60,7 @@ The account is created/updated on `db:seed`.
 Set in `.env`:
 
 - `APP_HOST` — public URL of this app (e.g. `https://links.example.com`). Used for OIDC redirects and admin links.
-- `SHORT_URL_HOST` — short URL base for label QR codes and NFC tags (e.g. `http://l.ctrlh`). Defaults to `APP_HOST` when unset. QR codes encode `SHORT_URL_HOST/<key>` so the hostname is not hardcoded in the app.
+- `SHORT_URL` — short URL base for label QR codes and NFC tags (e.g. `http://l.ctrlh`). Defaults to `APP_HOST` when unset. QR codes encode `SHORT_URL/<key>` so the hostname is not hardcoded in the app. `SHORT_URL_HOST` is still accepted as a legacy alias.
 - `OIDC_ISSUER`
 - `OIDC_CLIENT_ID`
 - `OIDC_CLIENT_SECRET`
@@ -88,7 +88,7 @@ Things can have an optional **BLE beacon UUID** (iBeacon format). Set it when cr
 
 ### Short URL keys
 
-Every thing gets an auto-generated **8-character key** (lowercase letters and numbers). QR codes and NFC tags encode `SHORT_URL_HOST/<key>` — for example `http://l.ctrlh/kbd12345` when `SHORT_URL_HOST=http://l.ctrlh`. The same key works at `/<key>` on whatever host serves the app. Keys are shown on the things index and thing detail pages, and are searchable.
+Every thing gets an auto-generated **8-character key** (lowercase letters and numbers). QR codes and NFC tags encode `SHORT_URL/<key>` — for example `http://l.ctrlh/kbd12345` when `SHORT_URL=http://l.ctrlh`. The same key works at `/<key>` on whatever host serves the app. Keys are shown on the things index and thing detail pages, and are searchable.
 
 ### URL slugs
 
@@ -174,11 +174,11 @@ docker compose -f docker-compose.server.yml up
 
 Pending migrations run automatically when the web container starts (`bin/docker-entrypoint` calls `db:prepare` before `./bin/rails server`).
 
-Set `APP_HOST` (public URL for OIDC redirects), `SHORT_URL_HOST` (short URL base for label QR codes and NFC tags; defaults to `APP_HOST`), `DATABASE_URL`, `REDIS_URL`, `LINKS_IMAGE`, and either `SECRET_KEY_BASE` or `RAILS_MASTER_KEY`.
+Set `APP_HOST` (public URL for OIDC redirects), `SHORT_URL` (short URL base for label QR codes and NFC tags; defaults to `APP_HOST`), `DATABASE_URL`, `REDIS_URL`, `LINKS_IMAGE`, and either `SECRET_KEY_BASE` or `RAILS_MASTER_KEY`.
 
 The server compose file mounts a persistent Docker volume at `/rails/storage` for thing photos and AR marker uploads. Without it, Active Storage files are lost when the web container is recreated and label previews for things with uploaded images will fail.
 
-After changing `APP_HOST` or `SHORT_URL_HOST`, recreate the web and Sidekiq containers so they pick up the new value (`docker compose -f docker-compose.server.yml up -d`). Label previews are not cached by the app, but your browser may keep an old preview image until you hard-refresh.
+After changing `APP_HOST` or `SHORT_URL`, recreate the web and Sidekiq containers so they pick up the new value (`docker compose -f docker-compose.server.yml up -d`). Label previews are not cached by the app, but your browser may keep an old preview image until you hard-refresh.
 
 Generate a secret key:
 

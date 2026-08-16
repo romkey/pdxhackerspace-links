@@ -10,11 +10,7 @@ module ThingTracking
     SOURCES.include?(utm_source.to_s)
   end
 
-  def thing_url(thing, utm_source:, **url_options)
-    Rails.application.routes.url_helpers.short_thing_url(
-      thing.key,
-      **ShortUrl.url_options.merge(url_options),
-      utm_source: utm_source
-    )
+  def thing_url(thing, utm_source:, **)
+    ShortUrl.scan_url(thing, utm_source: utm_source)
   end
 end
