@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [v0.6.4] - 2026-08-16
+
+### Fixed
+
+- Cable tag labels now print identical halves instead of mirroring the first half
+
 ## [v0.6.3] - 2026-08-16
 
 ### Added

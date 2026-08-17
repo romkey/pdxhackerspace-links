@@ -224,12 +224,7 @@ module Things
       gap_width = mm(CABLE_TAG_GAP_MM)
       strip_height = page_height
 
-      pdf.canvas do
-        pdf.transformation_matrix(-1, 0, 0, 1, segment_width, 0) do
-          render_cable_tag_segment(pdf, x: 0, strip_height: strip_height, segment_width_mm: segment_mm)
-        end
-      end
-
+      render_cable_tag_segment(pdf, x: 0, strip_height: strip_height, segment_width_mm: segment_mm)
       render_cable_tag_segment(
         pdf,
         x: segment_width + gap_width,
