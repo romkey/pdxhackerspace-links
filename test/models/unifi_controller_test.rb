@@ -79,6 +79,12 @@ class UnifiControllerTest < ActiveSupport::TestCase
     assert_equal 2, unifi_controllers(:udm).device_count
   end
 
+  test "shares one rate limiter across both application clients" do
+    unifi_controller = unifi_controllers(:udm)
+
+    assert_same unifi_controller.rate_limiter, unifi_controller.rate_limiter
+  end
+
   test "deleting a controller removes its devices but keeps their things" do
     unifi_controller = unifi_controllers(:udm)
     thing = unifi_devices(:rack_switch).thing

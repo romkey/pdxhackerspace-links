@@ -29,11 +29,17 @@ class UnifiController < ApplicationRecord
   end
 
   def network_client(transport: nil)
-    Unifi::NetworkClient.for(self, transport: transport)
+    Unifi::NetworkClient.for(self, transport: transport, rate_limiter: rate_limiter)
   end
 
   def protect_client(transport: nil)
-    Unifi::ProtectClient.for(self, transport: transport)
+    Unifi::ProtectClient.for(self, transport: transport, rate_limiter: rate_limiter)
+  end
+
+  # Both applications are proxied by the same console and share its request
+  # budget, so they have to be paced together rather than per client.
+  def rate_limiter
+    @rate_limiter ||= Unifi::RateLimiter.new
   end
 
   def enabled_applications
