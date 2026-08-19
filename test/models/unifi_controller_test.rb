@@ -79,6 +79,18 @@ class UnifiControllerTest < ActiveSupport::TestCase
     assert_equal 2, unifi_controllers(:udm).device_count
   end
 
+  test "reports the sync state behind the last status" do
+    unifi_controller = unifi_controllers(:udm)
+
+    unifi_controller.last_sync_status = "skipped"
+    assert unifi_controller.valid?
+    assert_predicate unifi_controller, :last_sync_skipped?
+    assert_not_predicate unifi_controller, :syncing?
+
+    unifi_controller.last_sync_status = "elsewhere"
+    assert_not unifi_controller.valid?
+  end
+
   test "shares one rate limiter across both application clients" do
     unifi_controller = unifi_controllers(:udm)
 

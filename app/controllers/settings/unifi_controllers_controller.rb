@@ -55,6 +55,11 @@ module Settings
     end
 
     def import
+      unless @unifi_controller.enabled?
+        return redirect_to settings_unifi_controller_path(@unifi_controller),
+                           alert: "Enable #{@unifi_controller.name} before running an import."
+      end
+
       @unifi_controller.update!(last_sync_status: "running", last_sync_message: "Import queued.")
       Unifi::ImportJob.perform_later(@unifi_controller.id)
 
