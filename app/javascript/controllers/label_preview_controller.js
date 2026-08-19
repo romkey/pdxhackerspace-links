@@ -62,9 +62,14 @@ export default class extends Controller {
     const previewUrl = new URL(url)
 
     this.printParamNames().forEach((name) => {
-      if (!previewUrl.searchParams.has(name)) return
+      const existing = this.printFormTarget.querySelector(`input[name='${name}']`)
 
-      let input = this.printFormTarget.querySelector(`input[name='${name}']`)
+      if (!previewUrl.searchParams.has(name)) {
+        existing?.remove()
+        return
+      }
+
+      let input = existing
       if (!input) {
         input = document.createElement("input")
         input.type = "hidden"
