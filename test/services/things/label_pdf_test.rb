@@ -220,6 +220,20 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
     assert_equal [ "Router romkey", "router.local", "192.168.1.1" ], lines
   end
 
+  test "uses site setting label margins by default" do
+    SiteSetting.instance.update!(label_print_left_margin_mm: 2, label_print_right_margin_mm: 5, cable_tag_gap_mm: 8)
+    pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer))
+
+    assert_in_delta 2, pdf.left_margin_mm, 0.01
+    assert_in_delta 5, pdf.right_margin_mm, 0.01
+    assert_in_delta 8, pdf.cable_tag_gap_mm, 0.01
+  ensure
+    site_settings(:default).tap do |setting|
+      setting.update!(label_print_left_margin_mm: 0, label_print_right_margin_mm: 3, cable_tag_gap_mm: 10)
+    end
+    pdf&.cleanup! if pdf&.instance_variable_get(:@generated_path)
+  end
+
   test "accepts margin overrides" do
     pdf = Things::LabelPdf.new(
       thing: things(:router),

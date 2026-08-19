@@ -32,6 +32,12 @@ module Things
       "receipt_80mm" => { width_mm: 80, height_mm: 120 }
     }.freeze
 
+    MARGIN_SETTING_KEYS = {
+      left_margin_mm: :label_print_left_margin_mm,
+      right_margin_mm: :label_print_right_margin_mm,
+      cable_tag_gap_mm: :cable_tag_gap_mm
+    }.freeze
+
     def initialize(thing:, printer:, qr_url: nil, layout: :standard, margins: nil)
       @thing = thing
       @printer = printer
@@ -113,9 +119,8 @@ module Things
     def margin_value(key, default)
       return margin_overrides[key].to_f if margin_overrides.key?(key)
 
-      site_setting.public_send(key).to_f
-    rescue NoMethodError
-      default.to_f
+      setting_key = MARGIN_SETTING_KEYS.fetch(key)
+      site_setting.public_send(setting_key).to_f
     end
 
     def site_setting
