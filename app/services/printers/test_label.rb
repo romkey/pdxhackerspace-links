@@ -10,6 +10,14 @@ module Printers
       ip_address
     end
 
+    def label_hostname_line
+      nil
+    end
+
+    def label_network_lines
+      [ label_hostname_line, label_ip_line ].compact
+    end
+
     def links_with_urls
       [ LinkDisplay.new(display_title: subtitle) ]
     end

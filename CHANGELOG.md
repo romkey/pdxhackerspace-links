@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- Separate **IP address** and **hostname** fields on things; cable tags print both when set
+- Default left margin, right margin, and cable tag middle gap under **Settings → General → Label printing**
+- Label preview margin controls for landscape and cable tag layouts; preview refreshes as values change
+
+### Changed
+
+- Thing IP address field accepts IPv4 only; hostnames belong in the new hostname field
+- Strip and cable tag labels grow to fit long names instead of truncating text
+
 - UniFi integration under **Settings → UniFi**: register consoles and import their devices as things
 - Imports adopted Network devices (gateways, switches, access points) from every local site, and Protect devices (cameras, lights, sensors, chimes, viewers, speakers, bridges, fobs, sirens, relays, alarm hubs, NVR)
 - Devices match existing things by MAC address, so a console listed by both applications maps to one thing; new things are created automatically unless the controller turns that off

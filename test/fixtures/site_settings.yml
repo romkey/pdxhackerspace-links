@@ -1,2 +1,5 @@
 default:
   cups_server: cups.test:631
+  label_print_left_margin_mm: 0
+  label_print_right_margin_mm: 3
+  cable_tag_gap_mm: 10

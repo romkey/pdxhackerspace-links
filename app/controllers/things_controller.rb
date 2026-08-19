@@ -48,7 +48,13 @@ class ThingsController < ApplicationController
     copies = params[:copies].to_i
     copies = 1 if copies < 1
 
-    Things::PrintLabel.call(thing: @thing, printer: printer, copies: copies, layout: layout)
+    Things::PrintLabel.call(
+      thing: @thing,
+      printer: printer,
+      copies: copies,
+      layout: layout,
+      margins: label_margin_params
+    )
     notice = if layout == :cable_tag
       "Sent cable tag for “#{@thing.name}” to #{printer.name}."
     else
@@ -68,9 +74,10 @@ class ThingsController < ApplicationController
     @layout = label_layout_param
     return unless validate_label_layout!(@printer, @layout)
 
-    @label = label_renderer_for(@printer, layout: @layout)
+    @margin_overrides = label_margin_params
+    @label = label_renderer_for(@printer, layout: @layout, margins: @margin_overrides)
     @thing_qr_url = ThingTracking.thing_url(@thing, utm_source: ThingTracking::QR_CODE)
-    @preview_params = @layout == :cable_tag ? { layout: :cable_tag } : {}
+    @preview_params = label_preview_query_params
 
     respond_to do |format|
       format.html
@@ -166,6 +173,7 @@ class ThingsController < ApplicationController
       :notes,
       :owner,
       :ip_address,
+      :hostname,
       :mac_address,
       :ble_beacon_uuid,
       :ar_anchor_note,
@@ -199,11 +207,11 @@ class ThingsController < ApplicationController
     "#{@thing.name.parameterize}-#{printer.name.parameterize}#{suffix}.#{extension}"
   end
 
-  def label_renderer_for(printer, layout: :standard)
+  def label_renderer_for(printer, layout: :standard, margins: nil)
     if printer.command?
-      Things::LabelPng.new(thing: @thing, printer: printer, layout: layout)
+      Things::LabelPng.new(thing: @thing, printer: printer, layout: layout, margins: margins)
     else
-      Things::LabelPdf.new(thing: @thing, printer: printer, layout: layout)
+      Things::LabelPdf.new(thing: @thing, printer: printer, layout: layout, margins: margins)
     end
   end
 
@@ -217,7 +225,7 @@ class ThingsController < ApplicationController
         redirect_back_or_to thing_path(@thing), alert: "This printer does not support cable tags."
         return false
       end
-      if @thing.label_ip_line.blank?
+      unless @thing.cable_tag_printable?
         redirect_back_or_to thing_path(@thing), alert: "Cable tags require an IP address or hostname."
         return false
       end
@@ -229,6 +237,26 @@ class ThingsController < ApplicationController
   def prevent_label_preview_caching
     response.headers["Cache-Control"] = "no-store"
     response.headers["Pragma"] = "no-cache"
+  end
+
+  def label_margin_params
+    overrides = {}
+    %i[left_margin_mm right_margin_mm cable_tag_gap_mm].each do |key|
+      value = params[key]
+      next if value.blank?
+
+      overrides[key] = value.to_f
+    end
+    overrides.presence
+  end
+
+  def label_preview_query_params
+    params_hash = {}
+    params_hash[:layout] = :cable_tag if @layout == :cable_tag
+    label_margin_params&.each do |key, value|
+      params_hash[key] = value
+    end
+    params_hash
   end
 
   def skip_visit_count?

@@ -324,6 +324,38 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "a", text: "Preview cable tag", count: 0
   end
 
+  test "show includes cable tag controls when thing has hostname only" do
+    things(:keyboard).update!(hostname: "switch.local")
+
+    get thing_path(things(:keyboard))
+
+    assert_response :success
+    assert_select "button", text: "Print cable tag"
+  end
+
+  test "label preview accepts margin overrides" do
+    get label_preview_thing_path(
+      things(:router),
+      printer_id: printers(:label_printer).id,
+      layout: :cable_tag,
+      left_margin_mm: 2,
+      right_margin_mm: 5,
+      cable_tag_gap_mm: 12
+    )
+
+    assert_response :success
+    assert_select "input#label-left-margin" do |inputs|
+      assert_in_delta 2, inputs.first["value"].to_f, 0.01
+    end
+    assert_select "input#label-right-margin" do |inputs|
+      assert_in_delta 5, inputs.first["value"].to_f, 0.01
+    end
+    assert_select "input#label-middle-gap" do |inputs|
+      assert_in_delta 12, inputs.first["value"].to_f, 0.01
+    end
+    assert_select "[data-controller='label-preview']"
+  end
+
   test "cable tag preview and print use wrap layout" do
     get label_preview_thing_path(things(:router), printer_id: printers(:label_printer).id, layout: :cable_tag)
 

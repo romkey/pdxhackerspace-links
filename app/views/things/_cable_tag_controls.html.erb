@@ -1,4 +1,4 @@
-<% return unless thing.label_ip_line.present? %>
+<% return unless thing.cable_tag_printable? %>
 
 <% cable_tag_printers = printers.select(&:cable_tag_capable?) %>
 <% return if cable_tag_printers.empty? %>

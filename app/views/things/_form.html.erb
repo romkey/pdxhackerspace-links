@@ -22,8 +22,12 @@
         <div class="form-text text-12">Optional short URL path, e.g. /things/front-door-keyboard</div>
       </div>
       <div class="col-md-6">
-        <%= form.label :ip_address, "IP address / Hostname", class: "form-label" %>
-        <%= form.text_field :ip_address, class: "form-control", placeholder: "192.168.1.10 or host.example.com" %>
+        <%= form.label :ip_address, "IP address", class: "form-label" %>
+        <%= form.text_field :ip_address, class: "form-control", placeholder: "192.168.1.10" %>
+      </div>
+      <div class="col-md-6">
+        <%= form.label :hostname, class: "form-label" %>
+        <%= form.text_field :hostname, class: "form-control", placeholder: "host.example.com" %>
       </div>
       <div class="col-md-6">
         <%= form.label :mac_address, "MAC address", class: "form-label" %>
