@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_18_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_19_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -63,8 +63,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_000003) do
   end
 
   create_table "site_settings", force: :cascade do |t|
+    t.decimal "cable_tag_gap_mm", precision: 5, scale: 2, default: "10.0", null: false
     t.datetime "created_at", null: false
     t.string "cups_server", default: "localhost:631", null: false
+    t.decimal "label_print_left_margin_mm", precision: 5, scale: 2, default: "0.0", null: false
+    t.decimal "label_print_right_margin_mm", precision: 5, scale: 2, default: "3.0", null: false
     t.string "matomo_site_id"
     t.string "matomo_url"
     t.datetime "updated_at", null: false
@@ -89,6 +92,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_000003) do
     t.string "ble_beacon_uuid"
     t.datetime "created_at", null: false
     t.text "description"
+    t.string "hostname"
     t.string "ip_address"
     t.string "key", null: false
     t.string "mac_address"

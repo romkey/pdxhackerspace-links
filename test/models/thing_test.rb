@@ -43,11 +43,31 @@ class ThingTest < ActiveSupport::TestCase
     router = things(:router)
     assert_equal "Router romkey", router.label_title_line
     assert_equal "192.168.1.1", router.label_ip_line
+    assert_nil router.label_hostname_line
+  end
+
+  test "label network lines include hostname and ip when both set" do
+    router = things(:router)
+    router.update!(hostname: "router.local")
+
+    assert_equal [ "router.local", "192.168.1.1" ], router.label_network_lines
+    assert router.cable_tag_printable?
   end
 
   test "label title line omits blank owner" do
     assert_equal "Keyboard", things(:keyboard).label_title_line
-    assert_nil things(:keyboard).label_ip_line
+    assert_equal [], things(:keyboard).label_network_lines
+    assert_not things(:keyboard).cable_tag_printable?
+  end
+
+  test "cable tag printable with hostname only" do
+    thing = things(:keyboard)
+    thing.hostname = "switch.local"
+
+    assert thing.valid?
+    assert thing.cable_tag_printable?
+    assert_nil thing.label_ip_line
+    assert_equal "switch.local", thing.label_hostname_line
   end
 
   test "scan total count sums qr and nfc counts" do
@@ -63,35 +83,50 @@ class ThingTest < ActiveSupport::TestCase
     assert thing.valid?
   end
 
-  test "accepts a hostname" do
+  test "rejects a hostname in ip address field" do
     thing = things(:keyboard)
     thing.ip_address = "router.local"
+    assert_not thing.valid?
+    assert_includes thing.errors[:ip_address], "must be a valid IPv4 address"
+  end
+
+  test "accepts a hostname" do
+    thing = things(:keyboard)
+    thing.hostname = "router.local"
     assert thing.valid?
   end
 
   test "accepts a single-label hostname" do
     thing = things(:keyboard)
-    thing.ip_address = "router"
+    thing.hostname = "router"
     assert thing.valid?
   end
 
   test "accepts a fully qualified domain name" do
     thing = things(:keyboard)
-    thing.ip_address = "host.example.com"
+    thing.hostname = "host.example.com"
     assert thing.valid?
   end
 
-  test "allows a blank ip address or hostname" do
+  test "allows blank ip address and hostname" do
     thing = things(:keyboard)
     thing.ip_address = ""
+    thing.hostname = ""
     assert thing.valid?
   end
 
-  test "rejects an invalid ip address or hostname" do
+  test "rejects an invalid hostname" do
     thing = things(:keyboard)
-    thing.ip_address = "not a host!"
+    thing.hostname = "not a host!"
     assert_not thing.valid?
-    assert_includes thing.errors[:ip_address], "must be a valid IPv4 address or hostname"
+    assert_includes thing.errors[:hostname], "must be a valid hostname"
+  end
+
+  test "rejects an invalid ip address" do
+    thing = things(:keyboard)
+    thing.ip_address = "not an ip!"
+    assert_not thing.valid?
+    assert_includes thing.errors[:ip_address], "must be a valid IPv4 address"
   end
 
   test "search matches name, description, owner, notes, and links" do
@@ -104,6 +139,11 @@ class ThingTest < ActiveSupport::TestCase
     assert_includes Thing.search("fda50693-f4c2-4a1b-8fb9-9d9458836f36"), things(:router)
     assert_not_includes Thing.search("keyboard"), things(:router)
     assert_equal Thing.count, Thing.search("").count
+  end
+
+  test "search matches hostname" do
+    things(:router).update!(hostname: "core-router.local")
+    assert_includes Thing.search("core-router.local"), things(:router)
   end
 
   test "allows blank ble beacon uuid" do

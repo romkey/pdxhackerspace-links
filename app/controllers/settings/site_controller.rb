@@ -26,7 +26,14 @@ module Settings
     end
 
     def site_setting_params
-      params.require(:site_setting).permit(:cups_server, :matomo_url, :matomo_site_id)
+      params.require(:site_setting).permit(
+      :cups_server,
+      :matomo_url,
+      :matomo_site_id,
+      :label_print_left_margin_mm,
+      :label_print_right_margin_mm,
+      :cable_tag_gap_mm
+    )
     end
   end
 end

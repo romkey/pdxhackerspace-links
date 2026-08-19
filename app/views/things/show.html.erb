@@ -14,11 +14,12 @@
       <% if can_manage_things? && @thing.public_access? %>
         <span class="badge text-bg-secondary-subtle text-12 fw-normal mt-1">Public</span>
       <% end %>
-      <% if @thing.owner.present? || @thing.ip_address.present? || @thing.mac_address.present? || @thing.ble_beacon_uuid.present? || @thing.slug.present? || @thing.key.present? %>
+      <% if @thing.owner.present? || @thing.ip_address.present? || @thing.hostname.present? || @thing.mac_address.present? || @thing.ble_beacon_uuid.present? || @thing.slug.present? || @thing.key.present? %>
         <div class="text-13 text-secondary mt-1">
           <% metadata = [] %>
           <% metadata << content_tag(:span, @thing.owner) if @thing.owner.present? %>
           <% metadata << content_tag(:code, @thing.ip_address, class: "text-12") if @thing.ip_address.present? %>
+          <% metadata << content_tag(:code, @thing.hostname, class: "text-12") if @thing.hostname.present? %>
           <% metadata << content_tag(:code, @thing.mac_address, class: "text-12", title: "MAC address") if @thing.mac_address.present? %>
           <% metadata << content_tag(:code, @thing.key, class: "text-12", title: "Short URL key") if @thing.key.present? %>
           <% metadata << content_tag(:code, @thing.slug, class: "text-12", title: "URL slug") if @thing.slug.present? %>

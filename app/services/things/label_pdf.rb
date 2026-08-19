@@ -12,11 +12,8 @@ module Things
     STRIP_24MM_TEXT_ROW_MM = 6
     STRIP_24MM_TEXT_GAP_MM = 0.75
     STRIP_24MM_TEXT_MIN_WIDTH_MM = 28
-    STRIP_24MM_FEED_MARGIN_MM = 3
     STRIP_24MM_TEXT_SIZE = 10
     CABLE_TAG_ROLL_WIDTH_MM = 24
-    CABLE_TAG_GAP_MM = 10
-    LANDSCAPE_FEED_MARGIN_MM = 3
     LANDSCAPE_TEXT_MIN_WIDTH_MM = 28
     LANDSCAPE_TEXT_SIZE = 11
     AR_MARKER_GAP_MM = 0.75
@@ -35,16 +32,29 @@ module Things
       "receipt_80mm" => { width_mm: 80, height_mm: 120 }
     }.freeze
 
-    def initialize(thing:, printer:, qr_url: nil, layout: :standard)
+    def initialize(thing:, printer:, qr_url: nil, layout: :standard, margins: nil)
       @thing = thing
       @printer = printer
       @qr_url = qr_url
       @layout = layout.to_sym
+      @margin_overrides = margins || {}
       raise ArgumentError, "Invalid layout: #{layout}" unless LAYOUTS.include?(@layout)
     end
 
     def cable_tag?
       @layout == :cable_tag
+    end
+
+    def left_margin_mm
+      margin_value(:left_margin_mm, SiteSetting::DEFAULT_LABEL_PRINT_LEFT_MARGIN_MM)
+    end
+
+    def right_margin_mm
+      margin_value(:right_margin_mm, SiteSetting::DEFAULT_LABEL_PRINT_RIGHT_MARGIN_MM)
+    end
+
+    def cable_tag_gap_mm
+      margin_value(:cable_tag_gap_mm, SiteSetting::DEFAULT_CABLE_TAG_GAP_MM)
     end
 
     def generate
@@ -98,7 +108,19 @@ module Things
 
     private
 
-    attr_reader :thing, :printer, :layout
+    attr_reader :thing, :printer, :layout, :margin_overrides
+
+    def margin_value(key, default)
+      return margin_overrides[key].to_f if margin_overrides.key?(key)
+
+      site_setting.public_send(key).to_f
+    rescue NoMethodError
+      default.to_f
+    end
+
+    def site_setting
+      @site_setting ||= SiteSetting.instance
+    end
 
     def build_pdf
       file = Tempfile.new([ "thing-label", ".pdf" ])
@@ -175,13 +197,11 @@ module Things
     end
 
     def base_landscape_label_width_mm
-      qr = roll_width_mm
-      (qr + STRIP_24MM_TEXT_GAP_MM + LANDSCAPE_TEXT_MIN_WIDTH_MM + LANDSCAPE_FEED_MARGIN_MM).round
+      left_margin_mm + roll_width_mm + STRIP_24MM_TEXT_GAP_MM + landscape_text_width_mm + right_margin_mm
     end
 
     def base_strip_24mm_width_mm
-      qr = strip_roll_width_mm
-      (qr + STRIP_24MM_TEXT_GAP_MM + STRIP_24MM_TEXT_MIN_WIDTH_MM + STRIP_24MM_FEED_MARGIN_MM).round
+      left_margin_mm + strip_roll_width_mm + STRIP_24MM_TEXT_GAP_MM + strip_text_width_mm + right_margin_mm
     end
 
     def ar_marker_reserved_width_mm
@@ -209,25 +229,85 @@ module Things
     end
 
     def cable_tag_segment_width_mm
-      qr = CABLE_TAG_ROLL_WIDTH_MM
-      (qr + STRIP_24MM_TEXT_GAP_MM + STRIP_24MM_TEXT_MIN_WIDTH_MM).round
+      strip_roll_width_mm + STRIP_24MM_TEXT_GAP_MM + cable_tag_text_width_mm
     end
 
     def cable_tag_width_mm
       segment = cable_tag_segment_width_mm
-      (segment + CABLE_TAG_GAP_MM + segment + STRIP_24MM_FEED_MARGIN_MM).round
+      (left_margin_mm + segment + cable_tag_gap_mm + segment + right_margin_mm).round
+    end
+
+    def strip_text_width_mm
+      text_column_width_mm(strip_style_label_lines, font_size: STRIP_24MM_TEXT_SIZE)
+    end
+
+    def cable_tag_text_width_mm
+      text_column_width_mm(cable_tag_label_lines, font_size: STRIP_24MM_TEXT_SIZE)
+    end
+
+    def landscape_text_width_mm
+      lines = [ thing.name ] + landscape_bottom_lines
+      text_column_width_mm(lines, font_size: LANDSCAPE_TEXT_SIZE)
+    end
+
+    def text_column_width_mm(lines, font_size:)
+      measured_mm = measure_text_lines_mm(lines, font_size: font_size)
+      min_width = strip_style_label? || cable_tag? ? STRIP_24MM_TEXT_MIN_WIDTH_MM : LANDSCAPE_TEXT_MIN_WIDTH_MM
+      [ min_width, measured_mm ].max.round(2)
+    end
+
+    def measure_text_lines_mm(lines, font_size:)
+      return 0 if lines.empty?
+
+      max_pt = lines.each_with_index.map do |line, index|
+        style = index.zero? ? :bold : :normal
+        measure_text_width_pt(line.to_s, size: font_size, style: style)
+      end.max
+
+      (max_pt / MM_TO_PT).ceil(2)
+    end
+
+    def measure_text_width_pt(text, size:, style:)
+      @text_metrics ||= Prawn::Document.new(margin: 0)
+      @text_metrics.width_of(text, size: size, style: style)
+    end
+
+    def cable_tag_label_lines
+      [ thing.label_title_line ] + thing.label_network_lines
+    end
+
+    def strip_style_label_lines
+      [ thing.label_title_line ] + strip_style_bottom_lines
+    end
+
+    def strip_style_bottom_lines
+      return thing.label_network_lines if strip_24mm_label? || command_label?
+
+      link = thing.links_with_urls.first&.display_title
+      link.present? ? [ link ] : []
+    end
+
+    def landscape_bottom_lines
+      link = thing.links_with_urls.first&.display_title
+      link.present? ? [ link ] : []
     end
 
     def render_cable_tag_label(pdf)
       segment_mm = cable_tag_segment_width_mm
       segment_width = mm(segment_mm)
-      gap_width = mm(CABLE_TAG_GAP_MM)
+      gap_width = mm(cable_tag_gap_mm)
       strip_height = page_height
+      left_offset = mm(left_margin_mm)
 
-      render_cable_tag_segment(pdf, x: 0, strip_height: strip_height, segment_width_mm: segment_mm)
       render_cable_tag_segment(
         pdf,
-        x: segment_width + gap_width,
+        x: left_offset,
+        strip_height: strip_height,
+        segment_width_mm: segment_mm
+      )
+      render_cable_tag_segment(
+        pdf,
+        x: left_offset + segment_width + gap_width,
         strip_height: strip_height,
         segment_width_mm: segment_mm
       )
@@ -237,100 +317,80 @@ module Things
       qr_size = strip_height
       text_left = x + qr_size + mm(STRIP_24MM_TEXT_GAP_MM)
       text_width = mm(segment_width_mm) - qr_size - mm(STRIP_24MM_TEXT_GAP_MM)
-      top_line = thing.label_title_line
-      bottom_line = thing.label_ip_line
-      text_rows = bottom_line.present? ? 2 : 1
-      text_row_height = mm(STRIP_24MM_TEXT_ROW_MM)
-      text_gap = mm(STRIP_24MM_TEXT_GAP_MM)
-      text_block_height = (text_rows * text_row_height) + ((text_rows - 1) * text_gap)
-      row_top = ((strip_height - text_block_height) / 2) + text_block_height
+      lines = cable_tag_label_lines
 
       draw_qr_code(pdf, x: x, y: 0, size: qr_size, border_modules: 0)
-
-      pdf.text_box top_line.to_s,
-                   at: [ text_left, row_top ],
-                   width: text_width,
-                   height: text_row_height,
-                   size: STRIP_24MM_TEXT_SIZE,
-                   style: :bold,
-                   overflow: :truncate,
-                   single_line: true,
-                   valign: :center
-
-      return if bottom_line.blank?
-
-      row_top -= text_row_height + text_gap
-      pdf.text_box bottom_line.to_s,
-                   at: [ text_left, row_top ],
-                   width: text_width,
-                   height: text_row_height,
-                   size: STRIP_24MM_TEXT_SIZE,
-                   overflow: :truncate,
-                   single_line: true,
-                   valign: :center,
-                   color: "444444"
+      render_text_lines(
+        pdf,
+        lines: lines,
+        text_left: text_left,
+        text_width: text_width,
+        strip_height: strip_height,
+        font_size: STRIP_24MM_TEXT_SIZE
+      )
     end
 
     def render_strip_style_label(pdf)
       render_landscape_roll_label(
         pdf,
         top_line: thing.label_title_line,
-        bottom_line: strip_style_bottom_line
+        bottom_lines: strip_style_bottom_lines,
+        font_size: STRIP_24MM_TEXT_SIZE
       )
     end
 
-    def strip_style_bottom_line
-      return thing.label_ip_line if strip_24mm_label? || command_label?
-
-      thing.links_with_urls.first&.display_title
-    end
-
-    def render_landscape_roll_label(pdf, top_line: thing.name, bottom_line: thing.links_with_urls.first&.display_title)
-      feed_margin = mm(landscape_feed_margin_mm)
+    def render_landscape_roll_label(pdf, top_line: thing.name, bottom_lines: landscape_bottom_lines, font_size: nil)
+      font_size ||= strip_text_size
+      bottom_lines = Array(bottom_lines).compact
+      lines = [ top_line ] + bottom_lines
+      left_offset = mm(left_margin_mm)
+      feed_margin = mm(right_margin_mm)
       strip_height = page_height
       qr_size = strip_height
       marker_size = ar_marker_attached? ? strip_height : 0
       marker_gap = ar_marker_attached? ? mm(AR_MARKER_GAP_MM) : 0
       marker_reserved = marker_size + marker_gap
 
-      draw_qr_code(pdf, x: 0, y: 0, size: qr_size, border_modules: 0)
+      draw_qr_code(pdf, x: left_offset, y: 0, size: qr_size, border_modules: 0)
 
-      text_left = qr_size + mm(STRIP_24MM_TEXT_GAP_MM)
+      text_left = left_offset + qr_size + mm(STRIP_24MM_TEXT_GAP_MM)
       text_width = page_width - text_left - feed_margin - marker_reserved
-      text_rows = bottom_line.present? ? 2 : 1
-      text_row_height = mm(STRIP_24MM_TEXT_ROW_MM)
-      text_gap = mm(STRIP_24MM_TEXT_GAP_MM)
-      text_block_height = (text_rows * text_row_height) + ((text_rows - 1) * text_gap)
-      row_top = ((strip_height - text_block_height) / 2) + text_block_height
-      font_size = strip_text_size
 
-      pdf.text_box top_line.to_s,
-                   at: [ text_left, row_top ],
-                   width: text_width,
-                   height: text_row_height,
-                   size: font_size,
-                   style: :bold,
-                   overflow: :truncate,
-                   single_line: true,
-                   valign: :center
-
-      if bottom_line.present?
-        row_top -= text_row_height + text_gap
-        pdf.text_box bottom_line.to_s,
-                     at: [ text_left, row_top ],
-                     width: text_width,
-                     height: text_row_height,
-                     size: font_size,
-                     overflow: :truncate,
-                     single_line: true,
-                     valign: :center,
-                     color: "444444"
-      end
+      render_text_lines(
+        pdf,
+        lines: lines,
+        text_left: text_left,
+        text_width: text_width,
+        strip_height: strip_height,
+        font_size: font_size
+      )
 
       return unless ar_marker_attached?
 
       marker_x = page_width - feed_margin - marker_size
       draw_ar_marker(pdf, x: marker_x, y: 0, size: marker_size)
+    end
+
+    def render_text_lines(pdf, lines:, text_left:, text_width:, strip_height:, font_size:)
+      text_rows = lines.size
+      text_row_height = mm(STRIP_24MM_TEXT_ROW_MM)
+      text_gap = mm(STRIP_24MM_TEXT_GAP_MM)
+      text_block_height = (text_rows * text_row_height) + ((text_rows - 1) * text_gap)
+      row_top = ((strip_height - text_block_height) / 2) + text_block_height
+
+      lines.each_with_index do |line, index|
+        pdf.text_box line.to_s,
+                     at: [ text_left, row_top ],
+                     width: text_width,
+                     height: text_row_height,
+                     size: font_size,
+                     style: index.zero? ? :bold : :normal,
+                     overflow: :expand,
+                     single_line: true,
+                     valign: :center,
+                     color: index.zero? ? "000000" : "444444"
+        row_top -= text_row_height + text_gap unless index == lines.length - 1
+      end
     end
 
     def draw_qr_code(pdf, x:, y:, size:, border_modules: 1)
@@ -361,10 +421,6 @@ module Things
 
     def strip_text_size
       strip_24mm_label? ? STRIP_24MM_TEXT_SIZE : LANDSCAPE_TEXT_SIZE
-    end
-
-    def landscape_feed_margin_mm
-      strip_24mm_label? ? STRIP_24MM_FEED_MARGIN_MM : LANDSCAPE_FEED_MARGIN_MM
     end
 
     def render_avery_label(pdf)

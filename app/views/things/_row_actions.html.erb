@@ -31,7 +31,7 @@
     </div>
   <% end %>
   <% cable_tag_printers = printers.select(&:cable_tag_capable?) %>
-  <% if thing.label_ip_line.present? && cable_tag_printers.any? %>
+  <% if thing.cable_tag_printable? && cable_tag_printers.any? %>
     <% if cable_tag_printers.one? %>
       <%= button_to "Cable tag",
                     print_thing_path(thing, printer_id: cable_tag_printers.first.id, layout: :cable_tag),

@@ -22,7 +22,8 @@ class Thing < ApplicationRecord
   validates :slug, uniqueness: { allow_blank: true }
   validates :ble_beacon_uuid, uniqueness: { allow_blank: true }
   validates :mac_address, uniqueness: { allow_blank: true }
-  validate :ip_address_or_hostname
+  validate :ip_address_format
+  validate :hostname_format
   validate :ble_beacon_uuid_format
   validate :mac_address_format
   validate :slug_format
@@ -44,7 +45,7 @@ class Thing < ApplicationRecord
 
     pattern = "%#{sanitize_sql_like(term)}%"
     left_joins(:links).where(
-      "things.name ILIKE :q OR things.key ILIKE :q OR things.slug ILIKE :q OR things.description ILIKE :q OR things.notes ILIKE :q OR things.ar_anchor_note ILIKE :q OR things.owner ILIKE :q OR things.ip_address ILIKE :q OR things.mac_address ILIKE :q OR things.ble_beacon_uuid ILIKE :q OR thing_links.title ILIKE :q OR thing_links.url ILIKE :q OR thing_links.note ILIKE :q",
+      "things.name ILIKE :q OR things.key ILIKE :q OR things.slug ILIKE :q OR things.description ILIKE :q OR things.notes ILIKE :q OR things.ar_anchor_note ILIKE :q OR things.owner ILIKE :q OR things.ip_address ILIKE :q OR things.hostname ILIKE :q OR things.mac_address ILIKE :q OR things.ble_beacon_uuid ILIKE :q OR thing_links.title ILIKE :q OR thing_links.url ILIKE :q OR thing_links.note ILIKE :q",
       q: pattern
     ).distinct
   }
@@ -81,6 +82,18 @@ class Thing < ApplicationRecord
 
   def label_ip_line
     ip_address.presence
+  end
+
+  def label_hostname_line
+    hostname.presence
+  end
+
+  def label_network_lines
+    [ label_hostname_line, label_ip_line ].compact
+  end
+
+  def cable_tag_printable?
+    label_network_lines.any?
   end
 
   def scan_total_count
@@ -182,13 +195,20 @@ class Thing < ApplicationRecord
     unifi_devices.update_all(ignored: true, thing_id: nil, updated_at: Time.current)
   end
 
-  def ip_address_or_hostname
+  def ip_address_format
     value = ip_address.to_s.strip
     return if value.blank?
     return if value.match?(IPV4_REGEX)
+
+    errors.add(:ip_address, "must be a valid IPv4 address")
+  end
+
+  def hostname_format
+    value = hostname.to_s.strip
+    return if value.blank?
     return if value.match?(HOSTNAME_REGEX)
 
-    errors.add(:ip_address, "must be a valid IPv4 address or hostname")
+    errors.add(:hostname, "must be a valid hostname")
   end
 
   def reject_blank_link?(attributes)

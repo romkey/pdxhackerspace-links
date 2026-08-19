@@ -16,6 +16,7 @@ module Things
           notes: thing.notes,
           owner: thing.owner,
           ip_address: thing.ip_address,
+          hostname: thing.hostname,
           ar_anchor_note: thing.ar_anchor_note
         )
         copy_links(copy)
