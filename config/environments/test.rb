@@ -24,6 +24,9 @@ Rails.application.configure do
 
   config.active_job.queue_adapter = :test
 
+  # Fixture values for encrypted columns are written as ciphertext.
+  config.active_record.encryption.encrypt_fixtures = true
+
   # Render exception templates for rescuable exceptions and raise for other exceptions.
   config.action_dispatch.show_exceptions = :rescuable
 

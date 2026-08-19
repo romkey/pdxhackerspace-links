@@ -1,0 +1,37 @@
+<div class="h-section-label mb-2">UniFi</div>
+<div class="vstack gap-3 mb-4">
+  <% unifi_devices.each do |unifi_device| %>
+    <div class="sidebar-card">
+      <div class="d-flex justify-content-between align-items-start gap-2">
+        <div class="fw-medium text-13"><%= unifi_device.kind_label %></div>
+        <% if unifi_device.archived? %>
+          <span class="badge text-bg-warning-subtle text-11 fw-normal">Not seen</span>
+        <% elsif !unifi_device.online? %>
+          <span class="badge text-bg-warning-subtle text-11 fw-normal"><%= unifi_device.state_label || "Unknown" %></span>
+        <% end %>
+      </div>
+      <dl class="row text-12 mb-0 mt-2">
+        <dt class="col-5 text-secondary">Controller</dt>
+        <dd class="col-7"><%= link_to unifi_device.unifi_controller.name, settings_unifi_controller_path(unifi_device.unifi_controller) %></dd>
+        <dt class="col-5 text-secondary">Application</dt>
+        <dd class="col-7"><%= unifi_device.source_label %></dd>
+        <% if unifi_device.model.present? %>
+          <dt class="col-5 text-secondary">Model</dt>
+          <dd class="col-7"><%= unifi_device.model %></dd>
+        <% end %>
+        <% if unifi_device.firmware_version.present? %>
+          <dt class="col-5 text-secondary">Firmware</dt>
+          <dd class="col-7"><%= unifi_device.firmware_version %></dd>
+        <% end %>
+        <% if unifi_device.site_name.present? %>
+          <dt class="col-5 text-secondary">Site</dt>
+          <dd class="col-7"><%= unifi_device.site_name %></dd>
+        <% end %>
+        <dt class="col-5 text-secondary">Last seen</dt>
+        <dd class="col-7 text-secondary" title="<%= unifi_device.last_seen_at.to_fs(:long) %>">
+          <%= time_ago_in_words(unifi_device.last_seen_at) %> ago
+        </dd>
+      </dl>
+    </div>
+  <% end %>
+</div>
