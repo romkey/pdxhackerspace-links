@@ -333,6 +333,14 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "button", text: "Print cable tag"
   end
 
+  test "portrait label preview renders without margin controls" do
+    get label_preview_thing_path(things(:keyboard), printer_id: printers(:office_laser).id)
+
+    assert_response :success
+    assert_select "input#label-left-margin", count: 0
+    assert_select "[data-controller='label-preview']"
+  end
+
   test "label preview accepts margin overrides" do
     get label_preview_thing_path(
       things(:router),

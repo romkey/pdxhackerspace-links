@@ -8,7 +8,9 @@ export default class extends Controller {
   }
 
   connect() {
-    this.scheduleRefresh()
+    if (this.hasMarginControls()) {
+      this.scheduleRefresh()
+    }
   }
 
   disconnect() {
@@ -37,10 +39,15 @@ export default class extends Controller {
     const url = new URL(this.previewPathValue, window.location.origin)
     url.searchParams.set("format", this.mediaFormatValue)
 
-    const left = this.leftMarginTarget.value.trim()
-    const right = this.rightMarginTarget.value.trim()
-    if (left !== "") url.searchParams.set("left_margin_mm", left)
-    if (right !== "") url.searchParams.set("right_margin_mm", right)
+    if (this.hasLeftMarginTarget) {
+      const left = this.leftMarginTarget.value.trim()
+      if (left !== "") url.searchParams.set("left_margin_mm", left)
+    }
+
+    if (this.hasRightMarginTarget) {
+      const right = this.rightMarginTarget.value.trim()
+      if (right !== "") url.searchParams.set("right_margin_mm", right)
+    }
 
     if (this.hasMiddleGapTarget) {
       const gap = this.middleGapTarget.value.trim()
@@ -53,15 +60,36 @@ export default class extends Controller {
 
   syncPrintFormParams(url) {
     const previewUrl = new URL(url)
-    ;[ "left_margin_mm", "right_margin_mm", "cable_tag_gap_mm", "layout" ].forEach((name) => {
-      const input = this.printFormTarget.querySelector(`input[name='${name}']`)
-      if (!input) return
 
-      if (previewUrl.searchParams.has(name)) {
-        input.value = previewUrl.searchParams.get(name)
-      } else {
-        input.value = ""
+    this.printParamNames().forEach((name) => {
+      const existing = this.printFormTarget.querySelector(`input[name='${name}']`)
+
+      if (!previewUrl.searchParams.has(name)) {
+        existing?.remove()
+        return
       }
+
+      let input = existing
+      if (!input) {
+        input = document.createElement("input")
+        input.type = "hidden"
+        input.name = name
+        this.printFormTarget.appendChild(input)
+      }
+
+      input.value = previewUrl.searchParams.get(name)
     })
+  }
+
+  printParamNames() {
+    const names = [ "layout" ]
+    if (this.hasLeftMarginTarget) names.push("left_margin_mm")
+    if (this.hasRightMarginTarget) names.push("right_margin_mm")
+    if (this.hasMiddleGapTarget) names.push("cable_tag_gap_mm")
+    return names
+  }
+
+  hasMarginControls() {
+    return this.hasLeftMarginTarget || this.hasRightMarginTarget || this.hasMiddleGapTarget
   }
 }
