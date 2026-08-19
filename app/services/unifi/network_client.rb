@@ -6,14 +6,15 @@ module Unifi
     PAGE_LIMIT = 200
     MAX_PAGES = 50
 
-    def self.for(unifi_controller, transport: nil)
+    def self.for(unifi_controller, transport: nil, rate_limiter: nil)
       new(client: Client.new(
         host: unifi_controller.host,
         port: unifi_controller.port,
         api_key: unifi_controller.api_key,
         verify_tls: unifi_controller.verify_tls?,
         base_path: BASE_PATH,
-        transport: transport
+        transport: transport,
+        rate_limiter: rate_limiter
       ))
     end
 
