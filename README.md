@@ -212,19 +212,44 @@ Release versions are tagged automatically from `APP_VERSION`. Signed-in users ar
 ```
 app/
   controllers/   # HTTP layer (auth, things, settings)
-  models/        # User, Thing, ThingLink, SiteSetting, Printer
-  services/      # CUPS print client
+  models/        # User, Thing, ThingLink, SiteSetting, Printer, UnifiController, UnifiDevice
+  services/      # CUPS print client, UniFi integration API clients and import
   views/         # Bootstrap 5.3 templates
   jobs/          # ActiveJob → Sidekiq
 config/
   initializers/  # Sidekiq, OmniAuth, Sentry, version
-lib/links/       # Version and Sentry configuration helpers
+lib/links/       # Version, Sentry, and encryption key helpers
+lib/tasks/       # Rake tasks (unifi:import)
 test/            # Minitest suite
 ```
 
 ### Things
 
-Each **Thing** has a name, optional description, optional owner, optional IP address or hostname, optional standard links (Asset, Wiki, Slack, Where, AR), optional custom links with titles, and one or more photos (Active Storage).
+Each **Thing** has a name, optional description, optional owner, optional IP address or hostname, optional MAC address, optional standard links (Asset, Wiki, Slack, Where, AR), optional custom links with titles, and one or more photos (Active Storage).
+
+### UniFi import
+
+**Settings → UniFi** registers UniFi consoles and imports their devices as things. Both the [Network](https://developer.ui.com/network/) and [Protect](https://developer.ui.com/protect/) integration APIs are read through the console on HTTPS, authenticated with a stateless `X-API-KEY` header.
+
+Create the key in the UniFi console under **Settings → Control Plane → Integrations**. Keys inherit the role of the admin who created them and cannot be scoped, so create one from the least-privileged admin you can — Links only ever issues `GET` requests. The key is stored encrypted and is never rendered back into the form.
+
+| Application | Imported |
+|-------------|----------|
+| Network | Adopted gateways, switches, and access points across every local site, with model, IP address, MAC address, firmware version, and state |
+| Protect | Cameras, lights, sensors, chimes, viewers, speakers, bridges, fobs, sirens, relays, alarm hubs, and the NVR |
+
+Consoles ship a self-signed certificate, so **Verify the TLS certificate** is off by default. Turn it on once the console has a certificate from a trusted authority.
+
+**Test connection** reads the version endpoint of each enabled application. **Import now** queues a Sidekiq job; reload the page for the result. To import on a schedule, run `bin/rails unifi:import` from cron — it walks every enabled controller.
+
+How devices become things:
+
+- A device is matched to an existing thing by MAC address first, so a console that appears in both applications maps to one thing. Otherwise a new thing is created, unless the controller has **Create a thing for each new device** turned off.
+- Name, IP address, and MAC address are kept in sync until you edit them by hand. The import remembers what it last wrote and leaves a field alone once its value differs, so manual names and addresses survive every later import.
+- Devices that disappear from a console are archived, not deleted, and their things are kept. They un-archive if the device comes back. When one application is unreachable the other still imports, and nothing is archived for the failed one.
+- **Ignore** on a device unlinks its thing and stops future imports from recreating one. Deleting a UniFi-managed thing does the same.
+
+Model, firmware, site, and last-seen details stay on the device record and are shown in a UniFi card on the thing page for signed-in users.
 
 ### Printing
 

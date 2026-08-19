@@ -1,0 +1,147 @@
+<% content_for :title, @unifi_controller.name %>
+
+<%= settings_frame do %>
+  <div class="mb-3">
+    <div class="text-12 text-secondary mb-1">
+      <%= link_to "UniFi", settings_unifi_controllers_path, class: "text-secondary text-decoration-none" %>
+      <span class="mx-1">/</span>
+      <span class="text-body"><%= @unifi_controller.name %></span>
+    </div>
+    <div class="d-flex align-items-end justify-content-between flex-wrap gap-2">
+      <div>
+        <h1 class="h-page-title mb-0"><%= @unifi_controller.name %></h1>
+        <div class="text-13 text-secondary mt-1">
+          <code class="text-12"><%= @unifi_controller.base_url %></code>
+          · <%= @unifi_controller.enabled_applications.map(&:capitalize).to_sentence %>
+          <% unless @unifi_controller.enabled? %>
+            · <span class="badge text-bg-secondary-subtle text-12 fw-normal">Disabled</span>
+          <% end %>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <%= button_to "Test connection", test_connection_settings_unifi_controller_path(@unifi_controller),
+                      class: "btn btn-outline-secondary btn-sm" %>
+        <%= button_to "Import now", import_settings_unifi_controller_path(@unifi_controller),
+                      class: "btn btn-primary btn-sm", disabled: !@unifi_controller.enabled? %>
+        <%= link_to "Edit", edit_settings_unifi_controller_path(@unifi_controller),
+                    class: "btn btn-outline-secondary btn-sm" %>
+      </div>
+    </div>
+  </div>
+
+  <% if @unifi_controller.last_sync_message.present? %>
+    <div class="status-panel <%= @unifi_controller.last_sync_ok? ? "status-clear" : "status-attention" %> mb-3 text-13">
+      <%= @unifi_controller.last_sync_message %>
+    </div>
+  <% end %>
+
+  <div class="row g-4 mb-4">
+    <div class="col-md-6">
+      <div class="h-section-label mb-2">Connection</div>
+      <dl class="row text-13 mb-0">
+        <dt class="col-sm-4 text-secondary">Host</dt>
+        <dd class="col-sm-8"><code class="text-12"><%= @unifi_controller.host %></code></dd>
+        <dt class="col-sm-4 text-secondary">Port</dt>
+        <dd class="col-sm-8"><%= @unifi_controller.port %></dd>
+        <dt class="col-sm-4 text-secondary">Certificate</dt>
+        <dd class="col-sm-8"><%= @unifi_controller.verify_tls? ? "Verified" : "Not verified" %></dd>
+        <dt class="col-sm-4 text-secondary">New things</dt>
+        <dd class="col-sm-8"><%= @unifi_controller.auto_create_things? ? "Created automatically" : "Not created" %></dd>
+      </dl>
+      <% if @unifi_controller.description.present? %>
+        <div class="h-section-label mb-2 mt-3">Notes</div>
+        <div class="text-13 text-secondary"><%= simple_format(@unifi_controller.description) %></div>
+      <% end %>
+    </div>
+    <div class="col-md-6">
+      <div class="h-section-label mb-2">System</div>
+      <dl class="row text-12 text-secondary mb-0">
+        <dt class="col-sm-4">Last import</dt>
+        <dd class="col-sm-8">
+          <%= @unifi_controller.last_synced_at ? "#{time_ago_in_words(@unifi_controller.last_synced_at)} ago" : "Never" %>
+        </dd>
+        <dt class="col-sm-4">Devices</dt>
+        <dd class="col-sm-8"><%= @unifi_controller.unifi_devices.active.count %> active, <%= @unifi_controller.unifi_devices.archived.count %> archived</dd>
+        <dt class="col-sm-4">Added</dt>
+        <dd class="col-sm-8"><%= @unifi_controller.created_at.to_fs(:long) %></dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="d-flex align-items-end justify-content-between mb-2">
+    <div class="h-section-label mb-0">Devices</div>
+    <div class="text-12">
+      <% if show_archived? %>
+        <%= link_to "Hide archived", settings_unifi_controller_path(@unifi_controller), class: "text-secondary" %>
+      <% else %>
+        <%= link_to "Show archived", settings_unifi_controller_path(@unifi_controller, archived: "1"), class: "text-secondary" %>
+      <% end %>
+    </div>
+  </div>
+
+  <% if @unifi_devices.any? %>
+    <div class="table-responsive">
+      <table class="table table-compact align-middle mb-0">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Device</th>
+            <th>Type</th>
+            <th>Model</th>
+            <th>Address</th>
+            <th>Thing</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @unifi_devices.each do |unifi_device| %>
+            <tr class="<%= "opacity-50" if unifi_device.archived? || unifi_device.ignored? %>">
+              <td>
+                <% if unifi_device.online? %>
+                  <span class="status-dot status-success" title="<%= unifi_device.state_label %>"></span>
+                <% else %>
+                  <span class="status-dot status-warning" title="<%= unifi_device.state_label || "Unknown" %>"></span>
+                <% end %>
+              </td>
+              <td class="fw-medium">
+                <%= unifi_device.display_name %>
+                <% if unifi_device.archived? %>
+                  <span class="badge text-bg-secondary-subtle text-11 fw-normal">Archived</span>
+                <% end %>
+                <% if unifi_device.ignored? %>
+                  <span class="badge text-bg-secondary-subtle text-11 fw-normal">Ignored</span>
+                <% end %>
+              </td>
+              <td class="text-secondary"><%= unifi_device.kind_label %> <span class="text-11">· <%= unifi_device.source_label %></span></td>
+              <td class="text-secondary"><%= unifi_device.model.presence || "—" %></td>
+              <td class="text-secondary text-12">
+                <% if unifi_device.ip_address.present? %>
+                  <code class="text-12"><%= unifi_device.ip_address %></code><br>
+                <% end %>
+                <code class="text-12"><%= unifi_device.mac_address.presence || "—" %></code>
+              </td>
+              <td>
+                <% if unifi_device.thing %>
+                  <%= link_to unifi_device.thing.name, thing_path(unifi_device.thing), class: "text-13" %>
+                <% else %>
+                  <span class="text-secondary text-13">—</span>
+                <% end %>
+              </td>
+              <td class="text-end">
+                <%= button_to unifi_device.ignored? ? "Unignore" : "Ignore",
+                              settings_unifi_device_path(unifi_device, ignored: unifi_device.ignored? ? "0" : "1"),
+                              method: :patch,
+                              class: "btn btn-outline-secondary btn-sm",
+                              form: { data: { turbo_confirm: unifi_device.ignored? ? nil : "Ignore #{unifi_device.display_name} and unlink its thing?" } } %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-secondary text-13 mb-0">
+      No devices imported yet. Test the connection, then run an import.
+    </p>
+  <% end %>
+<% end %>

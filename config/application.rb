@@ -2,6 +2,7 @@ require_relative "boot"
 
 require "rails/all"
 require_relative "../lib/app_host"
+require_relative "../lib/links/encryption_keys"
 require_relative "../lib/short_url"
 require_relative "../lib/thing_tracking"
 
@@ -16,6 +17,11 @@ module Links
 
     # Thing photos are served without variants; skip vips/ImageMagick at boot.
     config.active_storage.variant_processor = :disabled
+
+    # Encrypts the UniFi controller API key at rest.
+    config.active_record.encryption.primary_key = Links::EncryptionKeys.primary_key
+    config.active_record.encryption.deterministic_key = Links::EncryptionKeys.deterministic_key
+    config.active_record.encryption.key_derivation_salt = Links::EncryptionKeys.key_derivation_salt
 
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.

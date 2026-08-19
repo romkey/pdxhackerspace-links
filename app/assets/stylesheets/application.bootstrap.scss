@@ -114,6 +114,17 @@
   &.status-muted { background: var(--bs-secondary); }
 }
 
+.sidebar-card {
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius);
+  background: var(--bs-tertiary-bg);
+
+  dd {
+    margin-bottom: 0.25rem;
+  }
+}
+
 .status-panel {
   padding: 0.5rem 0.75rem;
   border-radius: var(--bs-border-radius-sm);

@@ -92,6 +92,31 @@ class ActiveSupport::TestCase
     Rails.application.config.action_dispatch.trusted_proxies = previous_config
   end
 
+  # Swaps a class method for the duration of the block.
+  def stubbing(klass, method_name, replacement)
+    original = klass.method(method_name)
+    klass.define_singleton_method(method_name) { |*args, **kwargs| replacement.call(*args, **kwargs) }
+    yield
+  ensure
+    klass.define_singleton_method(method_name, original)
+  end
+
+  # Builds a transport for Unifi::Client that answers from a canned map of
+  # "/path?query" (or just "/path") to [status, body]. Bodies are JSON-encoded
+  # unless already a string. Unlisted paths fail the test rather than hang.
+  def unifi_transport(responses)
+    lambda do |uri, _headers|
+      status, body = responses[uri.request_uri] || responses[uri.path]
+      raise "Unexpected UniFi request: #{uri.request_uri}" if status.nil?
+
+      [ status, body.is_a?(String) ? body : body.to_json ]
+    end
+  end
+
+  def unifi_page(items)
+    { "offset" => 0, "limit" => 200, "count" => items.size, "totalCount" => items.size, "data" => items }
+  end
+
   def with_fake_cups_client(server: "cups.example.com:631", fail_print: false, &block)
     runner = lambda do |*_args|
       case _args[1]

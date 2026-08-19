@@ -5,6 +5,7 @@ class ThingsController < ApplicationController
   before_action :set_thing_by_beacon, only: :by_beacon
   before_action :require_login_or_public_thing, only: %i[show by_beacon]
   before_action :load_printers, only: %i[index show label_preview], if: :can_manage_things?
+  before_action :load_unifi_devices, only: :show, if: :can_manage_things?
 
   def index
     @search_query = params[:q].to_s.strip.presence
@@ -165,6 +166,7 @@ class ThingsController < ApplicationController
       :notes,
       :owner,
       :ip_address,
+      :mac_address,
       :ble_beacon_uuid,
       :ar_anchor_note,
       :public_access,
@@ -186,6 +188,10 @@ class ThingsController < ApplicationController
 
   def load_printers
     @printers = Printer.enabled.ordered
+  end
+
+  def load_unifi_devices
+    @unifi_devices = @thing&.unifi_devices&.includes(:unifi_controller)&.ordered
   end
 
   def label_preview_filename(printer, extension)

@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- UniFi integration under **Settings → UniFi**: register consoles and import their devices as things
+- Imports adopted Network devices (gateways, switches, access points) from every local site, and Protect devices (cameras, lights, sensors, chimes, viewers, speakers, bridges, fobs, sirens, relays, alarm hubs, NVR)
+- Devices match existing things by MAC address, so a console listed by both applications maps to one thing; new things are created automatically unless the controller turns that off
+- Name, IP address, and MAC address stay in sync with the console until edited by hand, after which the import leaves that field alone
+- Devices that disappear from a console are archived rather than deleted, and un-archive if they return
+- **Ignore** on a device unlinks its thing and stops later imports from recreating one; deleting a UniFi-managed thing does the same
+- **Test connection** and **Import now** on the controller page, plus a `unifi:import` rake task for scheduled imports
+- UniFi card on the thing page showing model, firmware, site, and last-seen for signed-in users
+- Optional MAC address on things, shown on the detail page and searchable
+- `ACTIVE_RECORD_ENCRYPTION_*` environment variables; UniFi API keys are stored encrypted and derive keys from `SECRET_KEY_BASE` when these are unset
+
 ## [v0.6.4] - 2026-08-16
 
 ### Fixed

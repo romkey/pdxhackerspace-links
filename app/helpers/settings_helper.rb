@@ -17,6 +17,8 @@ module SettingsHelper
       controller_path == "settings/scan_visits"
     when :printers
       controller_path == "settings/printers"
+    when :unifi
+      controller_path.in?(%w[settings/unifi_controllers settings/unifi_devices])
     else
       false
     end

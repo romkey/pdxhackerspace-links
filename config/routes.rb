@@ -32,6 +32,13 @@ Rails.application.routes.draw do
         post :test_print
       end
     end
+    resources :unifi_controllers do
+      member do
+        post :test_connection
+        post :import
+      end
+    end
+    resources :unifi_devices, only: :update
   end
 
   get "login", to: "sessions#new"
