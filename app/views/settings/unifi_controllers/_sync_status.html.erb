@@ -1,7 +1,9 @@
-<% if unifi_controller.last_synced_at.blank? && !unifi_controller.syncing? %>
-  <span class="text-secondary text-13">Never</span>
-<% elsif unifi_controller.syncing? %>
+<% if unifi_controller.syncing? %>
   <span class="badge text-bg-secondary-subtle text-12 fw-normal">Running</span>
+<% elsif unifi_controller.last_sync_skipped? %>
+  <span class="badge text-bg-secondary-subtle text-12 fw-normal" title="<%= unifi_controller.last_sync_message %>">Skipped</span>
+<% elsif unifi_controller.last_synced_at.blank? %>
+  <span class="text-secondary text-13">Never</span>
 <% else %>
   <span class="text-13">
     <% if unifi_controller.last_sync_ok? %>

@@ -1,6 +1,6 @@
 class UnifiController < ApplicationRecord
   HOST_FORMAT = /\A[a-z0-9]([a-z0-9\-.]*[a-z0-9])?\z/
-  SYNC_STATUSES = %w[running success partial failed].freeze
+  SYNC_STATUSES = %w[running success partial failed skipped].freeze
 
   encrypts :api_key
 
@@ -59,6 +59,10 @@ class UnifiController < ApplicationRecord
 
   def last_sync_failed?
     last_sync_status == "failed"
+  end
+
+  def last_sync_skipped?
+    last_sync_status == "skipped"
   end
 
   def device_count

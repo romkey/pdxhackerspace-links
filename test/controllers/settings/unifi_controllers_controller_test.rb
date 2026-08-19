@@ -146,4 +146,16 @@ class Settings::UnifiControllersControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to settings_unifi_controller_path(unifi_controller)
     assert_predicate unifi_controller.reload, :syncing?
   end
+
+  test "import refuses a disabled controller instead of marking it running" do
+    unifi_controller = unifi_controllers(:retired)
+
+    assert_no_enqueued_jobs(only: Unifi::ImportJob) do
+      post import_settings_unifi_controller_path(unifi_controller)
+    end
+
+    assert_redirected_to settings_unifi_controller_path(unifi_controller)
+    assert_match "Enable", flash[:alert]
+    assert_not_predicate unifi_controller.reload, :syncing?
+  end
 end
