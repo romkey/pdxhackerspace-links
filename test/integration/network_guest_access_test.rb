@@ -97,7 +97,7 @@ class NetworkGuestAccessTest < ActionDispatch::IntegrationTest
       get thing_path(things(:keyboard)), env: from_network("192.168.1.50")
       assert_response :success
       assert_select "a[href=?]", edit_thing_path(things(:keyboard))
-      assert_select "a[href*=?]", "label_preview"
+      assert_select "button", text: "Print label"
     end
   end
 

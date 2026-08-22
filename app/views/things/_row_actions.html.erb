@@ -1,70 +1,61 @@
 <div class="d-flex flex-wrap gap-1 justify-content-end">
   <%= link_to "Edit", edit_thing_path(thing), class: "btn btn-outline-secondary btn-sm" %>
-  <%= button_to "Duplicate",
-                duplicate_thing_path(thing),
-                method: :post,
-                class: "btn btn-outline-secondary btn-sm",
-                form: { class: "d-inline" } %>
-  <% if printers.one? %>
-    <%= button_to "Print",
-                  print_thing_path(thing, printer_id: printers.first.id),
-                  class: "btn btn-outline-secondary btn-sm",
-                  form: { class: "d-inline" } %>
-  <% elsif printers.many? %>
-    <div class="dropdown">
-      <button type="button"
-              class="btn btn-outline-secondary btn-sm dropdown-toggle"
-              data-bs-toggle="dropdown"
-              aria-expanded="false">
-        Print
-      </button>
-      <ul class="dropdown-menu dropdown-menu-end">
-        <% printers.each do |printer| %>
-          <li>
-            <%= button_to "Print on #{printer.name}",
-                          print_thing_path(thing, printer_id: printer.id),
-                          class: "dropdown-item",
-                          form: { class: "d-inline" } %>
-          </li>
+  <% if printers.any? %>
+    <button type="button"
+            class="btn btn-outline-secondary btn-sm"
+            data-action="print-dialog#open"
+            data-print-url="<%= print_thing_path(thing) %>"
+            data-preview-url-template="<%= label_preview_thing_path(thing, printer_id: "__PRINTER__") %>"
+            data-thing-name="<%= thing.name %>"
+            data-cable-tag-eligible="<%= thing.cable_tag_printable? %>">
+      Print
+    </button>
+  <% end %>
+  <div class="dropdown">
+    <button type="button"
+            class="btn btn-outline-secondary btn-sm"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+            aria-label="More actions">
+      ⋯
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+      <li>
+        <%= button_to "Duplicate",
+                      duplicate_thing_path(thing),
+                      method: :post,
+                      class: "dropdown-item",
+                      form: { class: "d-inline" } %>
+      </li>
+      <li>
+        <% if thing.labelled? %>
+          <%= button_to "Mark not labelled",
+                        labelled_thing_path(thing),
+                        method: :patch,
+                        params: { labelled: 0 },
+                        class: "dropdown-item",
+                        form: { class: "d-inline" } %>
+        <% else %>
+          <%= button_to "Mark labelled",
+                        labelled_thing_path(thing),
+                        method: :patch,
+                        params: { labelled: 1 },
+                        class: "dropdown-item",
+                        form: { class: "d-inline" } %>
         <% end %>
-      </ul>
-    </div>
-  <% end %>
-  <% cable_tag_printers = printers.select(&:cable_tag_capable?) %>
-  <% if thing.cable_tag_printable? && cable_tag_printers.any? %>
-    <% if cable_tag_printers.one? %>
-      <%= button_to "Cable tag",
-                    print_thing_path(thing, printer_id: cable_tag_printers.first.id, layout: :cable_tag),
-                    class: "btn btn-outline-secondary btn-sm",
-                    form: { class: "d-inline" } %>
-    <% else %>
-      <div class="dropdown">
-        <button type="button"
-                class="btn btn-outline-secondary btn-sm dropdown-toggle"
-                data-bs-toggle="dropdown"
-                aria-expanded="false">
-          Cable tag
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end">
-          <% cable_tag_printers.each do |printer| %>
-            <li>
-              <%= button_to "Print on #{printer.name}",
-                            print_thing_path(thing, printer_id: printer.id, layout: :cable_tag),
-                            class: "dropdown-item",
-                            form: { class: "d-inline" } %>
-            </li>
-          <% end %>
-        </ul>
-      </div>
-    <% end %>
-  <% end %>
-  <%= button_to "Delete",
-                thing_path(thing),
-                method: :delete,
-                class: "btn btn-outline-danger btn-sm",
-                form: {
-                  class: "d-inline",
-                  data: { turbo_confirm: "Delete “#{thing.name}”?" }
-                } %>
+      </li>
+      <li><hr class="dropdown-divider"></li>
+      <li>
+        <%= button_to "Delete",
+                      thing_path(thing),
+                      method: :delete,
+                      class: "dropdown-item text-danger",
+                      form: {
+                        class: "d-inline",
+                        data: { turbo_confirm: "Delete “#{thing.name}”?" }
+                      } %>
+      </li>
+    </ul>
+  </div>
   <%= render "nfc_write", thing: thing, compact: true %>
 </div>

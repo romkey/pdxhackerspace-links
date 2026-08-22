@@ -34,8 +34,8 @@ class Things::IndexFiltersTest < ActiveSupport::TestCase
     assert_equal [ things(:keyboard).name ], query.scope.map(&:name)
   end
 
-  test "filters things with mac address" do
-    query = Things::IndexQuery.call(filters: { mac_address: "yes" })
+  test "filters things with ieee address" do
+    query = Things::IndexQuery.call(filters: { ieee_address: "yes" })
 
     assert_equal [ things(:router).name ], query.scope.map(&:name)
   end
@@ -62,6 +62,29 @@ class Things::IndexFiltersTest < ActiveSupport::TestCase
     query = Things::IndexQuery.call(filters: { links: "yes", ip_address: "yes" })
 
     assert_equal [ things(:router).name ], query.scope.map(&:name)
+  end
+
+  test "filters things by integration source" do
+    query = Things::IndexQuery.call(filters: { integration: [ "unifi" ] })
+
+    assert_equal [ things(:router).name ], query.scope.map(&:name)
+  end
+
+  test "filters things with no integration source" do
+    query = Things::IndexQuery.call(filters: { integration: [ "none" ] })
+
+    assert_equal [ things(:keyboard).name ], query.scope.map(&:name)
+  end
+
+  test "filters labelled things" do
+    things(:router).mark_labelled!
+
+    yes_query = Things::IndexQuery.call(filters: { labelled: "yes" })
+    no_query = Things::IndexQuery.call(filters: { labelled: "no" })
+
+    assert_equal [ things(:router).name ], yes_query.scope.map(&:name)
+    assert_includes no_query.scope.map(&:name), things(:keyboard).name
+    assert_not_includes no_query.scope.map(&:name), things(:router).name
   end
 
   test "ignores unknown filter keys" do

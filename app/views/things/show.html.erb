@@ -1,6 +1,9 @@
 <% content_for :title, @thing.name %>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4"
+     data-controller="print-dialog"
+     data-print-dialog-printers-value="<%= can_manage_things? ? things_printers_json(@printers) : '[]' %>"
+     data-print-dialog-bulk-print-url-value="<%= bulk_print_things_path %>">
   <div class="d-flex align-items-end justify-content-between mb-3">
     <div>
       <div class="text-12 text-secondary mb-1">
@@ -14,13 +17,21 @@
       <% if can_manage_things? && @thing.public_access? %>
         <span class="badge text-bg-secondary-subtle text-12 fw-normal mt-1">Public</span>
       <% end %>
-      <% if @thing.owner.present? || @thing.ip_address.present? || @thing.hostname.present? || @thing.mac_address.present? || @thing.ble_beacon_uuid.present? || @thing.slug.present? || @thing.key.present? %>
+      <% if @thing.owner.present? || @thing.ip_address.present? || @thing.hostname.present? || @thing.ieee_address.present? || @thing.manufacturer.present? || @thing.model.present? || @thing.ble_beacon_uuid.present? || @thing.slug.present? || @thing.key.present? %>
         <div class="text-13 text-secondary mt-1">
           <% metadata = [] %>
           <% metadata << content_tag(:span, @thing.owner) if @thing.owner.present? %>
           <% metadata << content_tag(:code, @thing.ip_address, class: "text-12") if @thing.ip_address.present? %>
           <% metadata << content_tag(:code, @thing.hostname, class: "text-12") if @thing.hostname.present? %>
-          <% metadata << content_tag(:code, @thing.mac_address, class: "text-12", title: "MAC address") if @thing.mac_address.present? %>
+          <% metadata << content_tag(:code, @thing.ieee_address_display, class: "text-12", title: "IEEE address") if @thing.ieee_address.present? %>
+          <% if @thing.manufacturer.present? %>
+            <% metadata << if @thing.manufacturer_url.present?
+              link_to(@thing.manufacturer, @thing.manufacturer_url, class: "text-13", target: "_blank", rel: "noopener")
+            else
+              content_tag(:span, @thing.manufacturer)
+            end %>
+          <% end %>
+          <% metadata << content_tag(:span, @thing.model, class: "text-12") if @thing.model.present? %>
           <% metadata << content_tag(:code, @thing.key, class: "text-12", title: "Short URL key") if @thing.key.present? %>
           <% metadata << content_tag(:code, @thing.slug, class: "text-12", title: "URL slug") if @thing.slug.present? %>
           <% metadata << content_tag(:code, @thing.ble_beacon_uuid, class: "text-12", title: "BLE beacon UUID") if @thing.ble_beacon_uuid.present? %>
@@ -39,8 +50,17 @@
     </div>
     <% if can_manage_things? %>
       <div class="d-flex flex-wrap gap-2 justify-content-end">
-        <%= render "print_controls", thing: @thing, printers: @printers, align_end: true %>
-        <%= render "cable_tag_controls", thing: @thing, printers: @printers, align_end: true %>
+        <% if @printers.any? %>
+          <button type="button"
+                  class="btn btn-outline-secondary btn-sm"
+                  data-action="print-dialog#open"
+                  data-print-url="<%= print_thing_path(@thing) %>"
+                  data-preview-url-template="<%= label_preview_thing_path(@thing, printer_id: '__PRINTER__') %>"
+                  data-thing-name="<%= @thing.name %>"
+                  data-cable-tag-eligible="<%= @thing.cable_tag_printable? %>">
+            Print label
+          </button>
+        <% end %>
         <%= render "nfc_write", thing: @thing %>
         <%= button_to "Duplicate",
                       duplicate_thing_path(@thing),
@@ -113,6 +133,9 @@
       <% if can_manage_things? && @unifi_devices.present? %>
         <%= render "unifi_devices", unifi_devices: @unifi_devices %>
       <% end %>
+      <% if can_manage_things? && @zigbee2mqtt_devices.present? %>
+        <%= render "zigbee2mqtt_devices", zigbee2mqtt_devices: @zigbee2mqtt_devices %>
+      <% end %>
       <% if @thing.ar_anchor.attached? %>
         <div class="h-section-label mb-2">AR Marker</div>
         <div class="mb-4">
@@ -136,4 +159,7 @@
       <% end %>
     </div>
   </div>
+  <% if can_manage_things? && @printers.present? %>
+    <%= render "print_dialog", printers: @printers %>
+  <% end %>
 </div>

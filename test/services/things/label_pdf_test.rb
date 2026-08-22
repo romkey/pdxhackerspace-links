@@ -272,6 +272,29 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
     label_pdf&.cleanup!
   end
 
+  test "compact layout on 24mm strip uses a narrow square label" do
+    label_pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer), layout: :compact)
+    standard = Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer))
+
+    assert_operator label_pdf.page_width_mm, :<, standard.page_width_mm
+    assert_in_delta 24, label_pdf.page_height_mm, 0.1
+    assert File.read(label_pdf.generate, 4).start_with?("%PDF")
+  ensure
+    label_pdf&.cleanup!
+  end
+
+  test "compact layout ignores attached ar marker" do
+    thing = attach_ar_anchor(things(:router))
+    compact = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer), layout: :compact)
+    standard = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer))
+
+    assert_in_delta compact.page_width_mm, Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer), layout: :compact).page_width_mm, 0.1
+    assert_operator compact.page_width_mm, :<, standard.page_width_mm
+  ensure
+    compact&.cleanup!
+    standard&.cleanup!
+  end
+
   private
 
   def assert_qr_visible_in_label_pdf(path, region: :left)

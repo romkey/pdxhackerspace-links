@@ -1,11 +1,19 @@
 class ThingsController < ApplicationController
+  MAX_BULK_LABELS = 100
+
   skip_before_action :require_login, only: %i[show by_beacon]
-  before_action :require_full_access, only: %i[new create edit update destroy duplicate purge_photo purge_ar_anchor print label_preview]
-  before_action :set_thing, only: %i[show edit update destroy duplicate purge_photo purge_ar_anchor print label_preview]
+  before_action :require_full_access, only: %i[
+    new create edit update destroy duplicate purge_photo purge_ar_anchor
+    print label_preview update_labelled bulk_print
+  ]
+  before_action :set_thing, only: %i[
+    show edit update destroy duplicate purge_photo purge_ar_anchor print label_preview update_labelled
+  ]
   before_action :set_thing_by_beacon, only: :by_beacon
   before_action :require_login_or_public_thing, only: %i[show by_beacon]
   before_action :load_printers, only: %i[index show label_preview], if: :can_manage_things?
   before_action :load_unifi_devices, only: :show, if: :can_manage_things?
+  before_action :load_zigbee2mqtt_devices, only: :show, if: :can_manage_things?
 
   def index
     @search_query = params[:q].to_s.strip.presence
@@ -54,23 +62,19 @@ class ThingsController < ApplicationController
   def print
     printer = Printer.enabled.find(params[:printer_id])
     layout = label_layout_param
-    return unless validate_label_layout!(printer, layout)
+    return unless validate_label_layout!(printer, layout, thing: @thing)
 
-    copies = params[:copies].to_i
-    copies = 1 if copies < 1
+    copies = copies_param
 
     Things::PrintLabel.call(
       thing: @thing,
       printer: printer,
       copies: copies,
       layout: layout,
-      margins: label_margin_params
+      margins: label_margin_params,
+      mark_labelled: mark_labelled_param?
     )
-    notice = if layout == :cable_tag
-      "Sent cable tag for “#{@thing.name}” to #{printer.name}."
-    else
-      "Sent “#{@thing.name}” to #{printer.name}."
-    end
+    notice = print_notice(@thing.name, printer.name, layout)
     redirect_back_or_to thing_path(@thing), notice: notice
   rescue ActiveRecord::RecordNotFound
     redirect_back_or_to thing_path(@thing), alert: "Printer not found or disabled."
@@ -80,10 +84,53 @@ class ThingsController < ApplicationController
     redirect_back_or_to thing_path(@thing), alert: error.message
   end
 
+  def bulk_print
+    printer = Printer.enabled.find(params[:printer_id])
+    layout = label_layout_param
+    return unless validate_bulk_label_layout!(printer, layout)
+
+    thing_ids, skipped = resolve_bulk_print_ids(layout)
+    if thing_ids.empty?
+      redirect_back_or_to things_path, alert: bulk_empty_alert(layout, skipped)
+      return
+    end
+
+    if thing_ids.size > MAX_BULK_LABELS
+      redirect_back_or_to things_path, alert: "Select at most #{MAX_BULK_LABELS} things to print."
+      return
+    end
+
+    Things::BulkPrintJob.perform_later(
+      thing_ids: thing_ids,
+      printer_id: printer.id,
+      layout: layout.to_s,
+      copies: copies_param,
+      mark_labelled: mark_labelled_param?
+    )
+
+    notice = "Queued #{thing_ids.size} #{'label'.pluralize(thing_ids.size)} for printing on #{printer.name}."
+    notice += " Skipped #{skipped} without IP or hostname." if skipped.positive? && layout == :cable_tag
+    redirect_back_or_to things_path, notice: notice
+  rescue ActiveRecord::RecordNotFound
+    redirect_back_or_to things_path, alert: "Printer not found or disabled."
+  end
+
+  def update_labelled
+    if params[:labelled].to_s == "1"
+      @thing.mark_labelled!
+      notice = "Marked “#{@thing.name}” as labelled."
+    else
+      @thing.unmark_labelled!
+      notice = "Marked “#{@thing.name}” as not labelled."
+    end
+
+    redirect_back_or_to thing_path(@thing), notice: notice
+  end
+
   def label_preview
     @printer = Printer.enabled.find(params[:printer_id])
     @layout = label_layout_param
-    return unless validate_label_layout!(@printer, @layout)
+    return unless validate_label_layout!(@printer, @layout, thing: @thing)
 
     @margin_overrides = label_margin_params
     @label = label_renderer_for(@printer, layout: @layout, margins: @margin_overrides)
@@ -185,7 +232,10 @@ class ThingsController < ApplicationController
       :owner,
       :ip_address,
       :hostname,
-      :mac_address,
+      :ieee_address,
+      :manufacturer,
+      :model,
+      :manufacturer_url,
       :ble_beacon_uuid,
       :ar_anchor_note,
       :public_access,
@@ -213,8 +263,12 @@ class ThingsController < ApplicationController
     @unifi_devices = @thing&.unifi_devices&.includes(:unifi_controller)&.ordered
   end
 
+  def load_zigbee2mqtt_devices
+    @zigbee2mqtt_devices = @thing&.zigbee2mqtt_devices&.includes(:zigbee2mqtt_bridge)&.ordered
+  end
+
   def label_preview_filename(printer, extension)
-    suffix = @layout == :cable_tag ? "-cable-tag" : ""
+    suffix = @layout == :standard ? "" : "-#{@layout.to_s.dasherize}"
     "#{@thing.name.parameterize}-#{printer.name.parameterize}#{suffix}.#{extension}"
   end
 
@@ -227,22 +281,85 @@ class ThingsController < ApplicationController
   end
 
   def label_layout_param
-    params[:layout].to_s == "cable_tag" ? :cable_tag : :standard
+    layout = params[:layout].to_s.presence || "standard"
+    sym = layout.to_sym
+    Things::LabelPdf::LAYOUTS.include?(sym) ? sym : :standard
   end
 
-  def validate_label_layout!(printer, layout)
+  def validate_label_layout!(printer, layout, thing:)
+    unless Things::LabelPdf::LAYOUTS.include?(layout)
+      redirect_back_or_to thing_path(thing), alert: "Invalid label layout."
+      return false
+    end
+
     if layout == :cable_tag
       unless printer.cable_tag_capable?
-        redirect_back_or_to thing_path(@thing), alert: "This printer does not support cable tags."
+        redirect_back_or_to thing_path(thing), alert: "This printer does not support cable tags."
         return false
       end
-      unless @thing.cable_tag_printable?
-        redirect_back_or_to thing_path(@thing), alert: "Cable tags require an IP address or hostname."
+      unless thing.cable_tag_printable?
+        redirect_back_or_to thing_path(thing), alert: "Cable tags require an IP address or hostname."
         return false
       end
     end
 
     true
+  end
+
+  def validate_bulk_label_layout!(printer, layout)
+    unless Things::LabelPdf::LAYOUTS.include?(layout)
+      redirect_back_or_to things_path, alert: "Invalid label layout."
+      return false
+    end
+
+    if layout == :cable_tag && !printer.cable_tag_capable?
+      redirect_back_or_to things_path, alert: "This printer does not support cable tags."
+      return false
+    end
+
+    true
+  end
+
+  def resolve_bulk_print_ids(layout)
+    scope = if params[:select_all].to_s == "1"
+      Things::IndexQuery.filtered_scope(search: params[:q], filters: params[:filter])
+    else
+      Thing.where(id: Array(params[:thing_ids]).map(&:to_i))
+    end
+
+    things = scope.distinct.to_a
+    skipped = 0
+
+    if layout == :cable_tag
+      eligible = things.select(&:cable_tag_printable?)
+      skipped = things.size - eligible.size
+      things = eligible
+    end
+
+    [ things.map(&:id), skipped ]
+  end
+
+  def bulk_empty_alert(layout, skipped)
+    if layout == :cable_tag && skipped.positive?
+      "No selected things have an IP address or hostname for cable tags."
+    else
+      "Select at least one thing to print."
+    end
+  end
+
+  def copies_param
+    copies = params[:copies].to_i
+    copies = 1 if copies < 1
+    copies
+  end
+
+  def mark_labelled_param?
+    params[:mark_labelled].to_s.in?(%w[1 true on])
+  end
+
+  def print_notice(thing_name, printer_name, layout)
+    layout_label = Things::LabelPdf.layout_label(layout)
+    "Sent #{layout_label.downcase} for “#{thing_name}” to #{printer_name}."
   end
 
   def prevent_label_preview_caching
@@ -263,7 +380,8 @@ class ThingsController < ApplicationController
 
   def label_preview_query_params
     params_hash = {}
-    params_hash[:layout] = :cable_tag if @layout == :cable_tag
+    params_hash[:layout] = @layout unless @layout == :standard
+    params_hash[:mark_labelled] = "1" if mark_labelled_param?
     label_margin_params&.each do |key, value|
       params_hash[key] = value
     end

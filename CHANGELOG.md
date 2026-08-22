@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-08-22
+
+### Added
+
+- **Labelled** column on the Things index (status dot with timestamp on hover), sortable header, and Labelled filter chip
+- Manual **Mark labelled** / **Mark not labelled** toggle on thing rows and in the row menu
+- **Print label** dialog on the thing page and index: choose Standard, Cable tag, or **Compact** (QR code plus name), pick printer and copies, preview on a separate page, and optionally mark as labelled when printing
+- **Compact** label layout: square QR-dominant label with the thing name in small text beneath
+- Things index **Select** mode with checkboxes, select-all across the filtered list, and **Print labels** bulk action (queued via Sidekiq)
+
+### Changed
+
+- Replaced separate Print and Cable tag buttons with a single Print label dialog
+- Row actions on the index: Print stays visible; Duplicate, labelled toggle, and Delete moved into a ⋯ menu
+
 ## [0.8.1] - 2026-08-22
 
 ### Changed

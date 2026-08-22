@@ -2,10 +2,11 @@ module Things
   # Subclasses rather than using a Data.define block so the constants below are
   # scoped here instead of leaking into Things and colliding across services.
   class IndexQuery < Data.define(:scope, :sort, :direction, :total_count, :filters)
-    PUBLIC_SORTS = %w[name hostname ip_address links photos].freeze
-    ADMIN_SORTS = %w[qr nfc visits].freeze
+    PUBLIC_SORTS = %w[name hostname ip_address manufacturer model integration links photos].freeze
+    ADMIN_SORTS = %w[labelled qr nfc visits].freeze
     SORTS = (PUBLIC_SORTS + ADMIN_SORTS).freeze
     DEFAULT_SORT = "name"
+    ASC_DEFAULT_SORTS = %w[name hostname ip_address manufacturer model integration].freeze
 
     def self.call(search: nil, sort: DEFAULT_SORT, direction: nil, admin: false, filters: {})
       allowed_sorts = admin ? SORTS : PUBLIC_SORTS
@@ -13,8 +14,7 @@ module Things
       direction = normalized_direction(sort, direction)
       filters = IndexFilters.parse(filters)
 
-      scope = Thing.search(search)
-      scope = IndexFilters.apply(scope, filters)
+      scope = filtered_scope(search: search, filters: filters)
       total_count = scope.distinct.count(:id)
       scope = with_counts(scope)
       scope = apply_sort(scope, sort, direction)
@@ -28,6 +28,12 @@ module Things
       )
     end
 
+    def self.filtered_scope(search: nil, filters: {})
+      scope = Thing.search(search)
+      parsed = filters.is_a?(IndexFilters) ? filters : IndexFilters.parse(filters)
+      IndexFilters.apply(scope, parsed)
+    end
+
     def self.with_counts(scope)
       scope.select("things.*")
            .select(Arel.sql("#{CountSql::LINKS} AS links_count"))
@@ -39,10 +45,9 @@ module Things
       tie_break = Arel.sql("things.name ASC")
 
       case sort
-      when "hostname"
-        scope.reorder(Arel.sql("things.hostname #{dir} NULLS LAST"), tie_break)
-      when "ip_address"
-        scope.reorder(Arel.sql("things.ip_address #{dir} NULLS LAST"), tie_break)
+      when "hostname", "ip_address", "manufacturer", "model", "integration"
+        column = sort == "integration" ? "integration_source" : "things.#{sort}"
+        scope.reorder(Arel.sql("#{column} #{dir} NULLS LAST"), tie_break)
       when "links"
         scope.reorder(Arel.sql("#{CountSql::LINKS} #{dir}"), tie_break)
       when "photos"
@@ -53,6 +58,8 @@ module Things
         scope.reorder(nfc_scan_count: direction, name: :asc)
       when "visits"
         scope.reorder(visit_count: direction, name: :asc)
+      when "labelled"
+        scope.reorder(Arel.sql("things.labelled_at #{dir} NULLS LAST"), tie_break)
       else
         scope.reorder(name: direction)
       end
@@ -62,7 +69,7 @@ module Things
       return :desc if direction.to_s.downcase == "desc"
       return :asc if direction.to_s.downcase == "asc"
 
-      %w[name hostname ip_address].include?(sort) ? :asc : :desc
+      ASC_DEFAULT_SORTS.include?(sort) ? :asc : :desc
     end
     private_class_method :normalized_direction
   end

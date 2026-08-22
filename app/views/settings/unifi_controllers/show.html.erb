@@ -118,7 +118,7 @@
                 <% if unifi_device.ip_address.present? %>
                   <code class="text-12"><%= unifi_device.ip_address %></code><br>
                 <% end %>
-                <code class="text-12"><%= unifi_device.mac_address.presence || "—" %></code>
+                <code class="text-12"><%= Integrations::HardwareAddress.display(unifi_device.ieee_address).presence || "—" %></code>
               </td>
               <td>
                 <% if unifi_device.thing %>

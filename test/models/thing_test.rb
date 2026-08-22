@@ -46,6 +46,18 @@ class ThingTest < ActiveSupport::TestCase
     assert_nil router.label_hostname_line
   end
 
+  test "labelled state tracks timestamp" do
+    thing = things(:keyboard)
+    assert_not thing.labelled?
+
+    thing.mark_labelled!
+    assert thing.reload.labelled?
+    assert_not_nil thing.labelled_at
+
+    thing.unmark_labelled!
+    assert_not thing.reload.labelled?
+  end
+
   test "label network lines include hostname and ip when both set" do
     router = things(:router)
     router.update!(hostname: "router.local")
@@ -286,38 +298,45 @@ class ThingTest < ActiveSupport::TestCase
     assert_not thing.links.exists?(link_type: :asset)
   end
 
-  test "normalizes a MAC address to lowercase colon form" do
-    thing = Thing.create!(name: "Switch", mac_address: "94-2A-6F-26-C6-CB")
+  test "normalizes an EUI-48 address to lowercase colon form" do
+    thing = Thing.create!(name: "Switch", ieee_address: "94-2A-6F-26-C6-CB")
 
-    assert_equal "94:2a:6f:26:c6:cb", thing.mac_address
+    assert_equal "94:2a:6f:26:c6:cb", thing.ieee_address
   end
 
-  test "accepts a blank MAC address" do
-    thing = Thing.new(name: "No MAC", mac_address: "  ")
+  test "normalizes an EUI-64 address from 0x prefix form" do
+    thing = Thing.create!(name: "Bulb", ieee_address: "0x90fd9ffffe6494fc")
+
+    assert_equal "90:fd:9f:ff:fe:64:94:fc", thing.ieee_address
+    assert thing.valid?
+  end
+
+  test "accepts a blank IEEE address" do
+    thing = Thing.new(name: "No address", ieee_address: "  ")
 
     assert thing.valid?
-    assert_nil thing.mac_address
+    assert_nil thing.ieee_address
   end
 
-  test "rejects a MAC address that is not six octets" do
-    thing = Thing.new(name: "Bad MAC", mac_address: "94:2a:6f")
+  test "rejects an IEEE address with the wrong length" do
+    thing = Thing.new(name: "Bad address", ieee_address: "94:2a:6f")
 
     assert_not thing.valid?
-    assert_includes thing.errors[:mac_address], "must be a valid MAC address"
+    assert_includes thing.errors[:ieee_address], "must be a valid IEEE address"
   end
 
-  test "requires a unique MAC address" do
-    thing = Thing.new(name: "Duplicate MAC", mac_address: things(:router).mac_address)
+  test "requires a unique IEEE address" do
+    thing = Thing.new(name: "Duplicate address", ieee_address: things(:router).ieee_address)
 
     assert_not thing.valid?
-    assert_includes thing.errors[:mac_address], "has already been taken"
+    assert_includes thing.errors[:ieee_address], "has already been taken"
   end
 
-  test "finds things by MAC address" do
+  test "finds things by IEEE address" do
     assert_includes Thing.search("94:2a:6f"), things(:router)
   end
 
-  test "deleting a thing stops its UniFi devices from recreating it" do
+  test "deleting a thing stops its integration devices from recreating it" do
     thing = things(:router)
     device = unifi_devices(:rack_switch)
 

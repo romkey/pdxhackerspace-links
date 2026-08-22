@@ -28,6 +28,7 @@ gem "image_processing", "~> 2.0"
 gem "prawn", "~> 2.5"
 gem "rqrcode", "~> 3.2"
 gem "pagy", "~> 9.0"
+gem "mqtt", "~> 0.6"
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"

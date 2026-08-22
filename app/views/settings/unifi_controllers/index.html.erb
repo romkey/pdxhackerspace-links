@@ -34,7 +34,7 @@
               <td class="text-secondary text-12"><code class="text-12"><%= unifi_controller.base_url %></code></td>
               <td class="text-secondary"><%= unifi_controller.enabled_applications.map(&:capitalize).to_sentence %></td>
               <td class="num <%= unifi_controller.device_count.zero? ? "text-secondary" : "" %>"><%= unifi_controller.device_count %></td>
-              <td><%= render "settings/unifi_controllers/sync_status", unifi_controller: unifi_controller %></td>
+              <td><%= render "settings/integrations/sync_status", source: unifi_controller %></td>
               <td class="text-end">
                 <%= link_to "Edit", edit_settings_unifi_controller_path(unifi_controller), class: "btn btn-outline-secondary btn-sm" %>
               </td>

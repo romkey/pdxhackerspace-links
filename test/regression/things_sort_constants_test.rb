@@ -17,12 +17,12 @@ class ThingsSortConstantsTest < ActiveSupport::TestCase
   end
 
   test "each service keeps its own sort list" do
-    assert_equal %w[name hostname ip_address links photos qr nfc visits], Things::IndexQuery::SORTS
+    assert_equal %w[name hostname ip_address manufacturer model integration links photos labelled qr nfc visits], Things::IndexQuery::SORTS
     assert_equal %w[name qr nfc total visits], Things::ScanStats::SORTS
   end
 
   test "admin sorts survive loading every Things service" do
-    %w[hostname ip_address links photos qr nfc visits].each do |sort|
+    %w[hostname ip_address manufacturer model integration links photos labelled qr nfc visits].each do |sort|
       assert_equal sort, Things::IndexQuery.call(sort: sort, admin: true).sort
     end
   end
