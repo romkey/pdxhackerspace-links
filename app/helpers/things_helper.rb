@@ -40,10 +40,6 @@ module ThingsHelper
     end
   end
 
-  def things_printers_json(printers)
-    things_printers_data(printers).to_json
-  end
-
   def things_index_container_data
     {
       controller: "thing-selection print-dialog",
