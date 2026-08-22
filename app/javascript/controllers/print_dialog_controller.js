@@ -29,6 +29,8 @@ export default class extends Controller {
   }
 
   open(event) {
+    if (!this.modalElement()) return
+
     const trigger = event.currentTarget
 
     this.bulkMode = trigger.dataset.bulk === "true"
