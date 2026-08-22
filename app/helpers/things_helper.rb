@@ -44,8 +44,22 @@ module ThingsHelper
     things_printers_data(printers).to_json
   end
 
-  def things_stimulus_data_value(value)
-    ERB::Util.html_escape(value.to_json)
+  def things_index_container_data
+    {
+      controller: "thing-selection print-dialog",
+      thing_selection_total_count_value: @pagy.count,
+      thing_selection_filter_params_value: things_bulk_filter_params,
+      print_dialog_printers_value: (can_manage_things? ? things_printers_data(@printers) : []),
+      print_dialog_bulk_print_url_value: bulk_print_things_path
+    }
+  end
+
+  def things_show_container_data
+    {
+      controller: "print-dialog",
+      print_dialog_printers_value: (can_manage_things? ? things_printers_data(@printers) : []),
+      print_dialog_bulk_print_url_value: bulk_print_things_path
+    }
   end
 
   def things_bulk_filter_params

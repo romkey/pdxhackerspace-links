@@ -1,5 +1,4 @@
 import { Controller } from "@hotwired/stimulus"
-import * as bootstrap from "bootstrap"
 
 export default class extends Controller {
   static targets = [
@@ -190,6 +189,9 @@ export default class extends Controller {
     const element = this.modalElement()
     if (!element) return null
 
-    return bootstrap.Modal.getOrCreateInstance(element)
+    const Modal = window.bootstrap?.Modal
+    if (!Modal) return null
+
+    return Modal.getOrCreateInstance(element)
   }
 }
