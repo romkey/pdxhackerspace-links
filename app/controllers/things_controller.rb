@@ -4,14 +4,14 @@ class ThingsController < ApplicationController
   skip_before_action :require_login, only: %i[show by_beacon]
   before_action :require_full_access, only: %i[
     new create edit update destroy duplicate purge_photo purge_ar_anchor
-    print label_preview update_labelled bulk_print
+    print label_preview update_labelled bulk_print bulk_label_preview
   ]
   before_action :set_thing, only: %i[
     show edit update destroy duplicate purge_photo purge_ar_anchor print label_preview update_labelled
   ]
   before_action :set_thing_by_beacon, only: :by_beacon
   before_action :require_login_or_public_thing, only: %i[show by_beacon]
-  before_action :load_printers, only: %i[index show label_preview], if: :can_manage_things?
+  before_action :load_printers, only: %i[index show label_preview bulk_label_preview], if: :can_manage_things?
   before_action :load_unifi_devices, only: :show, if: :can_manage_things?
   before_action :load_zigbee2mqtt_devices, only: :show, if: :can_manage_things?
 
@@ -111,6 +111,43 @@ class ThingsController < ApplicationController
     notice = "Queued #{thing_ids.size} #{'label'.pluralize(thing_ids.size)} for printing on #{printer.name}."
     notice += " Skipped #{skipped} without IP or hostname." if skipped.positive? && layout == :cable_tag
     redirect_back_or_to things_path, notice: notice
+  rescue ActiveRecord::RecordNotFound
+    redirect_back_or_to things_path, alert: "Printer not found or disabled."
+  end
+
+  def bulk_label_preview
+    @printer = Printer.enabled.find(params[:printer_id])
+    @layout = label_layout_param
+    return unless validate_bulk_label_layout!(@printer, @layout)
+
+    thing_ids, @skipped_count = resolve_bulk_print_ids(@layout)
+    if thing_ids.empty?
+      redirect_back_or_to things_path, alert: bulk_empty_alert(@layout, @skipped_count)
+      return
+    end
+
+    if thing_ids.size > MAX_BULK_LABELS
+      redirect_back_or_to things_path, alert: "Select at most #{MAX_BULK_LABELS} things to preview."
+      return
+    end
+
+    things_by_id = Thing.where(id: thing_ids).index_by(&:id)
+    @things = thing_ids.filter_map { |id| things_by_id[id] }
+    @preview_params = bulk_label_preview_query_params
+    @preview_media_format = @printer.command? ? :png : :pdf
+    @label_entries = @things.map do |thing|
+      label = label_renderer_for(@printer, thing: thing, layout: @layout, margins: label_margin_params)
+      {
+        thing: thing,
+        label: label,
+        media_path: label_preview_thing_path(
+          thing,
+          printer_id: @printer.id,
+          **@preview_params,
+          format: @preview_media_format
+        )
+      }
+    end
   rescue ActiveRecord::RecordNotFound
     redirect_back_or_to things_path, alert: "Printer not found or disabled."
   end
@@ -272,11 +309,11 @@ class ThingsController < ApplicationController
     "#{@thing.name.parameterize}-#{printer.name.parameterize}#{suffix}.#{extension}"
   end
 
-  def label_renderer_for(printer, layout: :standard, margins: nil)
+  def label_renderer_for(printer, layout: :standard, margins: nil, thing: @thing)
     if printer.command?
-      Things::LabelPng.new(thing: @thing, printer: printer, layout: layout, margins: margins)
+      Things::LabelPng.new(thing: thing, printer: printer, layout: layout, margins: margins)
     else
-      Things::LabelPdf.new(thing: @thing, printer: printer, layout: layout, margins: margins)
+      Things::LabelPdf.new(thing: thing, printer: printer, layout: layout, margins: margins)
     end
   end
 
@@ -382,6 +419,15 @@ class ThingsController < ApplicationController
     params_hash = {}
     params_hash[:layout] = @layout unless @layout == :standard
     params_hash[:mark_labelled] = "1" if mark_labelled_param?
+    label_margin_params&.each do |key, value|
+      params_hash[key] = value
+    end
+    params_hash
+  end
+
+  def bulk_label_preview_query_params
+    params_hash = {}
+    params_hash[:layout] = @layout unless @layout == :standard
     label_margin_params&.each do |key, value|
       params_hash[key] = value
     end

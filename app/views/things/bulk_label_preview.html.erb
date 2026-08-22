@@ -1,0 +1,51 @@
+<% content_for :title, "Label preview" %>
+
+<div class="container-fluid py-4">
+  <div class="d-flex align-items-end justify-content-between mb-3">
+    <div>
+      <div class="text-12 text-secondary mb-1">
+        <%= link_to "Things", things_path, class: "text-secondary text-decoration-none" %>
+        <span class="mx-1">/</span>
+        <span class="text-body">Label preview</span>
+      </div>
+      <h1 class="h-page-title mb-0">Label preview</h1>
+      <div class="text-13 text-secondary mt-1">
+        <span class="text-body"><%= @label_entries.size %></span>
+        <%= "label".pluralize(@label_entries.size) %> ·
+        <%= Things::LabelPdf.layout_label(@layout) %> ·
+        <%= @printer.name %>
+        <% if @skipped_count.positive? %>
+          · <span class="text-warning"><%= @skipped_count %></span> skipped without IP or hostname
+        <% end %>
+      </div>
+    </div>
+    <%= link_to "Back", things_path, class: "btn btn-outline-secondary btn-sm" %>
+  </div>
+
+  <div class="list-compact">
+    <% @label_entries.each do |entry| %>
+      <% thing = entry[:thing] %>
+      <% label = entry[:label] %>
+      <div class="bulk-label-preview-row border border-secondary-subtle rounded mb-2 p-2">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="text-13 fw-medium"><%= thing.name %></div>
+          <%= link_to "Open", thing_path(thing), class: "text-12 text-secondary text-decoration-none" %>
+        </div>
+        <div class="border border-secondary-subtle rounded bg-body-tertiary p-2">
+          <div class="label-preview-frame mx-auto bg-white border border-secondary-subtle shadow-sm"
+               style="width: min(100%, <%= (label.page_width_mm * 5).round %>px); aspect-ratio: <%= label.page_width_mm %> / <%= label.page_height_mm %>;">
+            <% if @printer.command? %>
+              <%= image_tag entry[:media_path],
+                            alt: "Label preview for #{thing.name}",
+                            class: "w-100 h-100 object-fit-contain" %>
+            <% else %>
+              <iframe src="<%= entry[:media_path] %>"
+                      title="Label preview for <%= thing.name %>"
+                      class="w-100 h-100 border-0"></iframe>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
