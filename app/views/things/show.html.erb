@@ -1,9 +1,6 @@
 <% content_for :title, @thing.name %>
 
-<div class="container-fluid py-4"
-     data-controller="print-dialog"
-     data-print-dialog-printers-value="<%= can_manage_things? ? things_printers_json(@printers) : '[]' %>"
-     data-print-dialog-bulk-print-url-value="<%= bulk_print_things_path %>">
+<%= tag.div class: "container-fluid py-4", data: things_show_container_data do %>
   <div class="d-flex align-items-end justify-content-between mb-3">
     <div>
       <div class="text-12 text-secondary mb-1">
@@ -156,4 +153,4 @@
   <% if can_manage_things? && @printers.present? %>
     <%= render "print_dialog", printers: @printers %>
   <% end %>
-</div>
+<% end %>

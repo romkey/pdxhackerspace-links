@@ -29,7 +29,7 @@ module ThingsHelper
     end
   end
 
-  def things_printers_json(printers)
+  def things_printers_data(printers)
     printers.map do |printer|
       {
         id: printer.id,
@@ -37,7 +37,29 @@ module ThingsHelper
         cable_tag_capable: printer.cable_tag_capable?,
         command: printer.command?
       }
-    end.to_json
+    end
+  end
+
+  def things_printers_json(printers)
+    things_printers_data(printers).to_json
+  end
+
+  def things_index_container_data
+    {
+      controller: "thing-selection print-dialog",
+      thing_selection_total_count_value: @pagy.count,
+      thing_selection_filter_params_value: things_bulk_filter_params,
+      print_dialog_printers_value: (can_manage_things? ? things_printers_data(@printers) : []),
+      print_dialog_bulk_print_url_value: bulk_print_things_path
+    }
+  end
+
+  def things_show_container_data
+    {
+      controller: "print-dialog",
+      print_dialog_printers_value: (can_manage_things? ? things_printers_data(@printers) : []),
+      print_dialog_bulk_print_url_value: bulk_print_things_path
+    }
   end
 
   def things_bulk_filter_params

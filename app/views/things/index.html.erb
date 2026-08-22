@@ -1,11 +1,6 @@
 <% content_for :title, "Things" %>
 
-<div class="container-fluid py-4"
-     data-controller="thing-selection print-dialog"
-     data-thing-selection-total-count-value="<%= @pagy.count %>"
-     data-thing-selection-filter-params-value="<%= things_bulk_filter_params.to_json %>"
-     data-print-dialog-printers-value="<%= can_manage_things? ? things_printers_json(@printers) : '[]' %>"
-     data-print-dialog-bulk-print-url-value="<%= bulk_print_things_path %>">
+<%= tag.div class: "container-fluid py-4", data: things_index_container_data do %>
   <div class="d-flex align-items-end justify-content-between mb-3">
     <div>
       <h1 class="h-page-title mb-0">Things</h1>
@@ -176,7 +171,7 @@
   <% if can_manage_things? && @printers.present? %>
     <%= render "print_dialog", printers: @printers %>
   <% end %>
-</div>
+<% end %>
 
 <script>
   document.querySelectorAll(".clickable-row").forEach((row) => {
