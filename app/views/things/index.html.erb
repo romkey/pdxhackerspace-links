@@ -56,14 +56,16 @@
       <span class="text-13">
         <span class="text-body fw-medium" data-thing-selection-target="selectionCount">0</span> selected
       </span>
-      <%= button_tag "Print labels",
-                     type: "button",
-                     class: "btn btn-primary btn-sm",
-                     data: things_print_dialog_trigger_data(
-                       action: "thing-selection#prepareBulkPrint print-dialog#open",
-                       thing_selection_target: "printButton",
-                       bulk: true
-                     ) %>
+      <% if @printers.present? %>
+        <%= button_tag "Print labels",
+                       type: "button",
+                       class: "btn btn-primary btn-sm",
+                       data: things_print_dialog_trigger_data(
+                         action: "thing-selection#prepareBulkPrint print-dialog#open",
+                         thing_selection_target: "printButton",
+                         bulk: true
+                       ) %>
+      <% end %>
       <%= link_to "Clear", "#", class: "text-12 text-secondary text-decoration-none", data: { action: "thing-selection#clearSelection" } %>
     </div>
 
