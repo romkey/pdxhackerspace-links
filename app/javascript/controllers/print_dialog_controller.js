@@ -28,10 +28,7 @@ export default class extends Controller {
   }
 
   open(event) {
-    event.preventDefault()
     const trigger = event.currentTarget
-    const modal = this.ensureModal()
-    if (!modal) return
 
     this.bulkMode = trigger.dataset.bulk === "true"
     this.printPath = this.bulkMode ? this.bulkPrintUrlValue : trigger.dataset.printUrl
@@ -48,7 +45,6 @@ export default class extends Controller {
     this.syncBulkFields()
     this.syncLayoutOptions()
     this.syncPrinterOptions()
-    modal.show()
   }
 
   layoutChanged() {
@@ -96,7 +92,7 @@ export default class extends Controller {
     }
 
     this.formTarget.requestSubmit()
-    this.ensureModal()?.hide()
+    this.dismissModal()
   }
 
   syncBulkFields() {
@@ -185,13 +181,7 @@ export default class extends Controller {
     return this.element.querySelector("#print-label-dialog")
   }
 
-  ensureModal() {
-    const element = this.modalElement()
-    if (!element) return null
-
-    const Modal = window.bootstrap?.Modal
-    if (!Modal) return null
-
-    return Modal.getOrCreateInstance(element)
+  dismissModal() {
+    this.modalElement()?.querySelector("[data-bs-dismiss=\"modal\"]")?.click()
   }
 }

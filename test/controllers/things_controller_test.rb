@@ -483,6 +483,20 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "button[aria-label='More actions']"
   end
 
+  test "index print buttons target the shared print dialog" do
+    get things_path
+
+    assert_response :success
+    assert_select "button[data-bs-target='#print-label-dialog'][data-action*='print-dialog#open']", minimum: 1
+  end
+
+  test "show print button targets the shared print dialog" do
+    get thing_path(things(:keyboard))
+
+    assert_response :success
+    assert_select "button[data-bs-target='#print-label-dialog'][data-action*='print-dialog#open']"
+  end
+
   test "index encodes stimulus data attributes for bulk print" do
     get things_path
 
