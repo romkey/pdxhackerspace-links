@@ -5,11 +5,12 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     sign_in_as(users(:local_admin))
   end
 
-  test "index lists things with keys" do
+  test "index lists things with hostname and ip address" do
     get things_path
     assert_response :success
     assert_select "td", text: things(:keyboard).name
-    assert_select "code", text: things(:keyboard).key
+    assert_select "code", text: things(:router).ip_address
+    assert_select "code", text: things(:keyboard).key, count: 0
     assert_select "nav input[type=search][name=q]"
   end
 
@@ -43,7 +44,7 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h1", things(:keyboard).name
     assert_select "a[href=?]", thing_links(:keyboard_wiki).url
-    assert_select "a[href*=?]", "label_preview"
+    assert_select "a[href*=?]", "label_preview", count: 0
     assert_select "button", text: "Duplicate"
   end
 
@@ -293,7 +294,7 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     get label_preview_thing_path(things(:router), printer_id: printers(:label_printer).id)
 
     assert_response :success
-    assert_select "h1", "Label preview"
+    assert_select "h1", "Standard label preview"
     assert_select "iframe[src=?]", label_preview_thing_path(things(:router), printer_id: printers(:label_printer).id, format: :pdf)
     assert_select "button", text: /Print label/
   end
@@ -307,30 +308,27 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_match(/inline/, response.headers["Content-Disposition"])
   end
 
-  test "show includes cable tag controls when thing has ip address" do
+  test "show includes print label button" do
     get thing_path(things(:router))
 
     assert_response :success
-    assert_select "button", text: "Print cable tag"
-    assert_select "a[href=?]",
-                  label_preview_thing_path(things(:router), printer_id: printers(:label_printer).id, layout: :cable_tag)
+    assert_select "button", text: "Print label"
   end
 
-  test "show omits cable tag controls without ip address" do
+  test "show omits cable tag layout when thing has no network lines" do
     get thing_path(things(:keyboard))
 
     assert_response :success
-    assert_select "button", text: "Print cable tag", count: 0
-    assert_select "a", text: "Preview cable tag", count: 0
+    assert_select "button", text: "Print label"
   end
 
-  test "show includes cable tag controls when thing has hostname only" do
+  test "show includes print label when thing has hostname only" do
     things(:keyboard).update!(hostname: "switch.local")
 
     get thing_path(things(:keyboard))
 
     assert_response :success
-    assert_select "button", text: "Print cable tag"
+    assert_select "button", text: "Print label"
   end
 
   test "portrait label preview renders without margin controls" do
@@ -380,6 +378,101 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_match(/cable tag/i, flash[:notice])
   end
 
+  test "index includes scan counts for admins" do
+    things(:router).update!(qr_scan_count: 4, nfc_scan_count: 2, visit_count: 10)
+
+    get things_path
+
+    assert_response :success
+    assert_select "th", text: /Views/
+    assert_select "th", text: /NFC/
+    assert_select "th", text: /QR/
+    assert_select "td.num", text: "10"
+    assert_select "td.num", text: "4"
+    assert_select "td.num", text: "2"
+  end
+
+  test "index supports sortable headers" do
+    get things_path, params: { sort: "ip_address", direction: "desc" }
+
+    assert_response :success
+    assert_select "a[href=?]", things_path(sort: "ip_address", direction: "asc", page: 1)
+    assert_equal things(:router).name, css_select("tbody tr td.fw-medium").first.text
+  end
+
+  test "index supports stackable filters" do
+    get things_path, params: { filter: { links: "yes", ip_address: "yes" } }
+
+    assert_response :success
+    assert_select "td", text: things(:router).name
+    assert_select "td", text: things(:keyboard).name, count: 0
+    assert_select "a.filter-chip.active", count: 2
+    assert_select "a.filter-chip.active", text: /Links/
+    assert_select "a.filter-chip.active", text: /IP address/
+    assert_select "a.filter-chip.active i.bi-check-lg", count: 2
+  end
+
+  test "index filter chips cycle through any, has, and none" do
+    get things_path
+    assert_response :success
+    assert_select "a.filter-chip[href=?]",
+                  things_path(sort: "name", direction: "asc", filter: { links: "yes" })
+
+    get things_path, params: { filter: { links: "yes" } }
+    assert_response :success
+    assert_select "a.filter-chip.active[href=?]",
+                  things_path(sort: "name", direction: "asc", filter: { links: "no" })
+
+    get things_path, params: { filter: { links: "no" } }
+    assert_response :success
+    assert_select "a.filter-chip.active[href=?]", things_path(sort: "name", direction: "asc")
+  end
+
+  test "index marks excluded filters with a struck through label" do
+    get things_path, params: { filter: { photos: "no" } }
+
+    assert_response :success
+    assert_select "a.filter-chip.active i.bi-slash-lg"
+    assert_select "a.filter-chip.active .text-decoration-line-through", text: "Photos"
+  end
+
+  test "index renders one chip per filter with no state labels" do
+    get things_path
+
+    expected_chips = ThingsHelper::THINGS_INDEX_FILTER_GROUPS.size + Integrations::Registry.filter_keys.size
+
+    assert_response :success
+    assert_select "a.filter-chip", count: expected_chips
+    assert_select "a.filter-chip.active", count: 0
+    assert_select "a.filter-chip", text: /Any/, count: 0
+  end
+
+  test "index shows clear filters link when filters are active" do
+    get things_path, params: { filter: { photos: "no" } }
+
+    assert_response :success
+    assert_select "a", text: "Clear filters"
+  end
+
+  test "index clears filters while preserving search" do
+    get things_path, params: { q: "router", filter: { links: "yes" } }
+
+    assert_response :success
+    assert_select "a[href=?]", things_path(q: "router", sort: "name", direction: "asc")
+  end
+
+  test "index paginates things" do
+    existing = Thing.count
+    (Pagy::DEFAULT[:limit] - existing + 1).times do |index|
+      Thing.create!(name: "Thing #{index}")
+    end
+
+    get things_path
+
+    assert_response :success
+    assert_select ".pagination"
+  end
+
   test "index includes inline row actions when printers are enabled" do
     get things_path
     assert_response :success
@@ -387,7 +480,72 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "button", text: "Duplicate"
     assert_select "button", text: "Delete"
     assert_select "button", text: "Print"
-    assert_select "button[aria-label*=Actions]", count: 0
+    assert_select "button[aria-label='More actions']"
+  end
+
+  test "print marks thing labelled when requested" do
+    thing = things(:keyboard)
+    assert_not thing.labelled?
+
+    with_fake_cups_client do
+      post print_thing_path(thing), params: { printer_id: printers(:brother_printer).id, mark_labelled: "1" }
+    end
+
+    assert thing.reload.labelled?
+  end
+
+  test "update_labelled toggles labelled state" do
+    thing = things(:keyboard)
+
+    patch labelled_thing_path(thing), params: { labelled: "1" }
+    assert_redirected_to thing_path(thing)
+    assert thing.reload.labelled?
+
+    patch labelled_thing_path(thing), params: { labelled: "0" }
+    assert_not thing.reload.labelled?
+  end
+
+  test "bulk print queues job for selected things" do
+    assert_enqueued_with(job: Things::BulkPrintJob) do
+      post bulk_print_things_path, params: {
+        thing_ids: [ things(:keyboard).id, things(:router).id ],
+        printer_id: printers(:brother_printer).id,
+        layout: "standard",
+        mark_labelled: "1"
+      }
+    end
+
+    assert_redirected_to things_path
+    assert_match(/Queued 2 labels/, flash[:notice])
+  end
+
+  test "bulk print with select all uses filtered scope" do
+    things(:router).mark_labelled!
+    Thing.create!(name: "Unlabelled extra")
+
+    assert_enqueued_with(job: Things::BulkPrintJob) do
+      post bulk_print_things_path, params: {
+        select_all: "1",
+        filter: { labelled: "yes" },
+        printer_id: printers(:brother_printer).id,
+        layout: "standard"
+      }
+    end
+
+    assert_redirected_to things_path
+    assert_match(/Queued 1 label/, flash[:notice])
+  end
+
+  test "bulk print skips things without network lines for cable tags" do
+    assert_enqueued_with(job: Things::BulkPrintJob) do
+      post bulk_print_things_path, params: {
+        thing_ids: [ things(:keyboard).id, things(:router).id ],
+        printer_id: printers(:label_printer).id,
+        layout: "cable_tag"
+      }
+    end
+
+    assert_match(/Skipped 1/, flash[:notice])
   end
 
   test "duplicate creates copy and redirects to edit" do
@@ -408,7 +566,7 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_redirected_to thing_path(things(:keyboard))
-    assert_equal "Sent “#{things(:keyboard).name}” to #{printers(:brother_printer).name}.", flash[:notice]
+    assert_equal "Sent standard label for “#{things(:keyboard).name}” to #{printers(:brother_printer).name}.", flash[:notice]
   end
 
   test "print rejects disabled printer" do

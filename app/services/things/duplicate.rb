@@ -17,6 +17,9 @@ module Things
           owner: thing.owner,
           ip_address: thing.ip_address,
           hostname: thing.hostname,
+          manufacturer: thing.manufacturer,
+          model: thing.model,
+          manufacturer_url: thing.manufacturer_url,
           ar_anchor_note: thing.ar_anchor_note
         )
         copy_links(copy)

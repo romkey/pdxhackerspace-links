@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-08-22
+
+### Added
+
+- **Labelled** column on the Things index (status dot with timestamp on hover), sortable header, and Labelled filter chip
+- Manual **Mark labelled** / **Mark not labelled** toggle on thing rows and in the row menu
+- **Print label** dialog on the thing page and index: choose Standard, Cable tag, or **Compact** (QR code plus name), pick printer and copies, preview on a separate page, and optionally mark as labelled when printing
+- **Compact** label layout: square QR-dominant label with the thing name in small text beneath
+- Things index **Select** mode with checkboxes, select-all across the filtered list, and **Print labels** bulk action (queued via Sidekiq)
+
+### Changed
+
+- Replaced separate Print and Cable tag buttons with a single Print label dialog
+- Row actions on the index: Print stays visible; Duplicate, labelled toggle, and Delete moved into a ⋯ menu
+
+## [0.8.1] - 2026-08-22
+
+### Changed
+
+- Things index filters are now one chip per attribute; clicking cycles it through any, has, and none, reclaiming most of the page the filter grid used to occupy
+
+### Fixed
+
+- Sorting the Things index by hostname, IP address, links, or photos fell back to sorting by name for signed-in users
+- Sorting by hostname or IP address now lists things that have a value before those that do not
+
+## [0.8.0] - 2026-08-21
+
 ### Added
 
 - Separate **IP address** and **hostname** fields on things; cable tags print both when set
@@ -14,6 +42,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- Things index shows hostname and IP address instead of the short URL key; admins also see view, NFC, and QR counts
+- Things index paginates at 50 per page with sortable column headers
+- Things index filters stack: each attribute can be Any, Has, or None, with a clear-all control
 - Thing IP address field accepts IPv4 only; hostnames belong in the new hostname field
 - Strip and cable tag labels grow to fit long names instead of truncating text
 

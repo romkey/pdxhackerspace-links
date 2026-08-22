@@ -6,7 +6,7 @@ rack_switch:
   kind: switch
   name: Router
   model: USW-24-PoE
-  mac_address: 94:2a:6f:26:c6:ca
+  ieee_address: 94:2a:6f:26:c6:ca
   ip_address: 192.168.1.1
   firmware_version: 6.6.55
   state: ONLINE
@@ -15,7 +15,7 @@ rack_switch:
   applied_attributes:
     name: Router
     ip_address: 192.168.1.1
-    mac_address: 94:2a:6f:26:c6:ca
+    ieee_address: 94:2a:6f:26:c6:ca
   first_seen_at: <%= 3.days.ago.to_fs(:db) %>
   last_seen_at: <%= 1.hour.ago.to_fs(:db) %>
 
@@ -26,7 +26,7 @@ front_door_camera:
   kind: camera
   name: Front door camera
   model: G4 Doorbell
-  mac_address: 24:a4:3c:3d:fe:b9
+  ieee_address: 24:a4:3c:3d:fe:b9
   state: CONNECTED
   first_seen_at: <%= 3.days.ago.to_fs(:db) %>
   last_seen_at: <%= 1.hour.ago.to_fs(:db) %>
@@ -38,7 +38,7 @@ retired_access_point:
   kind: access_point
   name: Loft AP
   model: U6-Lite
-  mac_address: d0:21:f9:8b:6a:ed
+  ieee_address: d0:21:f9:8b:6a:ed
   state: OFFLINE
   first_seen_at: <%= 30.days.ago.to_fs(:db) %>
   last_seen_at: <%= 10.days.ago.to_fs(:db) %>

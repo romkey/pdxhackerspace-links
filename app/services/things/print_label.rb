@@ -1,6 +1,7 @@
 module Things
   class PrintLabel
-    def self.call(thing:, printer:, copies: 1, layout: :standard, cups_client: nil, command_runner: nil, margins: nil)
+    def self.call(thing:, printer:, copies: 1, layout: :standard, cups_client: nil, command_runner: nil, margins: nil,
+                  mark_labelled: false)
       raise ArgumentError, "Printer is disabled" unless printer.enabled?
 
       validate_layout!(thing: thing, printer: printer, layout: layout)
@@ -11,6 +12,8 @@ module Things
       else
         print_via_cups(thing: thing, printer: printer, copies: copies, layout: layout, cups_client: cups_client,
                        margins: margins)
+      end.tap do
+        thing.mark_labelled! if mark_labelled
       end
     end
 
@@ -44,11 +47,13 @@ module Things
 
     def self.validate_layout!(thing:, printer:, layout:)
       layout = layout.to_sym
-      return if layout == :standard
-
       raise ArgumentError, "Invalid layout: #{layout}" unless LabelPdf::LAYOUTS.include?(layout)
-      raise ArgumentError, "Printer does not support cable tags" unless printer.cable_tag_capable?
-      raise ArgumentError, "Cable tags require an IP address or hostname" unless thing.cable_tag_printable?
+      return if layout.in?(%i[standard compact])
+
+      if layout == :cable_tag
+        raise ArgumentError, "Printer does not support cable tags" unless printer.cable_tag_capable?
+        raise ArgumentError, "Cable tags require an IP address or hostname" unless thing.cable_tag_printable?
+      end
     end
 
     private_class_method :print_via_cups, :print_via_command, :validate_layout!

@@ -38,7 +38,7 @@ class Unifi::ProtectClientTest < ActiveSupport::TestCase
     assert_equal "camera", record.kind
     assert_equal "Front door", record.name
     assert_equal "G4 Doorbell", record.model
-    assert_equal "24:a4:3c:3d:fe:b9", record.mac_address
+    assert_equal "24:a4:3c:3d:fe:b9", record.ieee_address
     assert_equal "CONNECTED", record.state
     assert_nil record.ip_address
   end

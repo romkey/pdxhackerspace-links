@@ -1,5 +1,5 @@
 module Printers
-  TestLabel = Data.define(:name, :owner, :ip_address, :subtitle) do
+  class TestLabel < Data.define(:name, :owner, :ip_address, :subtitle)
     LinkDisplay = Struct.new(:display_title, keyword_init: true)
 
     def label_title_line

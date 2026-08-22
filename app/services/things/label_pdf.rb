@@ -17,7 +17,14 @@ module Things
     LANDSCAPE_TEXT_MIN_WIDTH_MM = 28
     LANDSCAPE_TEXT_SIZE = 11
     AR_MARKER_GAP_MM = 0.75
-    LAYOUTS = %i[standard cable_tag].freeze
+    COMPACT_NAME_ROW_MM = 4
+    COMPACT_NAME_SIZE = 6
+    LAYOUTS = %i[standard cable_tag compact].freeze
+    LAYOUT_LABELS = {
+      standard: "Standard label",
+      cable_tag: "Cable tag",
+      compact: "Compact"
+    }.freeze
 
     PAGE_LAYOUTS = {
       "label_brother_12mm" => { width_mm: 12, height_mm: 40 },
@@ -49,6 +56,14 @@ module Things
 
     def cable_tag?
       @layout == :cable_tag
+    end
+
+    def compact?
+      @layout == :compact
+    end
+
+    def self.layout_label(layout)
+      LAYOUT_LABELS.fetch(layout.to_sym, "Standard label")
     end
 
     def left_margin_mm
@@ -133,15 +148,25 @@ module Things
 
       Prawn::Document.generate(file.path, margin: 0, page_size: [ page_width, page_height ]) do |pdf|
         if letter_page?
-          render_avery_label(pdf)
+          if compact?
+            config = printer.avery_template_config || Printer::AVERY_TEMPLATES["avery_5160"]
+            bounds = avery_label_bounds(config, row: 0, col: 0)
+            render_compact_label(pdf, bounds: bounds)
+          else
+            render_avery_label(pdf)
+          end
         elsif cable_tag?
           render_cable_tag_label(pdf)
+        elsif compact? && (strip_style_label? || landscape_label?)
+          render_compact_strip_label(pdf)
         elsif strip_style_label?
           render_strip_style_label(pdf)
         elsif landscape_label?
           render_landscape_roll_label(pdf)
+        elsif compact?
+          render_compact_label(pdf, bounds: [ 0, page_height, page_width, page_height ])
         else
-          render_label(pdf, bounds: [ 0, page_height, page_width, 0 ])
+          render_label(pdf, bounds: [ 0, page_height, page_width, page_height ])
         end
       end
 
@@ -192,9 +217,16 @@ module Things
 
     def landscape_label_width_mm
       return cable_tag_width_mm if cable_tag?
+      return compact_width_mm if compact?
       return strip_24mm_width_mm if strip_24mm_label?
 
       base_landscape_label_width_mm + ar_marker_reserved_width_mm
+    end
+
+    def compact_width_mm
+      strip_height = roll_width_mm
+      qr_size = compact_qr_size_mm(strip_height)
+      (left_margin_mm + qr_size + right_margin_mm).round
     end
 
     def strip_24mm_width_mm
@@ -210,6 +242,7 @@ module Things
     end
 
     def ar_marker_reserved_width_mm
+      return 0 if compact?
       return 0 unless ar_marker_attached?
 
       AR_MARKER_GAP_MM + marker_display_size_mm
@@ -333,6 +366,49 @@ module Things
         strip_height: strip_height,
         font_size: STRIP_24MM_TEXT_SIZE
       )
+    end
+
+    def render_compact_strip_label(pdf)
+      left_offset = mm(left_margin_mm)
+      strip_height = page_height
+      name_row = mm(COMPACT_NAME_ROW_MM)
+      gap = mm(0.5)
+      qr_size = strip_height - name_row - gap
+
+      draw_qr_code(pdf, x: left_offset, y: name_row + gap, size: qr_size, border_modules: 0)
+      render_compact_name(pdf, x: left_offset, width: qr_size, bottom: 0, height: name_row)
+    end
+
+    def render_compact_label(pdf, bounds:)
+      x, top, width, height = bounds
+      padding = [ width * 0.05, 4 ].max
+      content_width = width - (2 * padding)
+      content_height = height - (2 * padding)
+      name_row = mm(COMPACT_NAME_ROW_MM)
+      gap = mm(0.5)
+      qr_size = [ content_width, content_height - name_row - gap ].min
+      bottom = top - height
+      qr_x = x + padding + ((content_width - qr_size) / 2)
+
+      draw_qr_code(pdf, x: qr_x, y: bottom + name_row + gap, size: qr_size, border_modules: 0)
+      render_compact_name(pdf, x: qr_x, width: qr_size, bottom: bottom, height: name_row)
+    end
+
+    def render_compact_name(pdf, x:, width:, bottom:, height:)
+      pdf.text_box thing.name.to_s,
+                   at: [ x, bottom + height ],
+                   width: width,
+                   height: height,
+                   size: COMPACT_NAME_SIZE,
+                   align: :center,
+                   valign: :center,
+                   overflow: :truncate,
+                   single_line: true,
+                   color: "444444"
+    end
+
+    def compact_qr_size_mm(strip_height_mm)
+      strip_height_mm - COMPACT_NAME_ROW_MM - 0.5
     end
 
     def render_strip_style_label(pdf)

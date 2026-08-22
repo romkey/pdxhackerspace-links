@@ -8,7 +8,7 @@ class Unifi::SyncThingTest < ActiveSupport::TestCase
       kind: "access_point",
       name: "Loft AP",
       model: "U6-Lite",
-      mac_address: "aa:bb:cc:dd:ee:01",
+      ieee_address: "aa:bb:cc:dd:ee:01",
       ip_address: "192.168.1.20",
       state: "ONLINE",
       first_seen_at: Time.current,
@@ -26,10 +26,11 @@ class Unifi::SyncThingTest < ActiveSupport::TestCase
     thing = device.reload.thing
     assert_equal "Loft AP", thing.name
     assert_equal "192.168.1.20", thing.ip_address
-    assert_equal "aa:bb:cc:dd:ee:01", thing.mac_address
+    assert_equal "aa:bb:cc:dd:ee:01", thing.ieee_address
+    assert_equal "unifi", thing.integration_source
   end
 
-  test "names a thing after its kind and MAC when the device is unnamed" do
+  test "names a thing after its kind and IEEE address when the device is unnamed" do
     device = build_device(name: nil)
 
     Unifi::SyncThing.call(unifi_device: device)
@@ -37,8 +38,8 @@ class Unifi::SyncThingTest < ActiveSupport::TestCase
     assert_equal "Access point aa:bb:cc:dd:ee:01", device.reload.thing.name
   end
 
-  test "links to an existing thing with the same MAC instead of creating one" do
-    existing = Thing.create!(name: "Loft AP (manual)", mac_address: "aa:bb:cc:dd:ee:01")
+  test "links to an existing thing with the same IEEE address instead of creating one" do
+    existing = Thing.create!(name: "Loft AP (manual)", ieee_address: "aa:bb:cc:dd:ee:01")
     device = build_device
 
     assert_no_difference -> { Thing.count } do
