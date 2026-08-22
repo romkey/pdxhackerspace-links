@@ -483,6 +483,22 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "button[aria-label='More actions']"
   end
 
+  test "index encodes stimulus data attributes for bulk print" do
+    get things_path
+
+    assert_response :success
+    doc = Nokogiri::HTML(response.body)
+    container = doc.at_css('[data-controller*="thing-selection"]')
+    assert container
+
+    filter_params = JSON.parse(container["data-thing-selection-filter-params-value"])
+    assert filter_params.key?("sort")
+
+    printers = JSON.parse(container["data-print-dialog-printers-value"])
+    assert_kind_of Array, printers
+    assert printers.any?
+  end
+
   test "print marks thing labelled when requested" do
     thing = things(:keyboard)
     assert_not thing.labelled?

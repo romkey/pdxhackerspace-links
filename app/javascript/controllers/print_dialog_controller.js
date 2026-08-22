@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { Modal } from "bootstrap"
+import * as bootstrap from "bootstrap"
 
 export default class extends Controller {
   static targets = [
@@ -19,7 +19,6 @@ export default class extends Controller {
   }
 
   connect() {
-    this.modal = new Modal(document.getElementById("print-label-dialog"))
     this.bulkMode = false
     this.previewPathTemplate = null
     this.printPath = null
@@ -32,6 +31,8 @@ export default class extends Controller {
   open(event) {
     event.preventDefault()
     const trigger = event.currentTarget
+    const modal = this.ensureModal()
+    if (!modal) return
 
     this.bulkMode = trigger.dataset.bulk === "true"
     this.printPath = this.bulkMode ? this.bulkPrintUrlValue : trigger.dataset.printUrl
@@ -48,7 +49,7 @@ export default class extends Controller {
     this.syncBulkFields()
     this.syncLayoutOptions()
     this.syncPrinterOptions()
-    this.modal.show()
+    modal.show()
   }
 
   layoutChanged() {
@@ -96,7 +97,7 @@ export default class extends Controller {
     }
 
     this.formTarget.requestSubmit()
-    this.modal.hide()
+    this.ensureModal()?.hide()
   }
 
   syncBulkFields() {
@@ -179,5 +180,16 @@ export default class extends Controller {
 
   csrfToken() {
     return document.querySelector("meta[name='csrf-token']")?.content
+  }
+
+  modalElement() {
+    return this.element.querySelector("#print-label-dialog")
+  }
+
+  ensureModal() {
+    const element = this.modalElement()
+    if (!element) return null
+
+    return bootstrap.Modal.getOrCreateInstance(element)
   }
 }

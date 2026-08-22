@@ -2,7 +2,7 @@
 
 <div class="container-fluid py-4"
      data-controller="print-dialog"
-     data-print-dialog-printers-value="<%= can_manage_things? ? things_printers_json(@printers) : '[]' %>"
+     data-print-dialog-printers-value="<%= things_stimulus_data_value(can_manage_things? ? things_printers_data(@printers) : []) %>"
      data-print-dialog-bulk-print-url-value="<%= bulk_print_things_path %>">
   <div class="d-flex align-items-end justify-content-between mb-3">
     <div>

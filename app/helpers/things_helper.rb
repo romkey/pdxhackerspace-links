@@ -29,7 +29,7 @@ module ThingsHelper
     end
   end
 
-  def things_printers_json(printers)
+  def things_printers_data(printers)
     printers.map do |printer|
       {
         id: printer.id,
@@ -37,7 +37,15 @@ module ThingsHelper
         cable_tag_capable: printer.cable_tag_capable?,
         command: printer.command?
       }
-    end.to_json
+    end
+  end
+
+  def things_printers_json(printers)
+    things_printers_data(printers).to_json
+  end
+
+  def things_stimulus_data_value(value)
+    ERB::Util.html_escape(value.to_json)
   end
 
   def things_bulk_filter_params
