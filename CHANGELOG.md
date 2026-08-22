@@ -14,6 +14,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- Things index shows hostname and IP address instead of the short URL key; admins also see view, NFC, and QR counts
+- Things index paginates at 50 per page with sortable column headers
+- Things index filters stack: each attribute can be Any, Has, or None, with a clear-all control
 - Thing IP address field accepts IPv4 only; hostnames belong in the new hostname field
 - Strip and cable tag labels grow to fit long names instead of truncating text
 

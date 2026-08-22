@@ -52,6 +52,33 @@
   color: var(--bs-body-color);
 }
 
+.filter-chip {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  font-size: 12px;
+  color: var(--bs-secondary-color);
+  text-decoration: none;
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius-pill);
+  background: transparent;
+
+  &:hover {
+    background: var(--bs-secondary-bg);
+    color: var(--bs-body-color);
+  }
+
+  &.active {
+    background: var(--bs-secondary-bg);
+    color: var(--bs-body-color);
+    border-color: var(--bs-secondary);
+    font-weight: 500;
+  }
+}
+
+.things-filter-label {
+  min-width: 5.5rem;
+}
+
 .list-compact .list-group-item {
   font-size: 13px;
 }

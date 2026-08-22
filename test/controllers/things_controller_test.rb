@@ -5,11 +5,12 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     sign_in_as(users(:local_admin))
   end
 
-  test "index lists things with keys" do
+  test "index lists things with hostname and ip address" do
     get things_path
     assert_response :success
     assert_select "td", text: things(:keyboard).name
-    assert_select "code", text: things(:keyboard).key
+    assert_select "code", text: things(:router).ip_address
+    assert_select "code", text: things(:keyboard).key, count: 0
     assert_select "nav input[type=search][name=q]"
   end
 
@@ -378,6 +379,63 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to thing_path(things(:router))
     assert_match(/cable tag/i, flash[:notice])
+  end
+
+  test "index includes scan counts for admins" do
+    things(:router).update!(qr_scan_count: 4, nfc_scan_count: 2, visit_count: 10)
+
+    get things_path
+
+    assert_response :success
+    assert_select "th", text: /Views/
+    assert_select "th", text: /NFC/
+    assert_select "th", text: /QR/
+    assert_select "td.num", text: "10"
+    assert_select "td.num", text: "4"
+    assert_select "td.num", text: "2"
+  end
+
+  test "index supports sortable headers" do
+    get things_path, params: { sort: "ip_address", direction: "desc" }
+
+    assert_response :success
+    assert_select "a[href=?]", things_path(sort: "ip_address", direction: "asc")
+  end
+
+  test "index supports stackable filters" do
+    get things_path, params: { filter: { links: "yes", ip_address: "yes" } }
+
+    assert_response :success
+    assert_select "td", text: things(:router).name
+    assert_select "td", text: things(:keyboard).name, count: 0
+    assert_select "a.filter-chip.active", text: "Has", count: 2
+    assert_select "a[href=?]", things_path(sort: "name", direction: "asc", filter: { links: "yes", ip_address: "yes" })
+  end
+
+  test "index shows clear filters link when filters are active" do
+    get things_path, params: { filter: { photos: "no" } }
+
+    assert_response :success
+    assert_select "a", text: "Clear filters"
+  end
+
+  test "index clears filters while preserving search" do
+    get things_path, params: { q: "router", filter: { links: "yes" } }
+
+    assert_response :success
+    assert_select "a[href=?]", things_path(q: "router", sort: "name", direction: "asc")
+  end
+
+  test "index paginates things" do
+    existing = Thing.count
+    (Pagy::DEFAULT[:limit] - existing + 1).times do |index|
+      Thing.create!(name: "Thing #{index}")
+    end
+
+    get things_path
+
+    assert_response :success
+    assert_select ".pagination"
   end
 
   test "index includes inline row actions when printers are enabled" do

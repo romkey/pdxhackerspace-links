@@ -59,6 +59,9 @@ class NetworkGuestAccessTest < ActionDispatch::IntegrationTest
       assert_select "button", text: "Duplicate", count: 0
       assert_select "button", text: "Delete", count: 0
       assert_select "button", text: "Print", count: 0
+      assert_select "th", text: /Views/, count: 0
+      assert_select "th", text: /NFC/, count: 0
+      assert_select "th", text: /QR/, count: 0
     end
   end
 

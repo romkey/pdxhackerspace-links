@@ -9,7 +9,18 @@ class ThingsController < ApplicationController
 
   def index
     @search_query = params[:q].to_s.strip.presence
-    @things = Thing.search(@search_query).order(:name)
+    @things_index = Things::IndexQuery.call(
+      search: @search_query,
+      sort: params[:sort],
+      direction: params[:direction],
+      admin: can_manage_things?,
+      filters: params[:filter]
+    )
+    @pagy, @things = pagy(
+      @things_index.scope,
+      limit: Pagy::DEFAULT[:limit],
+      count: @things_index.total_count
+    )
   end
 
   def show
