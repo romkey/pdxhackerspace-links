@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- Bulk **Preview** from the Things index print dialog: opens a page with one label preview per selected thing, stacked vertically
+
 ## [0.9.0] - 2026-08-22
 
 ### Added

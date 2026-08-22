@@ -497,6 +497,15 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "button[data-bs-target='#print-label-dialog'][data-action*='print-dialog#open']"
   end
 
+  test "index includes bulk label preview url for print dialog" do
+    get things_path
+
+    assert_response :success
+    doc = Nokogiri::HTML(response.body)
+    container = doc.at_css('[data-controller*="print-dialog"]')
+    assert_equal bulk_label_preview_things_path, container["data-print-dialog-bulk-preview-url-value"]
+  end
+
   test "index encodes stimulus data attributes for bulk print" do
     get things_path
 
@@ -546,6 +555,33 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
 
     patch labelled_thing_path(thing), params: { labelled: "0" }
     assert_not thing.reload.labelled?
+  end
+
+  test "bulk label preview shows each selected thing" do
+    get bulk_label_preview_things_path, params: {
+      thing_ids: [ things(:keyboard).id, things(:router).id ],
+      printer_id: printers(:label_printer).id,
+      layout: "standard"
+    }
+
+    assert_response :success
+    assert_select "h1", "Label preview"
+    assert_select ".bulk-label-preview-row", count: 2
+    assert_select "iframe[title=?]", "Label preview for #{things(:keyboard).name}"
+    assert_select "iframe[title=?]", "Label preview for #{things(:router).name}"
+  end
+
+  test "bulk label preview skips things without network lines for cable tags" do
+    get bulk_label_preview_things_path, params: {
+      thing_ids: [ things(:keyboard).id, things(:router).id ],
+      printer_id: printers(:label_printer).id,
+      layout: "cable_tag"
+    }
+
+    assert_response :success
+    assert_select ".bulk-label-preview-row", count: 1
+    assert_select "iframe[title=?]", "Label preview for #{things(:router).name}"
+    assert_match(/skipped without IP or hostname/, response.body)
   end
 
   test "bulk print queues job for selected things" do

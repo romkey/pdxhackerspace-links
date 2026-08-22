@@ -14,7 +14,8 @@ export default class extends Controller {
 
   static values = {
     printers: Array,
-    bulkPrintUrl: String
+    bulkPrintUrl: String,
+    bulkPreviewUrl: String
   }
 
   connect() {
@@ -57,10 +58,11 @@ export default class extends Controller {
   }
 
   preview() {
-    if (this.bulkMode) return
+    const url = this.bulkMode ? this.buildBulkPreviewUrl() : this.buildPreviewUrl()
+    if (!url) return
 
-    const url = this.buildPreviewUrl()
-    if (url) window.location.href = url
+    this.dismissModal()
+    window.location.href = url
   }
 
   submit() {
@@ -71,24 +73,7 @@ export default class extends Controller {
     this.appendHidden("authenticity_token", this.csrfToken())
 
     if (this.bulkMode) {
-      if (this.selectAllMatching) {
-        this.appendHidden("select_all", "1")
-        Object.entries(this.filterParams).forEach(([ key, value ]) => {
-          if (key === "filter" && value && typeof value === "object") {
-            Object.entries(value).forEach(([ filterKey, filterValue ]) => {
-              if (Array.isArray(filterValue)) {
-                filterValue.forEach((entry) => this.appendHidden(`filter[${filterKey}][]`, entry))
-              } else {
-                this.appendHidden(`filter[${filterKey}]`, filterValue)
-              }
-            })
-          } else if (value != null && value !== "") {
-            this.appendHidden(key, value)
-          }
-        })
-      } else {
-        this.selectedThingIds.forEach((id) => this.appendHidden("thing_ids[]", id))
-      }
+      this.appendBulkSelection((name, value) => this.appendHidden(name, value))
     }
 
     this.formTarget.requestSubmit()
@@ -97,7 +82,6 @@ export default class extends Controller {
 
   syncBulkFields() {
     this.bulkFieldsTarget.classList.toggle("d-none", !this.bulkMode)
-    this.previewButtonTarget.classList.toggle("d-none", this.bulkMode)
   }
 
   syncLayoutOptions() {
@@ -159,6 +143,43 @@ export default class extends Controller {
     if (markLabelled?.checked) url.searchParams.set("mark_labelled", "1")
 
     return url.toString()
+  }
+
+  buildBulkPreviewUrl() {
+    if (!this.hasBulkPreviewUrlValue) return null
+
+    const url = new URL(this.bulkPreviewUrlValue, window.location.origin)
+    url.searchParams.set("printer_id", this.selectedPrinterId())
+
+    const layout = this.selectedLayout()
+    if (layout !== "standard") url.searchParams.set("layout", layout)
+
+    this.appendBulkSelection((name, value) => {
+      url.searchParams.append(name, value)
+    })
+
+    return url.toString()
+  }
+
+  appendBulkSelection(append) {
+    if (this.selectAllMatching) {
+      append("select_all", "1")
+      Object.entries(this.filterParams).forEach(([ key, value ]) => {
+        if (key === "filter" && value && typeof value === "object") {
+          Object.entries(value).forEach(([ filterKey, filterValue ]) => {
+            if (Array.isArray(filterValue)) {
+              filterValue.forEach((entry) => append(`filter[${filterKey}][]`, entry))
+            } else {
+              append(`filter[${filterKey}]`, filterValue)
+            }
+          })
+        } else if (value != null && value !== "") {
+          append(key, value)
+        }
+      })
+    } else {
+      this.selectedThingIds.forEach((id) => append("thing_ids[]", id))
+    }
   }
 
   appendHidden(name, value) {

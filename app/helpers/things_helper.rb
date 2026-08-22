@@ -46,7 +46,8 @@ module ThingsHelper
       thing_selection_total_count_value: @pagy.count,
       thing_selection_filter_params_value: things_bulk_filter_params,
       print_dialog_printers_value: (can_manage_things? ? things_printers_data(@printers) : []),
-      print_dialog_bulk_print_url_value: bulk_print_things_path
+      print_dialog_bulk_print_url_value: bulk_print_things_path,
+      print_dialog_bulk_preview_url_value: bulk_label_preview_things_path
     }
   end
 
