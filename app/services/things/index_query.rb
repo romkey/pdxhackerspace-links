@@ -1,5 +1,7 @@
 module Things
-  IndexQuery = Data.define(:scope, :sort, :direction, :total_count, :filters) do
+  # Subclasses rather than using a Data.define block so the constants below are
+  # scoped here instead of leaking into Things and colliding across services.
+  class IndexQuery < Data.define(:scope, :sort, :direction, :total_count, :filters)
     PUBLIC_SORTS = %w[name hostname ip_address links photos].freeze
     ADMIN_SORTS = %w[qr nfc visits].freeze
     SORTS = (PUBLIC_SORTS + ADMIN_SORTS).freeze
@@ -33,25 +35,26 @@ module Things
     end
 
     def self.apply_sort(scope, sort, direction)
-      tie_break = { name: :asc }
+      dir = direction.to_s.upcase
+      tie_break = Arel.sql("things.name ASC")
 
       case sort
       when "hostname"
-        scope.order(hostname: direction, **tie_break)
+        scope.reorder(Arel.sql("things.hostname #{dir} NULLS LAST"), tie_break)
       when "ip_address"
-        scope.order(ip_address: direction, **tie_break)
+        scope.reorder(Arel.sql("things.ip_address #{dir} NULLS LAST"), tie_break)
       when "links"
-        scope.order(Arel.sql("links_count #{direction.to_s.upcase}"), **tie_break)
+        scope.reorder(Arel.sql("#{CountSql::LINKS} #{dir}"), tie_break)
       when "photos"
-        scope.order(Arel.sql("photos_count #{direction.to_s.upcase}"), **tie_break)
+        scope.reorder(Arel.sql("#{CountSql::PHOTOS} #{dir}"), tie_break)
       when "qr"
-        scope.order(qr_scan_count: direction, **tie_break)
+        scope.reorder(qr_scan_count: direction, name: :asc)
       when "nfc"
-        scope.order(nfc_scan_count: direction, **tie_break)
+        scope.reorder(nfc_scan_count: direction, name: :asc)
       when "visits"
-        scope.order(visit_count: direction, **tie_break)
+        scope.reorder(visit_count: direction, name: :asc)
       else
-        scope.order(name: direction)
+        scope.reorder(name: direction)
       end
     end
 

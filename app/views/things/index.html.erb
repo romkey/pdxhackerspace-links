@@ -13,8 +13,7 @@
             total
           <% end %>
           <% if @things_index.filters.active? %>
-            · <span class="text-body"><%= @things_index.filters.active_count %></span> filters active ·
-            <%= link_to "Clear filters", things_clear_filters_path, class: "text-secondary" %>
+            · <span class="text-body"><%= @things_index.filters.active_count %></span> filters active
           <% end %>
           <% if @search_query.present? %>
             · <%= link_to "Clear search", things_path(things_index_params(q: nil)), class: "text-secondary" %>
@@ -31,14 +30,12 @@
     </div>
   </div>
 
-  <div class="mb-3">
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
     <% things_index_filter_groups.each do |group| %>
-      <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-        <span class="text-12 text-secondary things-filter-label"><%= group[:label] %></span>
-        <%= things_filter_chip("Any", group[:key], nil) %>
-        <%= things_filter_chip("Has", group[:key], "yes") %>
-        <%= things_filter_chip("None", group[:key], "no") %>
-      </div>
+      <%= things_filter_toggle(group[:label], group[:key]) %>
+    <% end %>
+    <% if @things_index.filters.active? %>
+      <%= link_to "Clear filters", things_clear_filters_path, class: "text-12 text-secondary text-decoration-none ms-1" %>
     <% end %>
   </div>
 
@@ -103,9 +100,6 @@
     <p class="text-secondary text-13 mb-0">
       <% if @search_query.present? || @things_index.filters.active? %>
         No things match<% if @search_query.present? %> “<%= @search_query %>”<% end %><% if @things_index.filters.active? %> with the current filters<% end %>.
-        <% if @things_index.filters.active? %>
-          <%= link_to "Clear filters", things_clear_filters_path, class: "text-secondary" %>
-        <% end %>
       <% elsif can_manage_things? %>
         No things yet. Create one to get started.
       <% else %>

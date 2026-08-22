@@ -1,5 +1,5 @@
 module Things
-  IndexFilters = Data.define(:values) do
+  class IndexFilters < Data.define(:values)
     KEYS = %i[
       links photos ip_address hostname mac_address ar_marker
       wiki slack where asset url

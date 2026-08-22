@@ -13,6 +13,9 @@ module ThingsHelper
     { key: :url, label: "URL" }
   ].freeze
 
+  THINGS_FILTER_CYCLE = { nil => "yes", "yes" => "no", "no" => nil }.freeze
+  THINGS_FILTER_STATES = { nil => "any", "yes" => "has", "no" => "none" }.freeze
+
   def things_index_filter_groups
     THINGS_INDEX_FILTER_GROUPS
   end
@@ -30,31 +33,45 @@ module ThingsHelper
       tag.i(class: "bi bi-chevron-#{@things_index.direction == "asc" ? "up" : "down"} text-11")
     end
 
-    link_to things_path(things_index_params(sort: column, direction: next_direction)),
+    link_to things_path(things_index_params(sort: column, direction: next_direction, page: 1)),
             class: class_names("scan-visits-sort text-reset text-decoration-none", "fw-medium" => active) do
       safe_join([ label, icon ].compact, " ")
     end
   end
 
-  def things_filter_chip(label, key, value)
-    filters = @things_index.filters.values.dup
-    current = filters[key.to_sym]
+  # Each chip is a single link that advances one step through any → has → none.
+  def things_filter_toggle(label, key)
+    key = key.to_sym
+    current = @things_index.filters[key]
+    next_value = THINGS_FILTER_CYCLE[current]
 
-    if value.nil?
-      active = current.nil?
-      filters.delete(key.to_sym)
+    filters = @things_index.filters.values.dup
+    if next_value
+      filters[key] = next_value
     else
-      active = current == value
-      filters[key.to_sym] = value
+      filters.delete(key)
     end
 
-    link_to label,
-            things_path(things_index_params(filter: filters)),
-            class: class_names("filter-chip", active: active)
+    link_to things_path(things_index_params(filter: filters)),
+            class: class_names("filter-chip", active: current.present?),
+            title: "#{label}: #{THINGS_FILTER_STATES[current]} — click for #{THINGS_FILTER_STATES[next_value]}" do
+      safe_join([ things_filter_icon(current), tag.span(label, class: things_filter_label_class(current)) ].compact, " ")
+    end
   end
 
   def things_clear_filters_path
     things_path(things_index_params(filter: {}))
+  end
+
+  def things_filter_icon(state)
+    case state
+    when "yes" then tag.i(class: "bi bi-check-lg text-11")
+    when "no" then tag.i(class: "bi bi-slash-lg text-11")
+    end
+  end
+
+  def things_filter_label_class(state)
+    "text-decoration-line-through" if state == "no"
   end
 
   def things_index_params(overrides = {})

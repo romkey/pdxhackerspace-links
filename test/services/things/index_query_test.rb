@@ -25,6 +25,29 @@ class Things::IndexQueryTest < ActiveSupport::TestCase
     assert_equal [ things(:keyboard).name, things(:router).name ], query.scope.map(&:name)
   end
 
+  test "sorts by hostname descending with blank hostnames last" do
+    things(:keyboard).update!(hostname: nil)
+    things(:router).update!(hostname: "alpha.local")
+
+    query = Things::IndexQuery.call(sort: "hostname", direction: "desc")
+
+    assert_equal [ things(:router).name, things(:keyboard).name ], query.scope.map(&:name)
+  end
+
+  test "sorts by ip address descending with blank addresses last" do
+    query = Things::IndexQuery.call(sort: "ip_address", direction: "desc")
+
+    assert_equal [ things(:router).name, things(:keyboard).name ], query.scope.map(&:name)
+  end
+
+  test "sorts by links count descending when counts differ" do
+    things(:keyboard).links.find_by(link_type: :slack).update!(url: "")
+
+    query = Things::IndexQuery.call(sort: "links", direction: "desc")
+
+    assert_equal [ things(:router).name, things(:keyboard).name ], query.scope.map(&:name)
+  end
+
   test "sorts by ip address ascending" do
     query = Things::IndexQuery.call(sort: "ip_address", direction: "asc")
 

@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-08-22
+
+### Changed
+
+- Things index filters are now one chip per attribute; clicking cycles it through any, has, and none, reclaiming most of the page the filter grid used to occupy
+
+### Fixed
+
+- Sorting the Things index by hostname, IP address, links, or photos fell back to sorting by name for signed-in users
+- Sorting by hostname or IP address now lists things that have a value before those that do not
+
 ## [0.8.0] - 2026-08-21
 
 ### Added

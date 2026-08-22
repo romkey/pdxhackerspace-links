@@ -399,7 +399,8 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     get things_path, params: { sort: "ip_address", direction: "desc" }
 
     assert_response :success
-    assert_select "a[href=?]", things_path(sort: "ip_address", direction: "asc")
+    assert_select "a[href=?]", things_path(sort: "ip_address", direction: "asc", page: 1)
+    assert_equal things(:router).name, css_select("tbody tr td:first-child").first.text
   end
 
   test "index supports stackable filters" do
@@ -408,8 +409,43 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "td", text: things(:router).name
     assert_select "td", text: things(:keyboard).name, count: 0
-    assert_select "a.filter-chip.active", text: "Has", count: 2
-    assert_select "a[href=?]", things_path(sort: "name", direction: "asc", filter: { links: "yes", ip_address: "yes" })
+    assert_select "a.filter-chip.active", count: 2
+    assert_select "a.filter-chip.active", text: /Links/
+    assert_select "a.filter-chip.active", text: /IP address/
+    assert_select "a.filter-chip.active i.bi-check-lg", count: 2
+  end
+
+  test "index filter chips cycle through any, has, and none" do
+    get things_path
+    assert_response :success
+    assert_select "a.filter-chip[href=?]",
+                  things_path(sort: "name", direction: "asc", filter: { links: "yes" })
+
+    get things_path, params: { filter: { links: "yes" } }
+    assert_response :success
+    assert_select "a.filter-chip.active[href=?]",
+                  things_path(sort: "name", direction: "asc", filter: { links: "no" })
+
+    get things_path, params: { filter: { links: "no" } }
+    assert_response :success
+    assert_select "a.filter-chip.active[href=?]", things_path(sort: "name", direction: "asc")
+  end
+
+  test "index marks excluded filters with a struck through label" do
+    get things_path, params: { filter: { photos: "no" } }
+
+    assert_response :success
+    assert_select "a.filter-chip.active i.bi-slash-lg"
+    assert_select "a.filter-chip.active .text-decoration-line-through", text: "Photos"
+  end
+
+  test "index renders one chip per filter with no state labels" do
+    get things_path
+
+    assert_response :success
+    assert_select "a.filter-chip", count: ThingsHelper::THINGS_INDEX_FILTER_GROUPS.size
+    assert_select "a.filter-chip.active", count: 0
+    assert_select "a.filter-chip", text: /Any/, count: 0
   end
 
   test "index shows clear filters link when filters are active" do

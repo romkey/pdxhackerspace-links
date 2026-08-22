@@ -1,5 +1,5 @@
 module Things
-  ScanStats = Data.define(:qr_total, :nfc_total, :visit_total, :things, :sort, :direction) do
+  class ScanStats < Data.define(:qr_total, :nfc_total, :visit_total, :things, :sort, :direction)
     SORTS = %w[name qr nfc total visits].freeze
 
     def self.call(sort: "total", direction: "desc")
