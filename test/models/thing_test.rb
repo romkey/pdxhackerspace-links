@@ -58,6 +58,15 @@ class ThingTest < ActiveSupport::TestCase
     assert_not thing.reload.labelled?
   end
 
+  test "safe_manufacturer_url allows http and https only" do
+    thing = things(:router)
+    thing.manufacturer_url = "https://example.com/device"
+    assert_equal "https://example.com/device", thing.safe_manufacturer_url
+
+    thing.manufacturer_url = "javascript:alert(1)"
+    assert_nil thing.safe_manufacturer_url
+  end
+
   test "label network lines include hostname and ip when both set" do
     router = things(:router)
     router.update!(hostname: "router.local")

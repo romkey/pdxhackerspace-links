@@ -16,7 +16,11 @@ module Things
       when "visits"
                  Thing.order(visit_count: direction, name: :asc)
       else
-                 Thing.order(Arel.sql("(qr_scan_count + nfc_scan_count) #{direction.to_s.upcase}"), name: :asc)
+        if direction == :asc
+          Thing.order(Arel.sql("(qr_scan_count + nfc_scan_count) ASC"), name: :asc)
+        else
+          Thing.order(Arel.sql("(qr_scan_count + nfc_scan_count) DESC"), name: :asc)
+        end
       end
 
       new(

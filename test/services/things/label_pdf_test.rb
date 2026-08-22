@@ -295,6 +295,17 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
     standard&.cleanup!
   end
 
+  test "compact layout renders on portrait fixed labels" do
+    label_pdf = Things::LabelPdf.new(thing: things(:keyboard), printer: printers(:office_laser), layout: :compact)
+    path = label_pdf.generate
+
+    assert File.exist?(path)
+    assert File.read(path, 4).start_with?("%PDF")
+    assert_operator label_pdf.page_height_mm, :>, 0
+  ensure
+    label_pdf&.cleanup!
+  end
+
   private
 
   def assert_qr_visible_in_label_pdf(path, region: :left)

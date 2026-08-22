@@ -38,13 +38,13 @@ module Things
     def self.apply_filter(scope, key, value)
       case key
       when :links
-        apply_count_filter(scope, CountSql::LINKS, value)
+        apply_links_count_filter(scope, value)
       when :photos
-        apply_count_filter(scope, CountSql::PHOTOS, value)
+        apply_photos_count_filter(scope, value)
       when :ip_address, :hostname, :ieee_address
         apply_presence_filter(scope, key, value)
       when :ar_marker
-        apply_exists_filter(scope, CountSql::AR_MARKER, value)
+        apply_ar_marker_filter(scope, value)
       when :labelled
         apply_timestamp_filter(scope, :labelled_at, value)
       when :wiki, :slack, :where, :asset
@@ -69,11 +69,29 @@ module Things
     end
     private_class_method :apply_integration_sources
 
-    def self.apply_count_filter(scope, count_sql, value)
-      condition = value == "yes" ? "> 0" : "= 0"
-      scope.where(Arel.sql("#{count_sql} #{condition}"))
+    def self.apply_links_count_filter(scope, value)
+      link_scope = ThingLink.where("thing_links.thing_id = things.id")
+                            .where.not(url: [ nil, "" ])
+
+      if value == "yes"
+        scope.where("EXISTS (?)", link_scope.select(1))
+      else
+        scope.where("NOT EXISTS (?)", link_scope.select(1))
+      end
     end
-    private_class_method :apply_count_filter
+    private_class_method :apply_links_count_filter
+
+    def self.apply_photos_count_filter(scope, value)
+      photo_scope = ActiveStorage::Attachment.where(record_type: "Thing", name: "photos")
+                                             .where("active_storage_attachments.record_id = things.id")
+
+      if value == "yes"
+        scope.where("EXISTS (?)", photo_scope.select(1))
+      else
+        scope.where("NOT EXISTS (?)", photo_scope.select(1))
+      end
+    end
+    private_class_method :apply_photos_count_filter
 
     def self.apply_presence_filter(scope, column, value)
       if value == "yes"
@@ -93,14 +111,17 @@ module Things
     end
     private_class_method :apply_timestamp_filter
 
-    def self.apply_exists_filter(scope, exists_sql, value)
+    def self.apply_ar_marker_filter(scope, value)
+      attachment_scope = ActiveStorage::Attachment.where(record_type: "Thing", name: "ar_anchor")
+                                                  .where("active_storage_attachments.record_id = things.id")
+
       if value == "yes"
-        scope.where("EXISTS #{exists_sql}")
+        scope.where("EXISTS (?)", attachment_scope.select(1))
       else
-        scope.where("NOT EXISTS #{exists_sql}")
+        scope.where("NOT EXISTS (?)", attachment_scope.select(1))
       end
     end
-    private_class_method :apply_exists_filter
+    private_class_method :apply_ar_marker_filter
 
     def self.apply_link_type_filter(scope, link_type, value)
       link_scope = ThingLink.where("thing_links.thing_id = things.id")

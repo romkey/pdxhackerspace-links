@@ -126,10 +126,14 @@ module ThingsHelper
   end
 
   def things_manufacturer_cell(thing)
-    if thing.manufacturer.blank?
-      tag.span("—", class: "text-secondary")
-    elsif thing.manufacturer_url.present?
-      link_to thing.manufacturer, thing.manufacturer_url, class: "text-13", target: "_blank", rel: "noopener"
+    things_manufacturer_link(thing) || tag.span("—", class: "text-secondary")
+  end
+
+  def things_manufacturer_link(thing)
+    return if thing.manufacturer.blank?
+
+    if (url = thing.safe_manufacturer_url)
+      link_to thing.manufacturer, url, class: "text-13", target: "_blank", rel: "noopener"
     else
       thing.manufacturer
     end

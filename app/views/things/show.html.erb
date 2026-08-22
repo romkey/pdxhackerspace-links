@@ -24,13 +24,7 @@
           <% metadata << content_tag(:code, @thing.ip_address, class: "text-12") if @thing.ip_address.present? %>
           <% metadata << content_tag(:code, @thing.hostname, class: "text-12") if @thing.hostname.present? %>
           <% metadata << content_tag(:code, @thing.ieee_address_display, class: "text-12", title: "IEEE address") if @thing.ieee_address.present? %>
-          <% if @thing.manufacturer.present? %>
-            <% metadata << if @thing.manufacturer_url.present?
-              link_to(@thing.manufacturer, @thing.manufacturer_url, class: "text-13", target: "_blank", rel: "noopener")
-            else
-              content_tag(:span, @thing.manufacturer)
-            end %>
-          <% end %>
+          <% metadata << things_manufacturer_link(@thing) if @thing.manufacturer.present? %>
           <% metadata << content_tag(:span, @thing.model, class: "text-12") if @thing.model.present? %>
           <% metadata << content_tag(:code, @thing.key, class: "text-12", title: "Short URL key") if @thing.key.present? %>
           <% metadata << content_tag(:code, @thing.slug, class: "text-12", title: "URL slug") if @thing.slug.present? %>

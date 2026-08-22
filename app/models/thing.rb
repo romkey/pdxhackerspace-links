@@ -23,6 +23,11 @@ class Thing < ApplicationRecord
   validates :slug, uniqueness: { allow_blank: true }
   validates :ble_beacon_uuid, uniqueness: { allow_blank: true }
   validates :ieee_address, uniqueness: { allow_blank: true }
+  validates :manufacturer_url, format: {
+    with: %r{\Ahttps?://.+\z}i,
+    allow_blank: true,
+    message: "must be an http or https URL"
+  }
   validate :ip_address_format
   validate :hostname_format
   validate :ble_beacon_uuid_format
@@ -125,6 +130,18 @@ class Thing < ApplicationRecord
 
   def integration_label
     Integrations::Registry.label_for(integration_source) if integration_source.present?
+  end
+
+  def safe_manufacturer_url
+    url = manufacturer_url.to_s.strip
+    return nil if url.blank?
+
+    uri = URI.parse(url)
+    return url if uri.is_a?(URI::HTTP) && uri.host.present?
+
+    nil
+  rescue URI::InvalidURIError
+    nil
   end
 
   def ieee_address_display

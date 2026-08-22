@@ -63,14 +63,19 @@ module Zigbee2mqtt
 
     def call
       seen = []
+      present_ieee_addresses = []
+
       client.device_records.each do |record|
+        next if record.ieee_address.blank?
+
+        present_ieee_addresses << record.ieee_address
         next unless importable?(record)
 
         device_id = upsert(record)
         seen << device_id if device_id
       end
 
-      archive_missing(seen.compact)
+      archive_missing(present_ieee_addresses)
 
       build_result.tap { |result| record_sync(result) }
     rescue Client::Error => error
@@ -139,9 +144,10 @@ module Zigbee2mqtt
       end
     end
 
-    def archive_missing(seen_ids)
-      scope = bridge.zigbee2mqtt_devices.active
-      scope = scope.where.not(id: seen_ids) if seen_ids.any?
+    def archive_missing(present_ieee_addresses)
+      return if present_ieee_addresses.empty?
+
+      scope = bridge.zigbee2mqtt_devices.active.where.not(ieee_address: present_ieee_addresses)
 
       @devices_archived += scope.update_all(archived_at: Time.current, updated_at: Time.current)
     end

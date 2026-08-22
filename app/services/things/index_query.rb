@@ -1,6 +1,4 @@
 module Things
-  # Subclasses rather than using a Data.define block so the constants below are
-  # scoped here instead of leaking into Things and colliding across services.
   class IndexQuery < Data.define(:scope, :sort, :direction, :total_count, :filters)
     PUBLIC_SORTS = %w[name hostname ip_address manufacturer model integration links photos].freeze
     ADMIN_SORTS = %w[labelled qr nfc visits].freeze
@@ -41,17 +39,51 @@ module Things
     end
 
     def self.apply_sort(scope, sort, direction)
-      dir = direction.to_s.upcase
       tie_break = Arel.sql("things.name ASC")
 
       case sort
-      when "hostname", "ip_address", "manufacturer", "model", "integration"
-        column = sort == "integration" ? "integration_source" : "things.#{sort}"
-        scope.reorder(Arel.sql("#{column} #{dir} NULLS LAST"), tie_break)
+      when "hostname"
+        if direction == :desc
+          scope.reorder(Arel.sql("things.hostname DESC NULLS LAST"), tie_break)
+        else
+          scope.reorder(Arel.sql("things.hostname ASC NULLS LAST"), tie_break)
+        end
+      when "ip_address"
+        if direction == :desc
+          scope.reorder(Arel.sql("things.ip_address DESC NULLS LAST"), tie_break)
+        else
+          scope.reorder(Arel.sql("things.ip_address ASC NULLS LAST"), tie_break)
+        end
+      when "manufacturer"
+        if direction == :desc
+          scope.reorder(Arel.sql("things.manufacturer DESC NULLS LAST"), tie_break)
+        else
+          scope.reorder(Arel.sql("things.manufacturer ASC NULLS LAST"), tie_break)
+        end
+      when "model"
+        if direction == :desc
+          scope.reorder(Arel.sql("things.model DESC NULLS LAST"), tie_break)
+        else
+          scope.reorder(Arel.sql("things.model ASC NULLS LAST"), tie_break)
+        end
+      when "integration"
+        if direction == :desc
+          scope.reorder(Arel.sql("integration_source DESC NULLS LAST"), tie_break)
+        else
+          scope.reorder(Arel.sql("integration_source ASC NULLS LAST"), tie_break)
+        end
       when "links"
-        scope.reorder(Arel.sql("#{CountSql::LINKS} #{dir}"), tie_break)
+        if direction == :desc
+          scope.reorder(Arel.sql("#{CountSql::LINKS} DESC"), tie_break)
+        else
+          scope.reorder(Arel.sql("#{CountSql::LINKS} ASC"), tie_break)
+        end
       when "photos"
-        scope.reorder(Arel.sql("#{CountSql::PHOTOS} #{dir}"), tie_break)
+        if direction == :desc
+          scope.reorder(Arel.sql("#{CountSql::PHOTOS} DESC"), tie_break)
+        else
+          scope.reorder(Arel.sql("#{CountSql::PHOTOS} ASC"), tie_break)
+        end
       when "qr"
         scope.reorder(qr_scan_count: direction, name: :asc)
       when "nfc"
@@ -59,7 +91,11 @@ module Things
       when "visits"
         scope.reorder(visit_count: direction, name: :asc)
       when "labelled"
-        scope.reorder(Arel.sql("things.labelled_at #{dir} NULLS LAST"), tie_break)
+        if direction == :desc
+          scope.reorder(Arel.sql("things.labelled_at DESC NULLS LAST"), tie_break)
+        else
+          scope.reorder(Arel.sql("things.labelled_at ASC NULLS LAST"), tie_break)
+        end
       else
         scope.reorder(name: direction)
       end

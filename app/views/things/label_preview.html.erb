@@ -30,7 +30,7 @@
         <%= link_to "Back", thing_path(@thing), class: "btn btn-outline-secondary btn-sm" %>
         <%= button_to "Print label",
                       print_thing_path(@thing, printer_id: @printer.id),
-                      params: @preview_params.merge(mark_labelled: "1"),
+                      params: @preview_params,
                       class: "btn btn-primary btn-sm",
                       form: {
                         class: "d-inline",

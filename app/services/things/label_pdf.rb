@@ -164,9 +164,9 @@ module Things
         elsif landscape_label?
           render_landscape_roll_label(pdf)
         elsif compact?
-          render_compact_label(pdf, bounds: [ 0, page_height, page_width, 0 ])
+          render_compact_label(pdf, bounds: [ 0, page_height, page_width, page_height ])
         else
-          render_label(pdf, bounds: [ 0, page_height, page_width, 0 ])
+          render_label(pdf, bounds: [ 0, page_height, page_width, page_height ])
         end
       end
 
