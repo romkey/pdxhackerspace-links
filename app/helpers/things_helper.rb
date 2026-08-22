@@ -58,6 +58,14 @@ module ThingsHelper
     }
   end
 
+  def things_print_dialog_trigger_data(action: "print-dialog#open", **extra)
+    {
+      bs_toggle: "modal",
+      bs_target: "#print-label-dialog",
+      action: action
+    }.merge(extra)
+  end
+
   def things_bulk_filter_params
     things_index_params.except(:page)
   end

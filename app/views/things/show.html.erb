@@ -42,15 +42,15 @@
     <% if can_manage_things? %>
       <div class="d-flex flex-wrap gap-2 justify-content-end">
         <% if @printers.any? %>
-          <button type="button"
-                  class="btn btn-outline-secondary btn-sm"
-                  data-action="print-dialog#open"
-                  data-print-url="<%= print_thing_path(@thing) %>"
-                  data-preview-url-template="<%= label_preview_thing_path(@thing, printer_id: '__PRINTER__') %>"
-                  data-thing-name="<%= @thing.name %>"
-                  data-cable-tag-eligible="<%= @thing.cable_tag_printable? %>">
-            Print label
-          </button>
+          <%= button_tag "Print label",
+                         type: "button",
+                         class: "btn btn-outline-secondary btn-sm",
+                         data: things_print_dialog_trigger_data(
+                           print_url: print_thing_path(@thing),
+                           preview_url_template: label_preview_thing_path(@thing, printer_id: "__PRINTER__"),
+                           thing_name: @thing.name,
+                           cable_tag_eligible: @thing.cable_tag_printable?
+                         ) %>
         <% end %>
         <%= render "nfc_write", thing: @thing %>
         <%= button_to "Duplicate",
