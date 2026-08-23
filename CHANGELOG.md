@@ -14,6 +14,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 - Upgraded Pagy from 9.x to 43.6.1 (new API: `Pagy::Method`, `pagy(:offset, ...)`, `@pagy.series_nav(:bootstrap)`)
 
+## [0.10.0] - 2026-08-23
+
+### Added
+
+- **Related things** on each thing: link symmetrically to other things (e.g. a mouse and its dongle) with an optional note, editable from the thing form via search-as-you-type, shown on the thing page
+
 ## [0.9.0] - 2026-08-22
 
 ### Added

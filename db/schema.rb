@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_22_000004) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_22_000005) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -85,6 +85,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_22_000004) do
     t.index ["thing_id", "link_type"], name: "index_thing_links_on_thing_id_and_standard_link_type", unique: true, where: "((link_type)::text = ANY (ARRAY[('asset'::character varying)::text, ('wiki'::character varying)::text, ('slack'::character varying)::text, ('where'::character varying)::text, ('ar'::character varying)::text]))"
     t.index ["thing_id", "position"], name: "index_thing_links_on_thing_id_and_position"
     t.index ["thing_id"], name: "index_thing_links_on_thing_id"
+  end
+
+  create_table "thing_relationships", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "note"
+    t.bigint "related_thing_id", null: false
+    t.bigint "thing_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["related_thing_id"], name: "index_thing_relationships_on_related_thing_id"
+    t.index ["thing_id", "related_thing_id"], name: "index_thing_relationships_on_thing_id_and_related_thing_id", unique: true
+    t.index ["thing_id"], name: "index_thing_relationships_on_thing_id"
   end
 
   create_table "things", force: :cascade do |t|
@@ -238,6 +249,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_22_000004) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "thing_links", "things"
+  add_foreign_key "thing_relationships", "things", column: "related_thing_id", on_delete: :cascade
+  add_foreign_key "thing_relationships", "things", on_delete: :cascade
   add_foreign_key "unifi_devices", "things"
   add_foreign_key "unifi_devices", "unifi_controllers"
   add_foreign_key "zigbee2mqtt_devices", "things"

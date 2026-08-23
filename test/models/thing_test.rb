@@ -355,4 +355,51 @@ class ThingTest < ActiveSupport::TestCase
     assert device.ignored?
     assert_nil device.thing_id
   end
+
+  test "related things are visible from both sides" do
+    keyboard = things(:keyboard)
+    router = things(:router)
+
+    assert_includes keyboard.related_things, router
+    assert_includes router.related_things, keyboard
+  end
+
+  test "related_things_for_display orders by related thing name" do
+    keyboard = things(:keyboard)
+    names = keyboard.related_things_for_display.map { |rel| rel.related_thing.name }
+
+    assert_equal names.sort_by(&:downcase), names
+  end
+
+  test "accepts nested thing relationships" do
+    mouse = Thing.create!(name: "Mouse")
+    dongle = Thing.create!(name: "Dongle")
+
+    mouse.update!(thing_relationships_attributes: [
+      { related_thing_id: dongle.id, note: "Receiver" }
+    ])
+
+    assert mouse.related_things.include?(dongle)
+    assert dongle.related_things.include?(mouse)
+  end
+
+  test "removes relationships via nested attributes" do
+    relationship = thing_relationships(:keyboard_router)
+    keyboard = relationship.thing
+
+    keyboard.update!(thing_relationships_attributes: [
+      { id: relationship.id, _destroy: "1" }
+    ])
+
+    assert_not keyboard.related_things.include?(relationship.related_thing)
+    assert_not relationship.related_thing.related_things.include?(keyboard)
+  end
+
+  test "destroys relationships when thing is destroyed" do
+    keyboard = things(:keyboard)
+
+    assert_difference -> { ThingRelationship.count }, -2 do
+      keyboard.destroy!
+    end
+  end
 end

@@ -121,6 +121,9 @@
     </div>
 
     <div class="col-lg-5">
+      <% if (logged_in? || network_guest?) && @thing.related_things_for_display.any? %>
+        <%= render "related_things", thing_relationships: @thing.related_things_for_display %>
+      <% end %>
       <% if can_manage_things? && @unifi_devices.present? %>
         <%= render "unifi_devices", unifi_devices: @unifi_devices %>
       <% end %>
