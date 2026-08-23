@@ -463,7 +463,7 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
 
   test "index paginates things" do
     existing = Thing.count
-    (Pagy::DEFAULT[:limit] - existing + 1).times do |index|
+    (Pagy::OPTIONS[:limit] - existing + 1).times do |index|
       Thing.create!(name: "Thing #{index}")
     end
 

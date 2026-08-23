@@ -1,6 +1,4 @@
 module ApplicationHelper
-  include Pagy::Frontend
-
   def app_version
     Rails.application.config.app_version
   end

@@ -1,3 +1,5 @@
-require "pagy/extras/bootstrap"
+# frozen_string_literal: true
 
-Pagy::DEFAULT[:limit] = 50
+Pagy::OPTIONS[:limit] = 50
+
+Pagy::OPTIONS.freeze

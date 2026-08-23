@@ -10,7 +10,7 @@ alwaysApply: false
 - **Icons:** Use `bootstrap-icons` font classes (e.g., `<i class="bi bi-pencil"></i>`)
 - **Layout:** Application layout uses a Bootstrap navbar; views use the grid system (`container`, `row`, `col-*`)
 - **Flash messages:** Styled with `bootstrap_class_for` helper from `ApplicationHelper`
-- **Pagination:** Use `pagy_bootstrap_nav` helper
+- **Pagination:** Use `@pagy.series_nav(:bootstrap)` (Pagy 43+)
 
 ## Component Patterns
 
