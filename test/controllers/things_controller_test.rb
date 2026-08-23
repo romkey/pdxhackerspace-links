@@ -828,4 +828,94 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     get things_path
     assert_redirected_to login_path
   end
+
+  test "search returns matching things as json" do
+    get search_things_path, params: { q: "keyboard" }, as: :json
+
+    assert_response :success
+    payload = JSON.parse(response.body)
+    assert_equal 1, payload.size
+    assert_equal things(:keyboard).id, payload.first["id"]
+    assert_equal "Keyboard", payload.first["name"]
+  end
+
+  test "search excludes current thing" do
+    get search_things_path, params: { q: "keyboard", exclude_id: things(:keyboard).id }, as: :json
+
+    assert_response :success
+    payload = JSON.parse(response.body)
+    assert_empty payload
+  end
+
+  test "search requires authentication" do
+    delete logout_path
+
+    get search_things_path, params: { q: "keyboard" }, as: :json
+
+    assert_redirected_to login_path
+  end
+
+  test "show displays related things for signed in users" do
+    get thing_path(things(:keyboard))
+
+    assert_response :success
+    assert_select ".h-section-label", text: "Related things"
+    assert_select "a[href=?]", thing_path(things(:router)), text: /Router/
+  end
+
+  test "public guest does not see related things" do
+    delete logout_path
+
+    with_network_whitelist(nil) do
+      get thing_path(things(:keyboard))
+      assert_response :success
+      assert_select ".h-section-label", text: "Related things", count: 0
+      assert_select "a[href=?]", thing_path(things(:router)), count: 0
+    end
+  end
+
+  test "edit form includes related things section" do
+    get edit_thing_path(things(:keyboard))
+
+    assert_response :success
+    assert_select "[data-controller='related-things']"
+    assert_select "input[name=?]", "thing[thing_relationships_attributes][0][note]"
+  end
+
+  test "creates thing with related thing" do
+    dongle = Thing.create!(name: "Dongle")
+
+    assert_difference -> { Thing.count }, 1 do
+      post things_path, params: {
+        thing: {
+          name: "Mouse",
+          thing_relationships_attributes: [
+            { related_thing_id: dongle.id, note: "USB receiver" }
+          ]
+        }
+      }
+    end
+
+    mouse = Thing.order(:id).last
+    assert_redirected_to thing_path(mouse)
+    assert mouse.related_things.include?(dongle)
+    assert dongle.related_things.include?(mouse)
+  end
+
+  test "updates thing relationships" do
+    keyboard = things(:keyboard)
+    dongle = Thing.create!(name: "Dongle")
+
+    patch thing_path(keyboard), params: {
+      thing: {
+        name: keyboard.name,
+        thing_relationships_attributes: [
+          { related_thing_id: dongle.id, note: "Spare dongle" }
+        ]
+      }
+    }
+
+    assert_redirected_to thing_path(keyboard)
+    assert keyboard.reload.related_things.include?(dongle)
+  end
 end

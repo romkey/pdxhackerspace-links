@@ -1,0 +1,21 @@
+<div class="row g-2 align-items-end" data-related-things-target="item">
+  <% if form.object.persisted? %>
+    <%= form.hidden_field :id %>
+    <%= form.hidden_field :_destroy, value: "0", data: { related_things_target: "destroyField" } %>
+  <% end %>
+  <div class="col-md-4">
+    <%= form.hidden_field :related_thing_id, data: { related_things_target: "relatedIdField" } %>
+    <div class="form-label">Thing</div>
+    <div class="text-13 fw-medium" data-related-things-target="name"><%= form.object.related_thing&.name %></div>
+  </div>
+  <div class="col-md-7">
+    <%= form.label :note, "Note", class: "form-label" %>
+    <%= form.text_field :note, class: "form-control", placeholder: "Optional" %>
+  </div>
+  <div class="col-md-1">
+    <label class="form-label d-none d-md-block">&nbsp;</label>
+    <button type="button" class="btn btn-outline-secondary btn-sm w-100" data-action="related-things#remove" title="Remove">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+</div>

@@ -4,7 +4,7 @@ class ThingsController < ApplicationController
   skip_before_action :require_login, only: %i[show by_beacon]
   before_action :require_full_access, only: %i[
     new create edit update destroy duplicate purge_photo purge_ar_anchor
-    print label_preview update_labelled bulk_print bulk_label_preview
+    print label_preview update_labelled bulk_print bulk_label_preview search
   ]
   before_action :set_thing, only: %i[
     show edit update destroy duplicate purge_photo purge_ar_anchor print label_preview update_labelled
@@ -30,6 +30,21 @@ class ThingsController < ApplicationController
       limit: Pagy::OPTIONS[:limit],
       count: @things_index.total_count
     )
+  end
+
+  def search
+    scope = Thing.search(params[:q])
+    scope = scope.where.not(id: params[:exclude_id]) if params[:exclude_id].present?
+
+    render json: scope.limit(15).map { |thing|
+      {
+        id: thing.id,
+        name: thing.name,
+        owner: thing.owner,
+        manufacturer: thing.manufacturer,
+        model: thing.model
+      }
+    }
   end
 
   def show
@@ -279,7 +294,8 @@ class ThingsController < ApplicationController
       :public_access,
       :ar_anchor,
       photos: [],
-      links_attributes: %i[id link_type title url note position _destroy]
+      links_attributes: %i[id link_type title url note position _destroy],
+      thing_relationships_attributes: %i[id related_thing_id note _destroy]
     )
   end
 

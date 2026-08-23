@@ -11,12 +11,16 @@ class Thing < ApplicationRecord
   RESERVED_KEYS = (%w[login logout settings sidekiq things up auth] + RESERVED_SLUGS).freeze
 
   has_many :links, class_name: "ThingLink", dependent: :destroy, inverse_of: :thing
+  has_many :thing_relationships, dependent: :destroy, inverse_of: :thing
+  has_many :related_things, through: :thing_relationships, source: :related_thing
   has_many :unifi_devices, dependent: :nullify
   has_many :zigbee2mqtt_devices, dependent: :nullify
   has_many_attached :photos
   has_one_attached :ar_anchor
 
   accepts_nested_attributes_for :links, allow_destroy: true, reject_if: :reject_blank_link?
+  accepts_nested_attributes_for :thing_relationships, allow_destroy: true,
+                                reject_if: ->(attrs) { attrs["related_thing_id"].blank? }
 
   validates :name, presence: true
   validates :key, presence: true, uniqueness: true, format: { with: KEY_REGEX }
@@ -82,6 +86,10 @@ class Thing < ApplicationRecord
     links.select { |link| link.present_link? || link.standard_note? }.sort_by do |link|
       [ link.standard? ? 0 : 1, link.position || 0, link.display_title ]
     end
+  end
+
+  def related_things_for_display
+    thing_relationships.includes(:related_thing).sort_by { |rel| rel.related_thing.name.downcase }
   end
 
   def label_title_line

@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   resources :things do
     collection do
       get "by_beacon/:ble_beacon_uuid", action: :by_beacon, as: :by_beacon
+      get :search
       post :bulk_print
       get :bulk_label_preview
     end

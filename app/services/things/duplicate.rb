@@ -23,6 +23,7 @@ module Things
           ar_anchor_note: thing.ar_anchor_note
         )
         copy_links(copy)
+        copy_relationships(copy)
         copy_photos(copy)
         copy_ar_anchor(copy)
         copy
@@ -46,6 +47,15 @@ module Things
         else
           copy.links.create!(link_type: link.link_type, url: link.url, note: link.note)
         end
+      end
+    end
+
+    def copy_relationships(copy)
+      thing.related_things_for_display.each do |relationship|
+        copy.thing_relationships.create!(
+          related_thing: relationship.related_thing,
+          note: relationship.note
+        )
       end
     end
 

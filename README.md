@@ -225,7 +225,7 @@ test/            # Minitest suite
 
 ### Things
 
-Each **Thing** has a name, optional description, optional owner, optional IP address, optional hostname, optional IEEE address, optional manufacturer and model, optional manufacturer link, optional standard links (Asset, Wiki, Slack, Where, AR), optional custom links with titles, and one or more photos (Active Storage). Imported things also record which integration created them.
+Each **Thing** has a name, optional description, optional owner, optional IP address, optional hostname, optional IEEE address, optional manufacturer and model, optional manufacturer link, optional standard links (Asset, Wiki, Slack, Where, AR), optional custom links with titles, optional **related things** (symmetric links to other things, such as a TV and its remote, with an optional note), and one or more photos (Active Storage). Imported things also record which integration created them.
 
 ### Integrations
 
