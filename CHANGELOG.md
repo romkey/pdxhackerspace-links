@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 - Bulk **Preview** from the Things index print dialog: opens a page with one label preview per selected thing, stacked vertically
 
+### Changed
+
+- Upgraded Pagy from 9.x to 43.6.1 (new API: `Pagy::Method`, `pagy(:offset, ...)`, `@pagy.series_nav(:bootstrap)`)
+
 ## [0.9.0] - 2026-08-22
 
 ### Added

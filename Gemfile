@@ -27,7 +27,7 @@ gem "thruster", require: false
 gem "image_processing", "~> 2.0"
 gem "prawn", "~> 2.5"
 gem "rqrcode", "~> 3.2"
-gem "pagy", "~> 9.0"
+gem "pagy", "~> 43.6"
 gem "mqtt", "~> 0.6"
 
 group :development, :test do

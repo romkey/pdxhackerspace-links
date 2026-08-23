@@ -25,8 +25,9 @@ class ThingsController < ApplicationController
       filters: params[:filter]
     )
     @pagy, @things = pagy(
+      :offset,
       @things_index.scope,
-      limit: Pagy::DEFAULT[:limit],
+      limit: Pagy::OPTIONS[:limit],
       count: @things_index.total_count
     )
   end
