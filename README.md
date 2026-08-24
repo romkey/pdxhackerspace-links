@@ -153,7 +153,7 @@ docker compose -f docker-compose.lint.yml run --rm rubocop
 
 ## Versioning
 
-The canonical version lives in `VERSION`. Docker release builds set `APP_VERSION` from the git tag (e.g. `v0.1.0`) and `GITHUB_REPO_URL` from the repository. The footer links to GitHub and shows the current version (linked to the release tag when deployed from a version tag).
+The canonical version lives in `VERSION`. Docker release builds set `APP_VERSION` from the git tag (e.g. `v0.11.7`); the footer shows the semver without the leading `v` and links to the matching GitHub release. Server compose does not override `APP_VERSION`, so the value baked into the image at build time is what the app displays.
 
 ## Deployment
 

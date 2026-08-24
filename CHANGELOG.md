@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.11.8] - 2026-08-24
+
+### Fixed
+
+- Footer version showed `dev` in production because server compose overrode the image's `APP_VERSION`; compose no longer sets it
+
+### Changed
+
+- Footer GitHub link and version are centered; version displays semver without a leading `v` (e.g. `0.11.8`)
+
 ## [0.11.7] - 2026-08-24
 
 ### Fixed
