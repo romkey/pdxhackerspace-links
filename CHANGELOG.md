@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.11.2] - 2026-08-24
+
+### Fixed
+
+- Tracked-scan redirect countdown tests no longer break when a thing has a Where link plus one other URL
+
 ## [0.11.1] - 2026-08-24
 
 ### Fixed
