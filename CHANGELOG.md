@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.11.1] - 2026-08-24
+
+### Fixed
+
+- CI test runs install `libvips42` so `ruby-vips` can load on GitHub Actions runners
+
 ## [0.11.0] - 2026-08-24
 
 ### Added
