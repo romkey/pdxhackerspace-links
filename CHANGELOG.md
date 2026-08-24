@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.11.5] - 2026-08-24
+
+### Fixed
+
+- Docker production build: declare `NODE_VERSION` before the Node `FROM` stage so release and staging images build correctly
+
 ## [0.11.4] - 2026-08-24
 
 ### Added
