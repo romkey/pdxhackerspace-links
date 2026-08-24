@@ -107,3 +107,4 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             APP_VERSION=${{ github.ref_name }}
+            GITHUB_REPO_URL=https://github.com/${{ github.repository }}

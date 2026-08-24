@@ -1,6 +1,6 @@
 <% if thing_relationships.any? %>
   <div class="h-section-label mb-2">Related things</div>
-  <div class="list-group list-compact mb-4">
+  <div class="list-group list-compact mb-0">
     <% thing_relationships.each do |relationship| %>
       <% related = relationship.related_thing %>
       <%= link_to thing_path(related), class: "list-group-item list-group-item-action py-2" do %>

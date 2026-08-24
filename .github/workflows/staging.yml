@@ -91,3 +91,4 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             APP_VERSION=staging
+            GITHUB_REPO_URL=https://github.com/${{ github.repository }}

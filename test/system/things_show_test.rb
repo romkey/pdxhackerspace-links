@@ -6,22 +6,21 @@ class ThingsShowTest < ApplicationSystemTestCase
     @thing.link_for(:where).update!(url: "https://geowiki.example.com/locations/front-door", note: "Front door")
   end
 
-  test "scanner layout shows hero, where, and description above technical details on mobile" do
+  test "show layout places description beside photo with technical details below" do
     page.driver.browser.manage.window.resize_to(390, 844)
     visit thing_path(@thing)
 
     assert_selector "h1", text: @thing.name
     assert_selector ".where-panel", text: /Front door/
     assert_selector ".prose", text: @thing.description
-    assert_selector "details summary", text: /Details/
-
-    assert_selector "details:not([open])"
+    assert_selector ".h-section-label", text: /Technical details/i
+    assert_no_selector "details"
 
     prose_position = page.evaluate_script <<~JS
-      Array.from(document.querySelectorAll('.where-panel, .prose, details')).indexOf(document.querySelector('.prose'))
+      Array.from(document.querySelectorAll('.prose, .h-section-label')).indexOf(document.querySelector('.prose'))
     JS
     details_position = page.evaluate_script <<~JS
-      Array.from(document.querySelectorAll('.where-panel, .prose, details')).indexOf(document.querySelector('details'))
+      Array.from(document.querySelectorAll('.prose, .h-section-label')).findIndex((el) => el.textContent.match(/Technical details/i))
     JS
     assert prose_position < details_position
   end

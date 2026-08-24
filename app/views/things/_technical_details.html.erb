@@ -1,8 +1,6 @@
-<details class="mb-4">
-  <summary class="text-13 fw-medium tap-target user-select-none" style="cursor: pointer; list-style: none;">
-    Details <i class="bi bi-chevron-down text-11"></i>
-  </summary>
-  <dl class="detail-list mt-2">
+<section class="mb-4">
+  <div class="h-section-label mb-2">Technical details</div>
+  <dl class="detail-list">
     <% if thing.owner.present? %>
       <dt>Owner</dt>
       <dd><span><%= thing.owner %></span></dd>
@@ -92,4 +90,4 @@
       </dd>
     <% end %>
   </dl>
-</details>
+</section>

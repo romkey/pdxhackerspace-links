@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.11.4] - 2026-08-24
+
+### Added
+
+- Thing show page **created/updated** timestamps with relative labels and exact time on hover
+- Footer **GitHub** link and version linked to the matching release tag when built from a git tag
+- `GITHUB_REPO_URL` build-time config for Docker release and staging images
+
+### Changed
+
+- Thing show page layout: description beside photo and related things, links in two columns, **Technical details** always visible
+- Version display normalizes `APP_VERSION` and `VERSION` to a single `vX.Y.Z` label
+
 ## [0.11.3] - 2026-08-24
 
 ### Changed

@@ -3,9 +3,11 @@
 
 ARG RUBY_VERSION=4.0.5
 ARG APP_VERSION=dev
+ARG GITHUB_REPO_URL=https://github.com/romkey/pdxhackerspace-links
 FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 
 ARG APP_VERSION
+ARG GITHUB_REPO_URL
 WORKDIR /rails
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
@@ -20,7 +22,8 @@ ENV RAILS_ENV="production" \
     BUNDLE_PATH="/usr/local/bundle" \
     BUNDLE_WITHOUT="development" \
     LD_PRELOAD="/usr/local/lib/libjemalloc.so" \
-    APP_VERSION="${APP_VERSION}"
+    APP_VERSION="${APP_VERSION}" \
+    GITHUB_REPO_URL="${GITHUB_REPO_URL}"
 
 ARG NODE_VERSION=24.4.0
 FROM docker.io/library/node:${NODE_VERSION}-bookworm-slim AS node

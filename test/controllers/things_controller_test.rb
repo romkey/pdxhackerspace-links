@@ -48,6 +48,17 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "button", text: "Duplicate"
   end
 
+  test "show displays created and updated timestamps with hover titles" do
+    thing = things(:keyboard)
+    thing.update!(updated_at: Time.zone.parse("2026-01-15 10:30:00"))
+
+    get thing_path(thing)
+
+    assert_response :success
+    assert_select "time[datetime='#{thing.created_at.iso8601}'][title='#{thing.created_at.to_fs(:long)}']"
+    assert_select "time[datetime='#{thing.updated_at.iso8601}'][title='#{thing.updated_at.to_fs(:long)}']"
+  end
+
   test "show resolves thing by slug" do
     get thing_path("front-door-keyboard")
     assert_response :success
