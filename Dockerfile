@@ -27,6 +27,7 @@ ENV RAILS_ENV="production" \
     GITHUB_REPO_URL="${GITHUB_REPO_URL}"
 
 FROM docker.io/library/node:${NODE_VERSION}-bookworm-slim AS node
+RUN corepack enable && corepack prepare yarn@1.22.22 --activate
 
 FROM base AS build
 
@@ -36,11 +37,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get install --no-install-recommends -y build-essential git libpq-dev libvips libyaml-dev node-gyp pkg-config python-is-python3 && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-COPY --from=node /usr/local/bin/node /usr/local/bin/node
-COPY --from=node /usr/local/bin/npm /usr/local/bin/npm
-COPY --from=node /usr/local/bin/npx /usr/local/bin/npx
-COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
-RUN npm install -g yarn@1.22.22
+COPY --from=node /usr/local/ /opt/node/
+ENV PATH=/opt/node/bin:$PATH
 
 COPY Gemfile Gemfile.lock ./
 RUN --mount=type=cache,target=/usr/local/bundle/cache,sharing=locked \

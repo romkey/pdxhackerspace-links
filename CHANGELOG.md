@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.11.6] - 2026-08-24
+
+### Fixed
+
+- Docker production build: copy the full Node tree to `/opt/node` and activate Yarn 1.22.22 via Corepack so Node tooling works alongside Ruby
+
 ## [0.11.5] - 2026-08-24
 
 ### Fixed
