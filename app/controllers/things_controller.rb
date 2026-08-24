@@ -228,9 +228,12 @@ class ThingsController < ApplicationController
   end
 
   def create
-    @thing = Thing.new(thing_params)
+    attributes = thing_params
+    new_photos = extract_new_photos!(attributes)
+    @thing = Thing.new(attributes)
 
     if @thing.save
+      @thing.photos.attach(new_photos) if new_photos.any?
       redirect_to @thing, notice: "Thing was created."
     else
       ensure_custom_link_fields
@@ -239,7 +242,11 @@ class ThingsController < ApplicationController
   end
 
   def update
-    if @thing.update(thing_params)
+    attributes = thing_params
+    new_photos = extract_new_photos!(attributes)
+
+    if @thing.update(attributes)
+      @thing.photos.attach(new_photos) if new_photos.any?
       redirect_to @thing, notice: "Thing was updated."
     else
       ensure_custom_link_fields
@@ -301,6 +308,10 @@ class ThingsController < ApplicationController
   def set_thing_by_beacon
     uuid = params[:ble_beacon_uuid].to_s.strip.downcase
     @thing = Thing.find_by!(ble_beacon_uuid: uuid)
+  end
+
+  def extract_new_photos!(attributes)
+    Array(attributes.delete(:photos)).reject(&:blank?)
   end
 
   def thing_params

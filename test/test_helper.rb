@@ -62,6 +62,15 @@ class ActiveSupport::TestCase
     thing
   end
 
+  def attach_photo(thing, filename: "ar_anchor.png")
+    thing.photos.attach(
+      io: file_fixture(filename).open,
+      filename: filename,
+      content_type: "image/png"
+    )
+    thing
+  end
+
   def with_network_whitelist(value)
     previous = ENV["NETWORK_WHITELIST"]
     value.nil? ? ENV.delete("NETWORK_WHITELIST") : ENV["NETWORK_WHITELIST"] = value

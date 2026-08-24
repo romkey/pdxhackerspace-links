@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.11.7] - 2026-08-24
+
+### Fixed
+
+- Editing a thing no longer removes its existing photos when the form is saved without new uploads
+
 ## [0.11.6] - 2026-08-24
 
 ### Fixed
