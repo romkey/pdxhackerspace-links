@@ -3,6 +3,7 @@ require "application_system_test_case"
 class ThingsShowTest < ApplicationSystemTestCase
   setup do
     @thing = things(:keyboard)
+    @thing.link_for(:where).update!(url: "https://geowiki.example.com/locations/front-door", note: "Front door")
   end
 
   test "scanner layout shows hero, where, and description above technical details on mobile" do
