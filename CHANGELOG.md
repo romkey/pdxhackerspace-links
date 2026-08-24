@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.11.3] - 2026-08-24
+
+### Changed
+
+- Docker release and staging builds use GitHub Actions layer cache and a prebuilt Node image instead of compiling Node from source
+
 ## [0.11.2] - 2026-08-24
 
 ### Fixed
