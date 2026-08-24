@@ -9,6 +9,7 @@ class ThingsController < ApplicationController
   before_action :set_thing, only: %i[
     show edit update destroy duplicate purge_photo purge_ar_anchor print label_preview update_labelled
   ]
+  before_action :preload_thing_show_associations, only: :show
   before_action :set_thing_by_beacon, only: :by_beacon
   before_action :require_login_or_public_thing, only: %i[show by_beacon]
   before_action :load_printers, only: %i[index show label_preview bulk_label_preview], if: :can_manage_things?
@@ -17,6 +18,7 @@ class ThingsController < ApplicationController
 
   def index
     @search_query = params[:q].to_s.strip.presence
+    update_things_columns_session
     @things_index = Things::IndexQuery.call(
       search: @search_query,
       sort: params[:sort],
@@ -30,6 +32,7 @@ class ThingsController < ApplicationController
       limit: Pagy::OPTIONS[:limit],
       count: @things_index.total_count
     )
+    preload_things_index_associations
   end
 
   def search
@@ -269,6 +272,30 @@ class ThingsController < ApplicationController
 
   def set_thing
     @thing = Thing.find_by_param!(params[:id] || params[:key])
+  end
+
+  def preload_thing_show_associations
+    ActiveRecord::Associations::Preloader.new(
+      records: [ @thing ],
+      associations: [ :links, :thing_relationships, { photos_attachments: :blob } ]
+    ).call
+  end
+
+  def update_things_columns_session
+    if params.key?(:columns)
+      optional = Array(params[:columns]).map(&:to_s) & ThingsHelper::THINGS_OPTIONAL_COLUMNS
+      session[:things_columns] = ThingsHelper::THINGS_DEFAULT_COLUMNS + optional
+    end
+    @things_columns = session[:things_columns].presence || ThingsHelper::THINGS_DEFAULT_COLUMNS
+  end
+
+  def preload_things_index_associations
+    return if @things.blank?
+
+    ActiveRecord::Associations::Preloader.new(
+      records: @things,
+      associations: [ :links, { photos_attachments: :blob } ]
+    ).call
   end
 
   def set_thing_by_beacon

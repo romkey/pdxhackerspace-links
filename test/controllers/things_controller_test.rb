@@ -6,19 +6,19 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "index lists things with hostname and ip address" do
-    get things_path
+    get things_path, params: { columns: %w[hostname ip_address] }
     assert_response :success
     assert_select "td", text: things(:keyboard).name
     assert_select "code", text: things(:router).ip_address
     assert_select "code", text: things(:keyboard).key, count: 0
-    assert_select "nav input[type=search][name=q]"
+    assert_select "turbo-frame#things_results input[type=search][name=q]"
   end
 
   test "index lists things" do
     get things_path
     assert_response :success
     assert_select "td", text: things(:keyboard).name
-    assert_select "nav input[type=search][name=q]"
+    assert_select "turbo-frame#things_results input[type=search][name=q]"
   end
 
   test "index searches things by query" do
@@ -260,7 +260,16 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "show displays scan visit counts" do
+  test "show displays where panel" do
+    get thing_path(things(:router))
+
+    assert_response :success
+    assert_select ".where-panel", text: /Rack 2/
+    assert_select ".where-panel[href=?]", thing_links(:router_where).url
+    assert_select ".list-group-item", text: /Where/, count: 0
+  end
+
+  test "show displays scan visit counts for admins" do
     things(:router).update!(qr_scan_count: 4, nfc_scan_count: 2, visit_count: 10)
 
     get thing_path(things(:router))
@@ -381,7 +390,7 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
   test "index includes scan counts for admins" do
     things(:router).update!(qr_scan_count: 4, nfc_scan_count: 2, visit_count: 10)
 
-    get things_path
+    get things_path, params: { columns: %w[visits nfc qr] }
 
     assert_response :success
     assert_select "th", text: /Views/
@@ -393,10 +402,10 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "index supports sortable headers" do
-    get things_path, params: { sort: "ip_address", direction: "desc" }
+    get things_path, params: { sort: "ip_address", direction: "desc", columns: %w[ip_address] }
 
     assert_response :success
-    assert_select "a[href=?]", things_path(sort: "ip_address", direction: "asc", page: 1)
+    assert_select "a[href=?]", things_path(sort: "ip_address", direction: "asc", page: 1, columns: %w[ip_address])
     assert_equal things(:router).name, css_select("tbody tr td.fw-medium").first.text
   end
 
@@ -473,7 +482,7 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".pagination"
   end
 
-  test "index includes inline row actions when printers are enabled" do
+  test "index includes row actions in overflow menu when printers are enabled" do
     get things_path
     assert_response :success
     assert_select "a[href=?]", edit_thing_path(things(:keyboard))
@@ -527,7 +536,7 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     doc = Nokogiri::HTML(response.body)
-    container = doc.at_css('[data-controller="print-dialog"]')
+    container = doc.at_css('[data-controller*="print-dialog"]')
     assert container
 
     printers = JSON.parse(container["data-print-dialog-printers-value"])

@@ -6,13 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-08-24
+
 ### Added
 
 - Bulk **Preview** from the Things index print dialog: opens a page with one label preview per selected thing, stacked vertically
+- Scanner-first **Thing show page**: hero photo, promoted Where panel, body-color description, and technical details in a collapsed disclosure
+- **Mobile thing cards** on the Things index; desktop table with configurable optional columns
+- Collapsible **Filters** panel (offcanvas) with active-filter pills
+- On-page search on the Things index with debounced submit; results update inside a Turbo Frame
+- ActiveStorage **photo variants** (hero/thumb via libvips) with lazy loading and a backfill rake task (`photos:backfill_variants`)
+- **System tests** for Things show and index responsive layouts
 
 ### Changed
 
+- Things index row actions: Edit and Print moved into the ⋯ overflow menu; optional columns (hostname, IP, labelled, views, NFC, QR) hidden by default
+- Navbar: hamburger menu below large breakpoints; global search removed from the nav bar (search is on the Things index)
+- Scan visit counts on thing show pages are admin-only (still available under Settings → Scan visits)
 - Upgraded Pagy from 9.x to 43.6.1 (new API: `Pagy::Method`, `pagy(:offset, ...)`, `@pagy.series_nav(:bootstrap)`)
+
+### Fixed
+
+- Print dialog “Mark as labelled” label did not toggle the checkbox (mismatched `for` / `id`)
+- Clickable table rows stopped working after Turbo navigation on the Things index and Scan visits page
 
 ## [0.10.0] - 2026-08-23
 

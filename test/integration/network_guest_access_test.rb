@@ -44,7 +44,7 @@ class NetworkGuestAccessTest < ActionDispatch::IntegrationTest
       assert_response :success
       assert_select "td", text: things(:keyboard).name
       assert_select "td", text: things(:router).name, count: 0
-      assert_select "nav input[type=search][name=q][value=?]", "keyboard"
+      assert_select "input[type=search][name=q][value=?]", "keyboard"
     end
   end
 

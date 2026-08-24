@@ -15,7 +15,10 @@ class Thing < ApplicationRecord
   has_many :related_things, through: :thing_relationships, source: :related_thing
   has_many :unifi_devices, dependent: :nullify
   has_many :zigbee2mqtt_devices, dependent: :nullify
-  has_many_attached :photos
+  has_many_attached :photos do |attachable|
+    attachable.variant :hero, resize_to_limit: [ 1200, 1200 ], preprocessed: true
+    attachable.variant :thumb, resize_to_limit: [ 400, 400 ], preprocessed: true
+  end
   has_one_attached :ar_anchor
 
   accepts_nested_attributes_for :links, allow_destroy: true, reject_if: :reject_blank_link?
@@ -82,8 +85,12 @@ class Thing < ApplicationRecord
     links.select(&:present_link?).sort_by { |link| [ link.standard? ? 0 : 1, link.position || 0, link.display_title ] }
   end
 
+  def where_link
+    links.find { |link| link.link_where? && link.present_link? }
+  end
+
   def links_for_display
-    links.select { |link| link.present_link? || link.standard_note? }.sort_by do |link|
+    links.select { |link| (link.present_link? || link.standard_note?) && !link.link_where? }.sort_by do |link|
       [ link.standard? ? 0 : 1, link.position || 0, link.display_title ]
     end
   end

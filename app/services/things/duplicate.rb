@@ -35,7 +35,7 @@ module Things
     attr_reader :thing
 
     def copy_links(copy)
-      thing.links_for_display.each do |link|
+      thing.links.select { |link| link.present_link? || link.standard_note? }.each do |link|
         if link.link_custom?
           copy.links.create!(
             link_type: :custom,

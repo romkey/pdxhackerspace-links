@@ -21,6 +21,13 @@ class ThingTest < ActiveSupport::TestCase
     assert_not_includes titles, "Asset"
   end
 
+  test "links_for_display excludes where links shown separately" do
+    thing = things(:router).reload
+
+    assert thing.where_link
+    assert_not_includes thing.links_for_display.map(&:display_title), "Where"
+  end
+
   test "links_for_display includes standard links with notes and no url" do
     link = thing_links(:router_asset)
     link.update!(url: "", note: "Physical tag location")

@@ -8,11 +8,23 @@ keyboard_slack:
   link_type: slack
   url: https://slack.example.com/archives/keyboard
 
+keyboard_where:
+  thing: keyboard
+  link_type: where
+  url: https://geowiki.example.com/locations/front-door
+  note: Front door
+
 router_asset:
   thing: router
   link_type: asset
   url: https://assets.example.com/router
   note: Front rack label
+
+router_where:
+  thing: router
+  link_type: where
+  url: https://geowiki.example.com/locations/rack-2
+  note: Rack 2, front shelf
 
 router_custom:
   thing: router

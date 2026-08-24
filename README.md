@@ -139,9 +139,10 @@ Services:
 
 ```bash
 docker compose -f docker-compose.test.yml run --rm test
+bin/rails test:system   # inside the test container, or after local setup
 ```
 
-Every change should include tests. Bug fixes should include regression tests.
+Every change should include tests. Bug fixes should include regression tests. Responsive Things UI behavior is covered by system tests in `test/system/`.
 
 ## Linting
 
@@ -225,7 +226,9 @@ test/            # Minitest suite
 
 ### Things
 
-Each **Thing** has a name, optional description, optional owner, optional IP address, optional hostname, optional IEEE address, optional manufacturer and model, optional manufacturer link, optional standard links (Asset, Wiki, Slack, Where, AR), optional custom links with titles, optional **related things** (symmetric links to other things, such as a TV and its remote, with an optional note), and one or more photos (Active Storage). Imported things also record which integration created them.
+Each **Thing** has a name, optional description, optional owner, optional IP address, optional hostname, optional IEEE address, optional manufacturer and model, optional manufacturer link, optional standard links (Asset, Wiki, Slack, Where, AR), optional custom links with titles, optional **related things** (symmetric links to other things, such as a TV and its remote, with an optional note), and one or more photos (Active Storage, served as hero/thumbnail variants). The **Where** link is shown prominently on the thing page; other technical fields live in a collapsed **Details** section. Search runs on the Things index (not the nav bar). Imported things also record which integration created them.
+
+After enabling photo variants on an existing install, run `bin/rails photos:backfill_variants` once to preprocess hero/thumbnail sizes for photos already on disk.
 
 ### Integrations
 

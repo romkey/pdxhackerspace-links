@@ -17,6 +17,24 @@ module ThingsHelper
   THINGS_FILTER_CYCLE = { nil => "yes", "yes" => "no", "no" => nil }.freeze
   THINGS_FILTER_STATES = { nil => "any", "yes" => "has", "no" => "none" }.freeze
 
+  THINGS_DEFAULT_COLUMNS = %w[name manufacturer model integration links photos].freeze
+  THINGS_OPTIONAL_COLUMNS = %w[hostname ip_address labelled visits nfc qr].freeze
+  THINGS_ALL_COLUMNS = (THINGS_DEFAULT_COLUMNS + THINGS_OPTIONAL_COLUMNS).freeze
+  THINGS_COLUMN_LABELS = {
+    "name" => "Name",
+    "manufacturer" => "Manufacturer",
+    "model" => "Model",
+    "integration" => "Integration",
+    "links" => "Links",
+    "photos" => "Photos",
+    "hostname" => "Hostname",
+    "ip_address" => "IP address",
+    "labelled" => "Labelled",
+    "visits" => "Views",
+    "nfc" => "NFC",
+    "qr" => "QR"
+  }.freeze
+
   def things_index_filter_groups
     THINGS_INDEX_FILTER_GROUPS.select { |group| !group[:admin_only] || can_manage_things? }
   end
@@ -69,6 +87,10 @@ module ThingsHelper
 
   def things_bulk_filter_params
     things_index_params.except(:page)
+  end
+
+  def things_search_hidden_params
+    things_index_params.except(:q, :page)
   end
 
   def things_sort_link(label, column)
@@ -166,6 +188,70 @@ module ThingsHelper
     end
   end
 
+  def things_subtitle_line(thing)
+    [ thing.manufacturer.presence, thing.model.presence ].compact.join(" · ")
+  end
+
+  def things_photo_source(photo, variant_name)
+    url_for(photo.variant(variant_name))
+  rescue StandardError
+    url_for(photo)
+  end
+
+  def things_photo_dimensions(photo, max_width: 400)
+    blob = photo.blob
+    width = blob.metadata["width"].to_i
+    height = blob.metadata["height"].to_i
+    return {} if width.zero? || height.zero?
+
+    if width > max_width
+      ratio = max_width.to_f / width
+      { width: max_width, height: (height * ratio).round }
+    else
+      { width: width, height: height }
+    end
+  end
+
+  def things_card_meta_line(thing)
+    parts = [ thing.manufacturer.presence, thing.model.presence, thing.integration_label ].compact
+    parts.join(" · ")
+  end
+
+  def things_where_presenter(thing)
+    link = thing.where_link
+    Things::WherePresenter.new(link) if link
+  end
+
+  def things_column_visible?(column)
+    @things_columns.include?(column.to_s)
+  end
+
+  def things_column_toggle_path(column)
+    visible = things_column_visible?(column)
+    optional = @things_columns & THINGS_OPTIONAL_COLUMNS
+    optional = visible ? optional - [ column.to_s ] : (optional + [ column.to_s ]).uniq
+    things_path(things_index_params(columns: optional))
+  end
+
+  def things_active_filter_pills
+    pills = []
+
+    things_index_filter_groups.each do |group|
+      state = @things_index.filters[group[:key]]
+      next if state.blank?
+
+      pills << things_active_filter_pill(group[:label], group[:key], state)
+    end
+
+    Integrations::Registry.filter_keys.each do |key|
+      next unless @things_index.filters.integration_active?(key)
+
+      pills << things_active_integration_pill(key)
+    end
+
+    safe_join(pills, " ")
+  end
+
   def things_index_params(overrides = {})
     params = {}
     if overrides.key?(:q)
@@ -176,6 +262,14 @@ module ThingsHelper
     params[:sort] = overrides.fetch(:sort, @things_index.sort)
     params[:direction] = overrides.fetch(:direction, @things_index.direction)
     params[:page] = overrides[:page] if overrides.key?(:page)
+
+    if overrides.key?(:columns)
+      optional = Array(overrides[:columns]).select { |col| THINGS_OPTIONAL_COLUMNS.include?(col.to_s) }
+      params[:columns] = optional if optional.any? || overrides[:columns].is_a?(Array)
+    elsif @things_columns.present?
+      optional = @things_columns & THINGS_OPTIONAL_COLUMNS
+      params[:columns] = optional if optional.any?
+    end
 
     filter_params = if overrides.key?(:filter)
       build_filter_params(overrides[:filter])
@@ -202,5 +296,30 @@ module ThingsHelper
     result = values.stringify_keys.select { |_, value| value.present? }
     result["integration"] = merged_sources if merged_sources.any?
     result
+  end
+
+  def things_active_filter_pill(label, key, state)
+    filters = @things_index.filters.values.dup
+    filters.delete(key)
+    remove_path = things_path(things_index_params(filter: filter_params_with_sources(filters)))
+    icon = state == "no" ? tag.i(class: "bi bi-slash-lg text-11") : tag.i(class: "bi bi-check-lg text-11")
+    label_span = tag.span(label, class: things_filter_label_class(state))
+
+    link_to remove_path, class: "active-filter-pill", title: "Remove filter" do
+      safe_join([ icon, label_span, tag.i(class: "bi bi-x-lg text-11") ], " ")
+    end
+  end
+
+  def things_active_integration_pill(key)
+    label = Integrations::Registry.label_for(key)
+    sources = @things_index.filters.sources.dup
+    sources.delete(key)
+    filters = @things_index.filters.values.dup
+    filters[:integration] = sources if sources.any?
+    remove_path = things_path(things_index_params(filter: filter_params_with_sources(filters, sources: sources)))
+
+    link_to remove_path, class: "active-filter-pill", title: "Remove filter" do
+      safe_join([ label, tag.i(class: "bi bi-x-lg text-11") ], " ")
+    end
   end
 end

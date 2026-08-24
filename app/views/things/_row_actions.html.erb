@@ -1,61 +1,63 @@
-<div class="d-flex flex-wrap gap-1 justify-content-end">
-  <%= link_to "Edit", edit_thing_path(thing), class: "btn btn-outline-secondary btn-sm" %>
-  <% if printers.any? %>
-    <%= button_tag "Print",
-                   type: "button",
-                   class: "btn btn-outline-secondary btn-sm",
-                   data: things_print_dialog_trigger_data(
-                     print_url: print_thing_path(thing),
-                     preview_url_template: label_preview_thing_path(thing, printer_id: "__PRINTER__"),
-                     thing_name: thing.name,
-                     cable_tag_eligible: thing.cable_tag_printable?
-                   ) %>
-  <% end %>
-  <div class="dropdown">
-    <button type="button"
-            class="btn btn-outline-secondary btn-sm"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-            aria-label="More actions">
-      ⋯
-    </button>
-    <ul class="dropdown-menu dropdown-menu-end">
+<div class="dropdown d-inline-block" data-clickable-row-ignore>
+  <button type="button"
+          class="btn btn-outline-secondary btn-sm"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+          aria-label="More actions">
+    ⋯
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li>
+      <%= link_to "Edit", edit_thing_path(thing), class: "dropdown-item" %>
+    </li>
+    <% if printers.any? %>
       <li>
-        <%= button_to "Duplicate",
-                      duplicate_thing_path(thing),
-                      method: :post,
+        <%= button_tag "Print",
+                       type: "button",
+                       class: "dropdown-item",
+                       data: things_print_dialog_trigger_data(
+                         print_url: print_thing_path(thing),
+                         preview_url_template: label_preview_thing_path(thing, printer_id: "__PRINTER__"),
+                         thing_name: thing.name,
+                         cable_tag_eligible: thing.cable_tag_printable?
+                       ) %>
+      </li>
+    <% end %>
+    <li>
+      <%= button_to "Duplicate",
+                    duplicate_thing_path(thing),
+                    method: :post,
+                    class: "dropdown-item",
+                    form: { class: "d-inline" } %>
+    </li>
+    <li>
+      <% if thing.labelled? %>
+        <%= button_to "Mark not labelled",
+                      labelled_thing_path(thing),
+                      method: :patch,
+                      params: { labelled: 0 },
                       class: "dropdown-item",
                       form: { class: "d-inline" } %>
-      </li>
-      <li>
-        <% if thing.labelled? %>
-          <%= button_to "Mark not labelled",
-                        labelled_thing_path(thing),
-                        method: :patch,
-                        params: { labelled: 0 },
-                        class: "dropdown-item",
-                        form: { class: "d-inline" } %>
-        <% else %>
-          <%= button_to "Mark labelled",
-                        labelled_thing_path(thing),
-                        method: :patch,
-                        params: { labelled: 1 },
-                        class: "dropdown-item",
-                        form: { class: "d-inline" } %>
-        <% end %>
-      </li>
-      <li><hr class="dropdown-divider"></li>
-      <li>
-        <%= button_to "Delete",
-                      thing_path(thing),
-                      method: :delete,
-                      class: "dropdown-item text-danger",
-                      form: {
-                        class: "d-inline",
-                        data: { turbo_confirm: "Delete “#{thing.name}”?" }
-                      } %>
-      </li>
-    </ul>
-  </div>
-  <%= render "nfc_write", thing: thing, compact: true %>
+      <% else %>
+        <%= button_to "Mark labelled",
+                      labelled_thing_path(thing),
+                      method: :patch,
+                      params: { labelled: 1 },
+                      class: "dropdown-item",
+                      form: { class: "d-inline" } %>
+      <% end %>
+    </li>
+    <li><hr class="dropdown-divider"></li>
+    <li>
+      <%= button_to "Delete",
+                    thing_path(thing),
+                    method: :delete,
+                    class: "dropdown-item text-danger",
+                    form: {
+                      class: "d-inline",
+                      data: { turbo_confirm: "Delete “#{thing.name}”?" }
+                    } %>
+    </li>
+    <li><%= render "nfc_write", thing: thing, menu_item: true %></li>
+  </ul>
 </div>
