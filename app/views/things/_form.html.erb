@@ -22,8 +22,29 @@
         <div class="form-text text-12">Optional short URL path, e.g. /things/front-door-keyboard</div>
       </div>
       <div class="col-md-6">
-        <%= form.label :ip_address, "IP address / Hostname", class: "form-label" %>
-        <%= form.text_field :ip_address, class: "form-control", placeholder: "192.168.1.10 or host.example.com" %>
+        <%= form.label :ip_address, "IP address", class: "form-label" %>
+        <%= form.text_field :ip_address, class: "form-control", placeholder: "192.168.1.10" %>
+      </div>
+      <div class="col-md-6">
+        <%= form.label :hostname, class: "form-label" %>
+        <%= form.text_field :hostname, class: "form-control", placeholder: "host.example.com" %>
+      </div>
+      <div class="col-md-6">
+        <%= form.label :ieee_address, "IEEE address", class: "form-label" %>
+        <%= form.text_field :ieee_address, class: "form-control", placeholder: "94:2a:6f:26:c6:ca or 0x90fd9ffffe6494fc" %>
+        <div class="form-text text-12">Optional. Used to match this thing to an imported device.</div>
+      </div>
+      <div class="col-md-6">
+        <%= form.label :manufacturer, class: "form-label" %>
+        <%= form.text_field :manufacturer, class: "form-control", placeholder: "Optional" %>
+      </div>
+      <div class="col-md-6">
+        <%= form.label :model, class: "form-label" %>
+        <%= form.text_field :model, class: "form-control", placeholder: "Optional" %>
+      </div>
+      <div class="col-md-6">
+        <%= form.label :manufacturer_url, "Manufacturer link", class: "form-label" %>
+        <%= form.url_field :manufacturer_url, class: "form-control", placeholder: "https://" %>
       </div>
       <div class="col-md-6">
         <%= form.label :ble_beacon_uuid, "BLE beacon UUID", class: "form-label" %>
@@ -90,6 +111,55 @@
       + Add custom link
     </button>
     <p class="text-secondary text-12 mt-2 mb-0">Leave custom link fields blank to omit them.</p>
+  </div>
+
+  <div data-controller="related-things"
+       data-related-things-search-url-value="<%= search_things_path(format: :json) %>"
+       data-related-things-exclude-id-value="<%= thing.id if thing.persisted? %>">
+    <div class="h-section-label mb-2">Related things</div>
+    <p class="text-secondary text-13 mb-3">Link this thing to others, such as a mouse and its dongle. Relationships apply to both things.</p>
+
+    <div class="vstack gap-2 mb-3" data-related-things-target="container">
+      <%= form.fields_for :thing_relationships do |relationship_form| %>
+        <%= render "related_thing_fields", form: relationship_form %>
+      <% end %>
+    </div>
+
+    <template data-related-things-target="template">
+      <%= form.fields_for :thing_relationships, ThingRelationship.new, child_index: "NEW_RECORD" do |relationship_form| %>
+        <div class="row g-2 align-items-end" data-related-things-target="item">
+          <%= relationship_form.hidden_field :related_thing_id, value: "__RELATED_ID__", data: { related_things_target: "relatedIdField" } %>
+          <div class="col-md-4">
+            <div class="form-label">Thing</div>
+            <div class="text-13 fw-medium" data-related-things-target="name">__RELATED_NAME__</div>
+          </div>
+          <div class="col-md-7">
+            <%= relationship_form.label :note, "Note", class: "form-label" %>
+            <%= relationship_form.text_field :note, class: "form-control", placeholder: "Optional" %>
+          </div>
+          <div class="col-md-1">
+            <label class="form-label d-none d-md-block">&nbsp;</label>
+            <button type="button" class="btn btn-outline-secondary btn-sm w-100" data-action="related-things#remove" title="Remove">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </div>
+      <% end %>
+    </template>
+
+    <div class="position-relative">
+      <label class="form-label" for="related-things-search">Add related thing</label>
+      <input type="search"
+             id="related-things-search"
+             class="form-control"
+             placeholder="Search by name…"
+             autocomplete="off"
+             data-related-things-target="input"
+             data-action="input->related-things#input keydown->related-things#keydown">
+      <div class="list-group position-absolute w-100 d-none shadow-sm"
+           style="z-index: 1050; max-height: 240px; overflow-y: auto;"
+           data-related-things-target="results"></div>
+    </div>
   </div>
 
   <div>

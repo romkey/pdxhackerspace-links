@@ -18,7 +18,8 @@ module SettingsHelper
     when :printers
       controller_path == "settings/printers"
     else
-      false
+      entry = Integrations::Registry.find(section)
+      entry && controller_path.in?([ entry.controller_path, entry.controller_path.sub("_bridges", "_devices").sub("_controllers", "_devices") ])
     end
   end
 

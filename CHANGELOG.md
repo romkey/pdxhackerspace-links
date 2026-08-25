@@ -6,6 +6,194 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.11.8] - 2026-08-24
+
+### Fixed
+
+- Footer version showed `dev` in production because server compose overrode the image's `APP_VERSION`; compose no longer sets it
+
+### Changed
+
+- Footer GitHub link and version are centered; version displays semver without a leading `v` (e.g. `0.11.8`)
+
+## [0.11.7] - 2026-08-24
+
+### Fixed
+
+- Editing a thing no longer removes its existing photos when the form is saved without new uploads
+
+## [0.11.6] - 2026-08-24
+
+### Fixed
+
+- Docker production build: copy the full Node tree to `/opt/node` and activate Yarn 1.22.22 via Corepack so Node tooling works alongside Ruby
+
+## [0.11.5] - 2026-08-24
+
+### Fixed
+
+- Docker production build: declare `NODE_VERSION` before the Node `FROM` stage so release and staging images build correctly
+
+## [0.11.4] - 2026-08-24
+
+### Added
+
+- Thing show page **created/updated** timestamps with relative labels and exact time on hover
+- Footer **GitHub** link and version linked to the matching release tag when built from a git tag
+- `GITHUB_REPO_URL` build-time config for Docker release and staging images
+
+### Changed
+
+- Thing show page layout: description beside photo and related things, links in two columns, **Technical details** always visible
+- Version display normalizes `APP_VERSION` and `VERSION` to a single `vX.Y.Z` label
+
+## [0.11.3] - 2026-08-24
+
+### Changed
+
+- Docker release and staging builds use GitHub Actions layer cache and a prebuilt Node image instead of compiling Node from source
+
+## [0.11.2] - 2026-08-24
+
+### Fixed
+
+- Tracked-scan redirect countdown tests no longer break when a thing has a Where link plus one other URL
+
+## [0.11.1] - 2026-08-24
+
+### Fixed
+
+- CI test runs install `libvips42` so `ruby-vips` can load on GitHub Actions runners
+
+## [0.11.0] - 2026-08-24
+
+### Added
+
+- Bulk **Preview** from the Things index print dialog: opens a page with one label preview per selected thing, stacked vertically
+- Scanner-first **Thing show page**: hero photo, promoted Where panel, body-color description, and technical details in a collapsed disclosure
+- **Mobile thing cards** on the Things index; desktop table with configurable optional columns
+- Collapsible **Filters** panel (offcanvas) with active-filter pills
+- On-page search on the Things index with debounced submit; results update inside a Turbo Frame
+- ActiveStorage **photo variants** (hero/thumb via libvips) with lazy loading and a backfill rake task (`photos:backfill_variants`)
+- **System tests** for Things show and index responsive layouts
+
+### Changed
+
+- Things index row actions: Edit and Print moved into the ⋯ overflow menu; optional columns (hostname, IP, labelled, views, NFC, QR) hidden by default
+- Navbar: hamburger menu below large breakpoints; global search removed from the nav bar (search is on the Things index)
+- Scan visit counts on thing show pages are admin-only (still available under Settings → Scan visits)
+- Upgraded Pagy from 9.x to 43.6.1 (new API: `Pagy::Method`, `pagy(:offset, ...)`, `@pagy.series_nav(:bootstrap)`)
+
+### Fixed
+
+- Print dialog “Mark as labelled” label did not toggle the checkbox (mismatched `for` / `id`)
+- Clickable table rows stopped working after Turbo navigation on the Things index and Scan visits page
+
+## [0.10.0] - 2026-08-23
+
+### Added
+
+- **Related things** on each thing: link symmetrically to other things (e.g. a mouse and its dongle) with an optional note, editable from the thing form via search-as-you-type, shown on the thing page
+
+## [0.9.0] - 2026-08-22
+
+### Added
+
+- **Labelled** column on the Things index (status dot with timestamp on hover), sortable header, and Labelled filter chip
+- Manual **Mark labelled** / **Mark not labelled** toggle on thing rows and in the row menu
+- **Print label** dialog on the thing page and index: choose Standard, Cable tag, or **Compact** (QR code plus name), pick printer and copies, preview on a separate page, and optionally mark as labelled when printing
+- **Compact** label layout: square QR-dominant label with the thing name in small text beneath
+- Things index **Select** mode with checkboxes, select-all across the filtered list, and **Print labels** bulk action (queued via Sidekiq)
+
+### Changed
+
+- Replaced separate Print and Cable tag buttons with a single Print label dialog
+- Row actions on the index: Print stays visible; Duplicate, labelled toggle, and Delete moved into a ⋯ menu
+
+## [0.8.1] - 2026-08-22
+
+### Changed
+
+- Things index filters are now one chip per attribute; clicking cycles it through any, has, and none, reclaiming most of the page the filter grid used to occupy
+
+### Fixed
+
+- Sorting the Things index by hostname, IP address, links, or photos fell back to sorting by name for signed-in users
+- Sorting by hostname or IP address now lists things that have a value before those that do not
+
+## [0.8.0] - 2026-08-21
+
+### Added
+
+- Separate **IP address** and **hostname** fields on things; cable tags print both when set
+- Default left margin, right margin, and cable tag middle gap under **Settings → General → Label printing**
+- Label preview margin controls for landscape and cable tag layouts; preview refreshes as values change
+
+### Changed
+
+- Things index shows hostname and IP address instead of the short URL key; admins also see view, NFC, and QR counts
+- Things index paginates at 50 per page with sortable column headers
+- Things index filters stack: each attribute can be Any, Has, or None, with a clear-all control
+- Thing IP address field accepts IPv4 only; hostnames belong in the new hostname field
+- Strip and cable tag labels grow to fit long names instead of truncating text
+
+- UniFi integration under **Settings → UniFi**: register consoles and import their devices as things
+- Imports adopted Network devices (gateways, switches, access points) from every local site, and Protect devices (cameras, lights, sensors, chimes, viewers, speakers, bridges, fobs, sirens, relays, alarm hubs, NVR)
+- Devices match existing things by MAC address, so a console listed by both applications maps to one thing; new things are created automatically unless the controller turns that off
+- Name, IP address, and MAC address stay in sync with the console until edited by hand, after which the import leaves that field alone
+- Devices that disappear from a console are archived rather than deleted, and un-archive if they return
+- **Ignore** on a device unlinks its thing and stops later imports from recreating one; deleting a UniFi-managed thing does the same
+- **Test connection** and **Import now** on the controller page, plus a `unifi:import` rake task for scheduled imports
+- Imports stay under the console's ceiling of roughly ten requests a second and retry throttled requests, honouring `Retry-After`; both applications on a console share one budget, since walking every Protect device family otherwise tripped UniFi's rate limiter
+- Failures that return HTML rather than JSON now report the status, content type, and start of the response instead of only "not JSON"
+- UniFi card on the thing page showing model, firmware, site, and last-seen for signed-in users
+- Optional MAC address on things, shown on the detail page and searchable
+- `ACTIVE_RECORD_ENCRYPTION_*` environment variables; UniFi API keys are stored encrypted and derive keys from `SECRET_KEY_BASE` when these are unset
+
+## [v0.6.4] - 2026-08-16
+
+### Fixed
+
+- Cable tag labels now print identical halves instead of mirroring the first half
+
+## [v0.6.3] - 2026-08-16
+
+### Added
+
+- Cable tag print and preview buttons on things with an IP address or hostname, using existing 24mm strip or command printers without extra settings
+
+### Changed
+
+- Cable tags are a separate print action instead of a printer page size setting
+- Short scan URLs use abbreviated query params (`?q` for QR, `?n` for NFC) and redirect to the full thing URL on `APP_HOST` with `utm_source` expanded
+
+## [v0.6.2] - 2026-08-16
+
+### Added
+
+- MIT LICENSE file
+- README badges for CI, lint, build, Ruby, Rails, and license status
+
+## [v0.6.1] - 2026-08-16
+
+### Changed
+
+- Label QR codes and NFC tags build URLs from `SHORT_URL` (or legacy `SHORT_URL_HOST`) and the thing key via `ShortUrl.scan_url`, never `/things/<slug-or-id>`
+- Server compose passes `SHORT_URL` to web and Sidekiq containers
+
+## [v0.6.0] - 2026-08-16
+
+### Added
+
+- Auto-generated 8-character keys on things for compact QR codes and NFC tags at `/<key>` (for example `http://l.ctrlh/abc12345` when `SHORT_URL_HOST` is set)
+- `SHORT_URL_HOST` environment variable for the short URL base used in QR codes and NFC tags (defaults to `APP_HOST` when unset)
+- Key column on the things index and thing detail pages
+- 24mm cable tag page size prints a wrap-around label twice with a center gap; the first half is mirrored so name, IP, and QR stay readable on both sides of the cable
+
+### Changed
+
+- Label QR codes and NFC tag URLs now encode the short URL host and thing key instead of `/things/<slug-or-id>`
+
 ## [v0.5.0] - 2026-07-13
 
 ### Added

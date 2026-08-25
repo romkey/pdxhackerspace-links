@@ -5,11 +5,19 @@ module Things
   class LabelPng
     DPI = 300
 
-    def initialize(thing:, printer:, qr_url: nil)
+    def initialize(thing:, printer:, qr_url: nil, layout: :standard, margins: nil)
       @thing = thing
       @printer = printer
       @qr_url = qr_url
-      @label_pdf = LabelPdf.new(thing: thing, printer: printer, qr_url: qr_url)
+      @layout = layout.to_sym
+      @margin_overrides = margins || {}
+      @label_pdf = LabelPdf.new(
+        thing: thing,
+        printer: printer,
+        qr_url: qr_url,
+        layout: layout,
+        margins: margins
+      )
     end
 
     def generate
@@ -30,7 +38,8 @@ module Things
       @label_pdf.cleanup!
     end
 
-    delegate :page_width_mm, :page_height_mm, :landscape?, to: :@label_pdf
+    delegate :page_width_mm, :page_height_mm, :landscape?, :left_margin_mm, :right_margin_mm, :cable_tag_gap_mm,
+             to: :@label_pdf
 
     private
 

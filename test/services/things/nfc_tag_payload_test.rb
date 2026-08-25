@@ -20,7 +20,7 @@ class Things::NfcTagPayloadTest < ActiveSupport::TestCase
   test "builds url and json for a thing" do
     result = Things::NfcTagPayload.call(@thing)
 
-    assert_match(%r{/things/#{@thing.id}\?utm_source=nfc\z}, result.url)
+    assert_match(%r{/#{@thing.key}\?n\z}, result.url)
     payload = JSON.parse(result.json)
     assert_equal result.url, payload["url"]
     assert_equal "Router", payload["name"]
@@ -39,6 +39,7 @@ class Things::NfcTagPayloadTest < ActiveSupport::TestCase
     assert_equal "Keyboard", payload["name"]
     assert_not payload.key?("owner")
     assert_not payload.key?("ip_address")
+    assert_not payload.key?("hostname")
     assert_not payload.key?("notes")
   end
 
@@ -51,7 +52,7 @@ class Things::NfcTagPayloadTest < ActiveSupport::TestCase
 
     assert result.json_truncated
     assert_equal "Router", payload["name"]
-    assert_match(%r{/things/#{@thing.id}\?utm_source=nfc\z}, result.url)
+    assert_match(%r{/#{@thing.key}\?n\z}, result.url)
     assert result.estimated_bytes <= ENV["NFC_TAG_MAX_BYTES"].to_i
   end
 end

@@ -1,0 +1,18 @@
+<% if unifi_controller.last_synced_at.blank? && !unifi_controller.syncing? %>
+  <span class="text-secondary text-13">Never</span>
+<% elsif unifi_controller.syncing? %>
+  <span class="badge text-bg-secondary-subtle text-12 fw-normal">Running</span>
+<% else %>
+  <span class="text-13">
+    <% if unifi_controller.last_sync_ok? %>
+      <span class="status-dot status-success" title="Last import succeeded"></span>
+    <% elsif unifi_controller.last_sync_failed? %>
+      <span class="badge text-bg-danger-subtle text-12 fw-normal">Failed</span>
+    <% else %>
+      <span class="badge text-bg-warning-subtle text-12 fw-normal">Partial</span>
+    <% end %>
+    <span class="text-secondary" title="<%= unifi_controller.last_synced_at.to_fs(:long) %>">
+      <%= time_ago_in_words(unifi_controller.last_synced_at) %> ago
+    </span>
+  </span>
+<% end %>

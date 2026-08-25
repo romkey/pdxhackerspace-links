@@ -44,7 +44,7 @@ class NetworkGuestAccessTest < ActionDispatch::IntegrationTest
       assert_response :success
       assert_select "td", text: things(:keyboard).name
       assert_select "td", text: things(:router).name, count: 0
-      assert_select "nav input[type=search][name=q][value=?]", "keyboard"
+      assert_select "input[type=search][name=q][value=?]", "keyboard"
     end
   end
 
@@ -59,6 +59,9 @@ class NetworkGuestAccessTest < ActionDispatch::IntegrationTest
       assert_select "button", text: "Duplicate", count: 0
       assert_select "button", text: "Delete", count: 0
       assert_select "button", text: "Print", count: 0
+      assert_select "th", text: /Views/, count: 0
+      assert_select "th", text: /NFC/, count: 0
+      assert_select "th", text: /QR/, count: 0
     end
   end
 
@@ -94,7 +97,7 @@ class NetworkGuestAccessTest < ActionDispatch::IntegrationTest
       get thing_path(things(:keyboard)), env: from_network("192.168.1.50")
       assert_response :success
       assert_select "a[href=?]", edit_thing_path(things(:keyboard))
-      assert_select "a[href*=?]", "label_preview"
+      assert_select "button", text: "Print label"
     end
   end
 

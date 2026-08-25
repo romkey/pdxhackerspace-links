@@ -3,6 +3,7 @@ keyboard:
   description: Front door entry system
   public_access: true
   slug: front-door-keyboard
+  key: kbd12345
 
 router:
   name: Router
@@ -10,4 +11,7 @@ router:
   notes: Rack 2, front of shelf
   owner: romkey
   ip_address: 192.168.1.1
+  ieee_address: 94:2a:6f:26:c6:ca
+  integration_source: unifi
   ble_beacon_uuid: fda50693-f4c2-4a1b-8fb9-9d9458836f36
+  key: rtr12345

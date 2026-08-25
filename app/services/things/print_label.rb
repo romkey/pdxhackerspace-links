@@ -1,17 +1,24 @@
 module Things
   class PrintLabel
-    def self.call(thing:, printer:, copies: 1, cups_client: nil, command_runner: nil)
+    def self.call(thing:, printer:, copies: 1, layout: :standard, cups_client: nil, command_runner: nil, margins: nil,
+                  mark_labelled: false)
       raise ArgumentError, "Printer is disabled" unless printer.enabled?
 
+      validate_layout!(thing: thing, printer: printer, layout: layout)
+
       if printer.command?
-        print_via_command(thing: thing, printer: printer, copies: copies, command_runner: command_runner)
+        print_via_command(thing: thing, printer: printer, copies: copies, layout: layout, command_runner: command_runner,
+                          margins: margins)
       else
-        print_via_cups(thing: thing, printer: printer, copies: copies, cups_client: cups_client)
+        print_via_cups(thing: thing, printer: printer, copies: copies, layout: layout, cups_client: cups_client,
+                       margins: margins)
+      end.tap do
+        thing.mark_labelled! if mark_labelled
       end
     end
 
-    def self.print_via_cups(thing:, printer:, copies:, cups_client:)
-      label_pdf = LabelPdf.new(thing: thing, printer: printer)
+    def self.print_via_cups(thing:, printer:, copies:, layout:, cups_client:, margins:)
+      label_pdf = LabelPdf.new(thing: thing, printer: printer, layout: layout, margins: margins)
       path = label_pdf.generate
       client = cups_client || printer.cups_client
 
@@ -26,8 +33,8 @@ module Things
       label_pdf&.cleanup!
     end
 
-    def self.print_via_command(thing:, printer:, copies:, command_runner:)
-      label_png = LabelPng.new(thing: thing, printer: printer)
+    def self.print_via_command(thing:, printer:, copies:, layout:, command_runner:, margins:)
+      label_png = LabelPng.new(thing: thing, printer: printer, layout: layout, margins: margins)
       path = label_png.generate
       runner = command_runner || Printers::RunPrintCommand.method(:call)
 
@@ -38,6 +45,17 @@ module Things
       label_png&.cleanup!
     end
 
-    private_class_method :print_via_cups, :print_via_command
+    def self.validate_layout!(thing:, printer:, layout:)
+      layout = layout.to_sym
+      raise ArgumentError, "Invalid layout: #{layout}" unless LabelPdf::LAYOUTS.include?(layout)
+      return if layout.in?(%i[standard compact])
+
+      if layout == :cable_tag
+        raise ArgumentError, "Printer does not support cable tags" unless printer.cable_tag_capable?
+        raise ArgumentError, "Cable tags require an IP address or hostname" unless thing.cable_tag_printable?
+      end
+    end
+
+    private_class_method :print_via_cups, :print_via_command, :validate_layout!
   end
 end

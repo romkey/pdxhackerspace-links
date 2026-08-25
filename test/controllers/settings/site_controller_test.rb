@@ -14,6 +14,9 @@ class Settings::SiteControllerTest < ActionDispatch::IntegrationTest
     assert_select "input[name=?]", "site_setting[cups_server]"
     assert_select "input[name=?]", "site_setting[matomo_url]"
     assert_select "input[name=?]", "site_setting[matomo_site_id]"
+    assert_select "input[name=?]", "site_setting[label_print_left_margin_mm]"
+    assert_select "input[name=?]", "site_setting[label_print_right_margin_mm]"
+    assert_select "input[name=?]", "site_setting[cable_tag_gap_mm]"
     assert_select ".status-panel"
     assert_select "table.table-scan-visits", count: 0
   end
@@ -54,6 +57,23 @@ class Settings::SiteControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to settings_site_path
     assert_equal "192.168.1.50:631", SiteSetting.instance.cups_server
+  end
+
+  test "update saves label print margins" do
+    patch settings_site_path, params: {
+      site_setting: {
+        cups_server: "cups.example.com:631",
+        label_print_left_margin_mm: 1.5,
+        label_print_right_margin_mm: 4,
+        cable_tag_gap_mm: 8
+      }
+    }
+
+    assert_redirected_to settings_site_path
+    setting = SiteSetting.instance
+    assert_in_delta 1.5, setting.label_print_left_margin_mm, 0.01
+    assert_in_delta 4, setting.label_print_right_margin_mm, 0.01
+    assert_in_delta 8, setting.cable_tag_gap_mm, 0.01
   end
 
   test "requires authentication even from whitelisted network" do

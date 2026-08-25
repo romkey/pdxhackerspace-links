@@ -1,0 +1,32 @@
+udm:
+  name: Hackerspace UDM
+  host: unifi.example.com
+  port: 443
+  api_key: network-and-protect-key
+  verify_tls: false
+  network_enabled: true
+  protect_enabled: true
+  auto_create_things: true
+  enabled: true
+  description: Main console in the server rack
+
+network_only:
+  name: Shop console
+  host: 192.168.50.1
+  port: 443
+  api_key: network-only-key
+  verify_tls: true
+  network_enabled: true
+  protect_enabled: false
+  auto_create_things: false
+  enabled: true
+
+retired:
+  name: Retired console
+  host: old.example.com
+  port: 8443
+  api_key: retired-key
+  network_enabled: true
+  protect_enabled: false
+  auto_create_things: true
+  enabled: false

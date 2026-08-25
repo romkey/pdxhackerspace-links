@@ -3,6 +3,18 @@ require "test_helper"
 class AppHostServerComposeRegressionTest < ActiveSupport::TestCase
   COMPOSE_PATH = Rails.root.join("docker-compose.server.yml")
 
+  test "server compose does not override APP_VERSION so image build args are used" do
+    compose = YAML.load_file(COMPOSE_PATH)
+    services = compose.fetch("services")
+
+    %w[web sidekiq].each do |service_name|
+      environment = services.fetch(service_name).fetch("environment")
+
+      assert_not_includes environment.keys, "APP_VERSION",
+                          "#{service_name} must not override APP_VERSION from the image"
+    end
+  end
+
   test "server compose passes APP_HOST to web and sidekiq" do
     compose = YAML.load_file(COMPOSE_PATH)
     services = compose.fetch("services")

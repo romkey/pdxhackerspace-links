@@ -1,0 +1,129 @@
+<% content_for :title, title %>
+
+<%= settings_frame do %>
+  <div class="mb-3">
+    <div class="text-12 text-secondary mb-1">
+      <%= link_to "UniFi", settings_unifi_controllers_path, class: "text-secondary text-decoration-none" %>
+      <span class="mx-1">/</span>
+      <span class="text-body"><%= title %></span>
+    </div>
+    <h1 class="h-page-title mb-0"><%= title %></h1>
+  </div>
+
+  <%= form_with model: unifi_controller,
+                url: unifi_controller.persisted? ? settings_unifi_controller_path(unifi_controller) : settings_unifi_controllers_path,
+                class: "vstack gap-4" do |form| %>
+    <% if unifi_controller.errors.any? %>
+      <div class="alert alert-danger text-13">
+        <%= unifi_controller.errors.full_messages.to_sentence %>
+      </div>
+    <% end %>
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <%= form.label :name, "Display name", class: "form-label" %>
+        <%= form.text_field :name, class: "form-control", required: true, placeholder: "Hackerspace UDM" %>
+      </div>
+      <div class="col-12">
+        <%= form.label :description, class: "form-label" %>
+        <%= form.text_area :description, class: "form-control", rows: 2,
+                           placeholder: "Which console this is, who owns the API key, what it covers." %>
+      </div>
+    </div>
+
+    <div>
+      <div class="h-section-label mb-2">Console</div>
+      <p class="text-secondary text-13 mb-3">
+        Both integration APIs are served by the console itself. Create an API key in the UniFi console under
+        Settings → Control Plane → Integrations, from an admin with the least access you can get away with —
+        keys inherit the role of whoever created them.
+      </p>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <%= form.label :host, "Hostname or IP", class: "form-label" %>
+          <%= form.text_field :host, class: "form-control", required: true, placeholder: "192.168.1.1" %>
+          <div class="form-text text-12">No scheme or path. HTTPS is always used.</div>
+        </div>
+        <div class="col-md-3">
+          <%= form.label :port, class: "form-label" %>
+          <%= form.number_field :port, class: "form-control", min: 1, max: 65_535 %>
+        </div>
+        <div class="col-12">
+          <%= form.label :api_key, "API key", class: "form-label" %>
+          <%= form.password_field :api_key, class: "form-control font-monospace text-12",
+                                  autocomplete: "off",
+                                  required: !unifi_controller.persisted?,
+                                  placeholder: unifi_controller.persisted? ? "Leave blank to keep the current key" : "" %>
+          <div class="form-text text-12">Stored encrypted. The saved key is never shown again.</div>
+        </div>
+        <div class="col-12">
+          <div class="form-check">
+            <%= form.check_box :verify_tls, class: "form-check-input" %>
+            <%= form.label :verify_tls, "Verify the TLS certificate", class: "form-check-label" %>
+          </div>
+          <div class="form-text text-12">
+            Leave this off for the self-signed certificate a console ships with. Turn it on once you have installed a
+            certificate from a trusted authority.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="h-section-label mb-2">What to import</div>
+      <div class="row g-2">
+        <div class="col-md-6">
+          <div class="form-check border border-secondary-subtle rounded p-2 h-100">
+            <%= form.check_box :network_enabled, class: "form-check-input" %>
+            <%= form.label :network_enabled, class: "form-check-label w-100" do %>
+              <span class="fw-medium text-13">Network devices</span>
+              <span class="d-block text-secondary text-12 mt-1">Gateways, switches, and access points adopted by the Network application, with their IP addresses.</span>
+            <% end %>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-check border border-secondary-subtle rounded p-2 h-100">
+            <%= form.check_box :protect_enabled, class: "form-check-input" %>
+            <%= form.label :protect_enabled, class: "form-check-label w-100" do %>
+              <span class="fw-medium text-13">Protect devices</span>
+              <span class="d-block text-secondary text-12 mt-1">Cameras, sensors, lights, chimes, viewers, and the rest of the Protect families.</span>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="h-section-label mb-2">Things</div>
+      <div class="form-check">
+        <%= form.check_box :auto_create_things, class: "form-check-input" %>
+        <%= form.label :auto_create_things, "Create a thing for each new device", class: "form-check-label" %>
+      </div>
+      <div class="form-text text-12">
+        Devices always match an existing thing by IEEE address first. Names, IP addresses, and IEEE addresses stay in
+        sync until you edit them by hand, after which the import leaves them alone.
+      </div>
+    </div>
+
+    <div>
+      <div class="h-section-label mb-2">Status</div>
+      <div class="form-check">
+        <%= form.check_box :enabled, class: "form-check-input" %>
+        <%= form.label :enabled, "Enabled", class: "form-check-label" %>
+      </div>
+      <div class="form-text text-12">Disabled controllers are skipped by scheduled imports.</div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <%= form.submit class: "btn btn-primary btn-sm" %>
+      <%= link_to "Cancel",
+                  unifi_controller.persisted? ? settings_unifi_controller_path(unifi_controller) : settings_unifi_controllers_path,
+                  class: "btn btn-outline-secondary btn-sm" %>
+      <% if unifi_controller.persisted? %>
+        <%= button_to "Delete", settings_unifi_controller_path(unifi_controller), method: :delete,
+                      class: "btn btn-outline-danger btn-sm",
+                      form: { data: { turbo_confirm: "Delete #{unifi_controller.name}? Imported things are kept." } } %>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

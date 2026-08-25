@@ -1,0 +1,63 @@
+<% content_for :title, "UniFi" %>
+
+<%= settings_frame do %>
+  <div class="d-flex align-items-end justify-content-between mb-3">
+    <div>
+      <h1 class="h-page-title mb-0">UniFi</h1>
+      <div class="text-13 text-secondary mt-1">
+        <span class="text-body"><%= @unifi_controllers.size %></span> <%= "controller".pluralize(@unifi_controllers.size) %> ·
+        <span class="<%= UnifiDevice.active.count.zero? ? "text-secondary" : "text-body" %>"><%= UnifiDevice.active.count %></span> devices imported
+      </div>
+    </div>
+    <div>
+      <%= link_to "+ Add controller", new_settings_unifi_controller_path, class: "btn btn-primary btn-sm" %>
+    </div>
+  </div>
+
+  <% if @unifi_controllers.any? %>
+    <div class="table-responsive">
+      <table class="table table-compact table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Console</th>
+            <th>Applications</th>
+            <th class="num">Devices</th>
+            <th>Last import</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @unifi_controllers.each do |unifi_controller| %>
+            <tr class="clickable-row" data-href="<%= settings_unifi_controller_path(unifi_controller) %>">
+              <td class="fw-medium"><%= unifi_controller.name %></td>
+              <td class="text-secondary text-12"><code class="text-12"><%= unifi_controller.base_url %></code></td>
+              <td class="text-secondary"><%= unifi_controller.enabled_applications.map(&:capitalize).to_sentence %></td>
+              <td class="num <%= unifi_controller.device_count.zero? ? "text-secondary" : "" %>"><%= unifi_controller.device_count %></td>
+              <td><%= render "settings/integrations/sync_status", source: unifi_controller %></td>
+              <td class="text-end">
+                <%= link_to "Edit", edit_settings_unifi_controller_path(unifi_controller), class: "btn btn-outline-secondary btn-sm" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-secondary text-13 mb-2">
+      No UniFi controllers yet. Add a console to import its Network devices and Protect devices as things.
+    </p>
+    <p class="text-secondary text-12 mb-0">
+      Create a read-only API key in the UniFi console under Settings → Control Plane → Integrations.
+    </p>
+  <% end %>
+<% end %>
+
+<script>
+  document.querySelectorAll(".clickable-row").forEach((row) => {
+    row.addEventListener("click", (event) => {
+      if (event.target.closest("a, button")) return;
+      window.location = row.dataset.href;
+    });
+  });
+</script>

@@ -7,14 +7,14 @@ class AppHostLabelPreviewRegressionTest < ActionDispatch::IntegrationTest
     sign_in_as(users(:local_admin))
   end
 
-  test "label preview page and assets reflect current APP_HOST" do
-    with_app_host(REGRESSION_HOST) do
+  test "label preview page and assets reflect current SHORT_URL_HOST" do
+    with_short_url_host("http://l.regression") do
       thing = things(:router)
 
       get label_preview_thing_path(thing, printer_id: printers(:label_printer).id)
 
       assert_response :success
-      assert_select "code", text: "#{REGRESSION_HOST}/things/#{thing.id}?utm_source=qrcode"
+      assert_select "code", text: "http://l.regression/#{thing.key}?q"
 
       get label_preview_thing_path(thing, printer_id: printers(:label_printer).id, format: :pdf)
 

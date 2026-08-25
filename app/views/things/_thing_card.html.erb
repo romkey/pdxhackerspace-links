@@ -1,0 +1,24 @@
+<%= link_to thing_path(thing), class: "thing-card tap-target" do %>
+  <div class="d-flex align-items-start justify-content-between gap-2">
+    <div class="min-w-0 flex-grow-1">
+      <div class="text-15 fw-medium text-body text-truncate"><%= thing.name %></div>
+      <% if (meta = things_card_meta_line(thing)).present? %>
+        <div class="text-12 text-secondary text-truncate mt-1"><%= meta %></div>
+      <% end %>
+      <% if thing.where_link %>
+        <span class="text-12 text-secondary mt-1 d-inline-flex align-items-center gap-1">
+          <i class="bi bi-geo-alt"></i>
+          <%= thing.where_link.note.presence || "Where" %>
+        </span>
+      <% end %>
+    </div>
+    <div class="d-flex flex-column align-items-end gap-1 text-12 text-secondary flex-shrink-0">
+      <% if thing.links_count.positive? %>
+        <span><i class="bi bi-link-45deg"></i> <%= thing.links_count %></span>
+      <% end %>
+      <% if thing.photos_count.positive? %>
+        <span><i class="bi bi-image"></i> <%= thing.photos_count %></span>
+      <% end %>
+    </div>
+  </div>
+<% end %>

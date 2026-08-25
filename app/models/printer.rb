@@ -204,6 +204,10 @@ class Printer < ApplicationRecord
     continuous_roll? && page_size != "receipt_80mm"
   end
 
+  def cable_tag_capable?
+    page_size == "label_strip_24mm" || (command? && label_height_mm == 24)
+  end
+
   def cuts_after_print?
     continuous_roll?
   end
