@@ -577,6 +577,73 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_not thing.reload.labelled?
   end
 
+  test "bulk update labelled marks selected things" do
+    keyboard = things(:keyboard)
+    router = things(:router)
+    assert_not keyboard.labelled?
+    assert_not router.labelled?
+
+    patch bulk_update_labelled_things_path, params: {
+      thing_ids: [ keyboard.id, router.id ],
+      labelled: "1"
+    }
+
+    assert_redirected_to things_path
+    assert_match(/Marked 2 things as labelled/, flash[:notice])
+    assert keyboard.reload.labelled?
+    assert router.reload.labelled?
+  end
+
+  test "bulk update labelled clears selected things" do
+    keyboard = things(:keyboard)
+    router = things(:router)
+    keyboard.mark_labelled!
+    router.mark_labelled!
+
+    patch bulk_update_labelled_things_path, params: {
+      thing_ids: [ keyboard.id, router.id ],
+      labelled: "0"
+    }
+
+    assert_redirected_to things_path
+    assert_match(/Cleared labelled on 2 things/, flash[:notice])
+    assert_not keyboard.reload.labelled?
+    assert_not router.reload.labelled?
+  end
+
+  test "bulk update labelled with select all uses filtered scope" do
+    things(:router).mark_labelled!
+    unlabelled = Thing.create!(name: "Unlabelled extra")
+    assert_not unlabelled.labelled?
+
+    patch bulk_update_labelled_things_path, params: {
+      select_all: "1",
+      filter: { labelled: "no" },
+      labelled: "1"
+    }
+
+    assert_redirected_to things_path
+    assert_match(/Marked 2 things as labelled/, flash[:notice])
+    assert unlabelled.reload.labelled?
+    assert things(:keyboard).reload.labelled?
+    assert things(:router).reload.labelled?
+  end
+
+  test "bulk update labelled requires at least one thing" do
+    patch bulk_update_labelled_things_path, params: { labelled: "1", thing_ids: [] }
+
+    assert_redirected_to things_path
+    assert_equal "Select at least one thing.", flash[:alert]
+  end
+
+  test "index bulk action bar includes labelled buttons" do
+    get things_path
+
+    assert_response :success
+    assert_select ".bulk-action-bar button", text: "Mark labelled"
+    assert_select ".bulk-action-bar button", text: "Clear labelled"
+  end
+
   test "bulk label preview shows each selected thing" do
     get bulk_label_preview_things_path, params: {
       thing_ids: [ things(:keyboard).id, things(:router).id ],

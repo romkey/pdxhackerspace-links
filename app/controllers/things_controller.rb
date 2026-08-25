@@ -4,7 +4,7 @@ class ThingsController < ApplicationController
   skip_before_action :require_login, only: %i[show by_beacon]
   before_action :require_full_access, only: %i[
     new create edit update destroy duplicate purge_photo purge_ar_anchor
-    print label_preview update_labelled bulk_print bulk_label_preview search
+    print label_preview update_labelled bulk_print bulk_label_preview bulk_update_labelled search
   ]
   before_action :set_thing, only: %i[
     show edit update destroy duplicate purge_photo purge_ar_anchor print label_preview update_labelled
@@ -181,6 +181,30 @@ class ThingsController < ApplicationController
     end
 
     redirect_back_or_to thing_path(@thing), notice: notice
+  end
+
+  def bulk_update_labelled
+    thing_ids = resolve_bulk_selection_ids
+    if thing_ids.empty?
+      redirect_back_or_to things_path, alert: "Select at least one thing."
+      return
+    end
+
+    if thing_ids.size > MAX_BULK_LABELS
+      redirect_back_or_to things_path, alert: "Select at most #{MAX_BULK_LABELS} things."
+      return
+    end
+
+    things = Thing.where(id: thing_ids)
+    if params[:labelled].to_s == "1"
+      things.find_each(&:mark_labelled!)
+      notice = "Marked #{thing_ids.size} #{'thing'.pluralize(thing_ids.size)} as labelled."
+    else
+      things.find_each(&:unmark_labelled!)
+      notice = "Cleared labelled on #{thing_ids.size} #{'thing'.pluralize(thing_ids.size)}."
+    end
+
+    redirect_back_or_to things_path, notice: notice
   end
 
   def label_preview
@@ -412,14 +436,18 @@ class ThingsController < ApplicationController
     true
   end
 
-  def resolve_bulk_print_ids(layout)
+  def resolve_bulk_selection_ids
     scope = if params[:select_all].to_s == "1"
       Things::IndexQuery.filtered_scope(search: params[:q], filters: params[:filter])
     else
       Thing.where(id: Array(params[:thing_ids]).map(&:to_i))
     end
 
-    things = scope.distinct.to_a
+    scope.distinct.pluck(:id)
+  end
+
+  def resolve_bulk_print_ids(layout)
+    things = Thing.where(id: resolve_bulk_selection_ids).to_a
     skipped = 0
 
     if layout == :cable_tag
