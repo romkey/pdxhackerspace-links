@@ -146,6 +146,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - **Test connection** and **Import now** on the controller page, plus a `unifi:import` rake task for scheduled imports
 - Imports stay under the console's ceiling of roughly ten requests a second and retry throttled requests, honouring `Retry-After`; both applications on a console share one budget, since walking every Protect device family otherwise tripped UniFi's rate limiter
 - Failures that return HTML rather than JSON now report the status, content type, and start of the response instead of only "not JSON"
+- A queued import for a controller that is disabled before the job runs is reported as skipped, rather than being left showing as running with no way to clear it
 - UniFi card on the thing page showing model, firmware, site, and last-seen for signed-in users
 - Optional MAC address on things, shown on the detail page and searchable
 - `ACTIVE_RECORD_ENCRYPTION_*` environment variables; UniFi API keys are stored encrypted and derive keys from `SECRET_KEY_BASE` when these are unset

@@ -1,7 +1,7 @@
 module IntegrationSource
   extend ActiveSupport::Concern
 
-  SYNC_STATUSES = %w[running success partial failed].freeze
+  SYNC_STATUSES = %w[running success partial failed skipped].freeze
 
   included do
     validates :last_sync_status, inclusion: { in: SYNC_STATUSES }, allow_nil: true
@@ -17,6 +17,10 @@ module IntegrationSource
 
   def last_sync_failed?
     last_sync_status == "failed"
+  end
+
+  def last_sync_skipped?
+    last_sync_status == "skipped"
   end
 
   def record_sync!(status:, message:)
