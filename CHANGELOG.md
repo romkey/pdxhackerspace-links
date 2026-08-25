@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Zigbee2MQTT imports no longer stay stuck on "Running" when a bridge is disabled before the queued job runs
+
 ## [0.11.8] - 2026-08-24
 
 ### Fixed

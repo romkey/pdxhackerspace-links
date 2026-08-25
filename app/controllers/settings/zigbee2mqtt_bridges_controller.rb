@@ -56,6 +56,11 @@ module Settings
     end
 
     def import
+      unless @zigbee2mqtt_bridge.enabled?
+        return redirect_to settings_zigbee2mqtt_bridge_path(@zigbee2mqtt_bridge),
+                           alert: "Enable #{@zigbee2mqtt_bridge.name} before running an import."
+      end
+
       @zigbee2mqtt_bridge.update!(last_sync_status: "running", last_sync_message: "Import queued.")
       Zigbee2mqtt::ImportJob.perform_later(@zigbee2mqtt_bridge.id)
 

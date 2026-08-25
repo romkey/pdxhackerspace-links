@@ -22,4 +22,36 @@ class Zigbee2mqtt::ImportJobTest < ActiveJob::TestCase
 
     assert_not called
   end
+
+  test "clears the queued marker when the bridge is disabled before the job runs" do
+    bridge = zigbee2mqtt_bridges(:workshop)
+    bridge.update!(enabled: false, last_sync_status: "running", last_sync_message: "Import queued.")
+
+    stubbing(Zigbee2mqtt::Import, :call, ->(**) { flunk "disabled bridges must be skipped" }) do
+      Zigbee2mqtt::ImportJob.perform_now(bridge.id)
+    end
+
+    bridge.reload
+    assert_not_predicate bridge, :syncing?
+    assert_equal "skipped", bridge.last_sync_status
+    assert_match "disabled", bridge.last_sync_message
+  end
+
+  test "leaves an earlier result alone when skipping a disabled bridge" do
+    bridge = zigbee2mqtt_bridges(:workshop)
+    bridge.update!(
+      enabled: false,
+      last_synced_at: 2.days.ago,
+      last_sync_status: "success",
+      last_sync_message: "4 devices"
+    )
+
+    stubbing(Zigbee2mqtt::Import, :call, ->(**) { flunk "disabled bridges must be skipped" }) do
+      Zigbee2mqtt::ImportJob.perform_now(bridge.id)
+    end
+
+    bridge.reload
+    assert_equal "success", bridge.last_sync_status
+    assert_equal "4 devices", bridge.last_sync_message
+  end
 end

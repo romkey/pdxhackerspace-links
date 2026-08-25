@@ -26,4 +26,16 @@ class Settings::Zigbee2mqttBridgesControllerTest < ActionDispatch::IntegrationTe
     assert_redirected_to settings_zigbee2mqtt_bridge_path(@bridge)
     assert_equal "running", @bridge.reload.last_sync_status
   end
+
+  test "import refuses a disabled bridge instead of marking it running" do
+    @bridge.update!(enabled: false)
+
+    assert_no_enqueued_jobs(only: Zigbee2mqtt::ImportJob) do
+      post import_settings_zigbee2mqtt_bridge_path(@bridge)
+    end
+
+    assert_redirected_to settings_zigbee2mqtt_bridge_path(@bridge)
+    assert_match "Enable", flash[:alert]
+    assert_not_predicate @bridge.reload, :syncing?
+  end
 end
