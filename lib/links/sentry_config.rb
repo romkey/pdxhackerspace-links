@@ -26,7 +26,7 @@ module Links
     end
 
     def release_name
-      ENV["APP_VERSION"].presence
+      Links::Version.release_tag(Links::Version.current)
     end
 
     def traces_sample_rate

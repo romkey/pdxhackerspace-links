@@ -139,9 +139,10 @@ Services:
 
 ```bash
 docker compose -f docker-compose.test.yml run --rm test
+bin/rails test:system   # inside the test container, or after local setup
 ```
 
-Every change should include tests. Bug fixes should include regression tests.
+Every change should include tests. Bug fixes should include regression tests. Responsive Things UI behavior is covered by system tests in `test/system/`.
 
 ## Linting
 
@@ -152,7 +153,7 @@ docker compose -f docker-compose.lint.yml run --rm rubocop
 
 ## Versioning
 
-The canonical version lives in `VERSION`. Docker release builds set `APP_VERSION` from the git tag (e.g. `v0.1.0`). The footer displays the current version.
+The canonical version lives in `VERSION`. Docker release builds set `APP_VERSION` from the git tag (e.g. `v0.11.7`); the footer shows the semver without the leading `v` and links to the matching GitHub release. Server compose does not override `APP_VERSION`, so the value baked into the image at build time is what the app displays.
 
 ## Deployment
 
@@ -225,31 +226,45 @@ test/            # Minitest suite
 
 ### Things
 
-Each **Thing** has a name, optional description, optional owner, optional IP address or hostname, optional MAC address, optional standard links (Asset, Wiki, Slack, Where, AR), optional custom links with titles, and one or more photos (Active Storage).
+Each **Thing** has a name, optional description, optional owner, optional IP address, optional hostname, optional IEEE address, optional manufacturer and model, optional manufacturer link, optional standard links (Asset, Wiki, Slack, Where, AR), optional custom links with titles, optional **related things** (symmetric links to other things, such as a TV and its remote, with an optional note), and one or more photos (Active Storage, served as hero/thumbnail variants). The **Where** link is shown prominently on the thing page; other technical fields live in a collapsed **Details** section. Search runs on the Things index (not the nav bar). Imported things also record which integration created them.
 
-### UniFi import
+After enabling photo variants on an existing install, run `bin/rails photos:backfill_variants` once to preprocess hero/thumbnail sizes for photos already on disk.
 
-**Settings → UniFi** registers UniFi consoles and imports their devices as things. Both the [Network](https://developer.ui.com/network/) and [Protect](https://developer.ui.com/protect/) integration APIs are read through the console on HTTPS, authenticated with a stateless `X-API-KEY` header.
+### Integrations
+
+**Settings → Integrations** groups device imports. Each integration registers a source, imports devices, and can create or update things automatically.
+
+#### UniFi import
+
+**Settings → Integrations → UniFi** registers UniFi consoles and imports their devices as things. Both the [Network](https://developer.ui.com/network/) and [Protect](https://developer.ui.com/protect/) integration APIs are read through the console on HTTPS, authenticated with a stateless `X-API-KEY` header.
 
 Create the key in the UniFi console under **Settings → Control Plane → Integrations**. Keys inherit the role of the admin who created them and cannot be scoped, so create one from the least-privileged admin you can — Links only ever issues `GET` requests. The key is stored encrypted and is never rendered back into the form.
 
 | Application | Imported |
 |-------------|----------|
-| Network | Adopted gateways, switches, and access points across every local site, with model, IP address, MAC address, firmware version, and state |
+| Network | Adopted gateways, switches, and access points across every local site, with model, IP address, IEEE address, firmware version, and state |
 | Protect | Cameras, lights, sensors, chimes, viewers, speakers, bridges, fobs, sirens, relays, alarm hubs, and the NVR |
 
 Consoles ship a self-signed certificate, so **Verify the TLS certificate** is off by default. Turn it on once the console has a certificate from a trusted authority.
 
-**Test connection** reads the version endpoint of each enabled application. **Import now** queues a Sidekiq job; reload the page for the result. To import on a schedule, run `bin/rails unifi:import` from cron — it walks every enabled controller.
+**Test connection** reads the version endpoint of each enabled application. **Import now** queues a Sidekiq job; reload the page for the result. To import on a schedule, run `bin/rails integrations:import` from cron — it walks every enabled UniFi controller and Zigbee2MQTT bridge. `bin/rails unifi:import` still imports UniFi only.
 
 How devices become things:
 
-- A device is matched to an existing thing by MAC address first, so a console that appears in both applications maps to one thing. Otherwise a new thing is created, unless the controller has **Create a thing for each new device** turned off.
-- Name, IP address, and MAC address are kept in sync until you edit them by hand. The import remembers what it last wrote and leaves a field alone once its value differs, so manual names and addresses survive every later import.
+- A device is matched to an existing thing by IEEE address first, so a console that appears in both applications maps to one thing. Otherwise a new thing is created, unless the controller has **Create a thing for each new device** turned off.
+- Name, IP address, and IEEE address are kept in sync until you edit them by hand. The import remembers what it last wrote and leaves a field alone once its value differs, so manual names and addresses survive every later import.
 - Devices that disappear from a console are archived, not deleted, and their things are kept. They un-archive if the device comes back. When one application is unreachable the other still imports, and nothing is archived for the failed one.
 - **Ignore** on a device unlinks its thing and stops future imports from recreating one. Deleting a UniFi-managed thing does the same.
 
 Model, firmware, site, and last-seen details stay on the device record and are shown in a UniFi card on the thing page for signed-in users.
+
+#### Zigbee2MQTT import
+
+**Settings → Integrations → Zigbee2MQTT** connects to an MQTT broker and reads the retained `<base_topic>/bridge/devices` message. There is no HTTP API for listing devices, so the import uses MQTT directly.
+
+For recency filtering, enable `advanced.last_seen` in your Zigbee2MQTT configuration and retain device state messages so Links can read `last_seen` during import. Each bridge can skip disabled devices, limit imports to devices seen within N days, and choose whether to import devices whose `last_seen` is unknown.
+
+Imported things receive manufacturer, model, IEEE address, and an auto-filled manufacturer link to the Zigbee2MQTT device page when the model is known.
 
 ### Printing
 
@@ -272,7 +287,11 @@ Remote printing supports two printer types:
 
 When editing a printer, enter the CUPS server (`hostname:631`) and queue name. Queues are fetched from that server when reachable; use **Test connection** on the printer detail page to verify. **Test print** sends a sample label (same layout as thing labels) even when the printer is disabled.
 
-From a thing’s detail page or the things list, use **Preview** to see the exact label layout, then **Print label** to send it to an enabled printer. On roll and strip printers, labels print in landscape (feed along the long edge) with a trailing margin for feed and cut. The 24mm strip layout uses a full-height QR code on the left, name and owner on the first text row, and IP address on the second when set. Things with an IP address or hostname also get **Print cable tag** and **Preview cable tag** buttons on 24mm strip and 24mm command printers; that layout prints the same content twice with a center gap for wrapping around a cable. When a thing has an **AR Marker** image, it prints at the end of the label after the QR code and text.
+From a thing’s detail page or the things list, open **Print label** to choose **Standard** (name, QR, and links), **Cable tag** (wrap-around duplicate segment for things with an IP or hostname), or **Compact** (QR plus name only). Pick a printer, set copies, optionally mark the thing as labelled, and use **Preview** to open the full preview page with margin controls. Bulk printing: on the Things index, click **Select**, check rows (or **Select all matching** to include every filtered result across pages), then **Print labels**.
+
+The Things index shows a **Labelled** column (green dot when set) and a Labelled filter chip. Mark labelled state manually from the row menu, or automatically when printing with **Mark as labelled** checked.
+
+On roll and strip printers, standard labels print in landscape (feed along the long edge) with a trailing margin for feed and cut. The 24mm strip layout uses a full-height QR code on the left, name and owner on the first text row, and hostname and IP address on following rows when set. Compact labels on strip printers use a narrow square layout with the QR above the name. Default left margin, right margin, and cable tag gap are configured under **Settings → General**; preview pages can override margins temporarily. When a thing has an **AR Marker** image, it prints at the end of standard labels after the QR code and text (not on Compact labels).
 
 Standard links (Asset, Wiki, Slack, Where, AR) can include an optional **Note** shown on the thing page alongside the link.
 

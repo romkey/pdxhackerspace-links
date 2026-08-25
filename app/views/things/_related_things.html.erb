@@ -1,0 +1,19 @@
+<% if thing_relationships.any? %>
+  <div class="h-section-label mb-2">Related things</div>
+  <div class="list-group list-compact mb-0">
+    <% thing_relationships.each do |relationship| %>
+      <% related = relationship.related_thing %>
+      <%= link_to thing_path(related), class: "list-group-item list-group-item-action py-2" do %>
+        <div class="d-flex justify-content-between align-items-start gap-2">
+          <div>
+            <span class="text-13"><%= related.name %></span>
+            <% if relationship.note.present? %>
+              <div class="text-12 text-secondary mt-1"><%= relationship.note %></div>
+            <% end %>
+          </div>
+          <i class="bi bi-chevron-right text-secondary flex-shrink-0"></i>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

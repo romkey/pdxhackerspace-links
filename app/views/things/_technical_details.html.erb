@@ -1,0 +1,93 @@
+<section class="mb-4">
+  <div class="h-section-label mb-2">Technical details</div>
+  <dl class="detail-list">
+    <% if thing.owner.present? %>
+      <dt>Owner</dt>
+      <dd><span><%= thing.owner %></span></dd>
+    <% end %>
+    <% if thing.ip_address.present? %>
+      <dt>IP address</dt>
+      <dd>
+        <code><%= thing.ip_address %></code>
+        <button type="button"
+                class="btn btn-outline-secondary btn-sm py-0 px-1"
+                data-controller="clipboard"
+                data-clipboard-text-value="<%= thing.ip_address %>"
+                data-action="clipboard#copy"
+                aria-label="Copy IP address">
+          <i class="bi bi-clipboard"></i>
+        </button>
+      </dd>
+    <% end %>
+    <% if thing.hostname.present? %>
+      <dt>Hostname</dt>
+      <dd>
+        <code><%= thing.hostname %></code>
+        <button type="button"
+                class="btn btn-outline-secondary btn-sm py-0 px-1"
+                data-controller="clipboard"
+                data-clipboard-text-value="<%= thing.hostname %>"
+                data-action="clipboard#copy"
+                aria-label="Copy hostname">
+          <i class="bi bi-clipboard"></i>
+        </button>
+      </dd>
+    <% end %>
+    <% if thing.ieee_address.present? %>
+      <dt>IEEE address</dt>
+      <dd>
+        <code><%= thing.ieee_address_display %></code>
+        <button type="button"
+                class="btn btn-outline-secondary btn-sm py-0 px-1"
+                data-controller="clipboard"
+                data-clipboard-text-value="<%= thing.ieee_address_display %>"
+                data-action="clipboard#copy"
+                aria-label="Copy IEEE address">
+          <i class="bi bi-clipboard"></i>
+        </button>
+      </dd>
+    <% end %>
+    <% if thing.key.present? %>
+      <dt>Short URL key</dt>
+      <dd>
+        <code><%= thing.key %></code>
+        <button type="button"
+                class="btn btn-outline-secondary btn-sm py-0 px-1"
+                data-controller="clipboard"
+                data-clipboard-text-value="<%= thing.key %>"
+                data-action="clipboard#copy"
+                aria-label="Copy short URL key">
+          <i class="bi bi-clipboard"></i>
+        </button>
+      </dd>
+    <% end %>
+    <% if thing.slug.present? %>
+      <dt>Slug</dt>
+      <dd>
+        <code><%= thing.slug %></code>
+        <button type="button"
+                class="btn btn-outline-secondary btn-sm py-0 px-1"
+                data-controller="clipboard"
+                data-clipboard-text-value="<%= thing.slug %>"
+                data-action="clipboard#copy"
+                aria-label="Copy slug">
+          <i class="bi bi-clipboard"></i>
+        </button>
+      </dd>
+    <% end %>
+    <% if thing.ble_beacon_uuid.present? %>
+      <dt>BLE beacon UUID</dt>
+      <dd>
+        <code><%= thing.ble_beacon_uuid %></code>
+        <button type="button"
+                class="btn btn-outline-secondary btn-sm py-0 px-1"
+                data-controller="clipboard"
+                data-clipboard-text-value="<%= thing.ble_beacon_uuid %>"
+                data-action="clipboard#copy"
+                aria-label="Copy BLE beacon UUID">
+          <i class="bi bi-clipboard"></i>
+        </button>
+      </dd>
+    <% end %>
+  </dl>
+</section>

@@ -1,0 +1,187 @@
+<% if can_manage_things? %>
+  <div class="bulk-action-bar d-none mb-2" data-thing-selection-target="actionBar">
+    <span class="text-13">
+      <span class="text-body fw-medium" data-thing-selection-target="selectionCount">0</span> selected
+    </span>
+    <% if @printers.present? %>
+      <%= button_tag "Print labels",
+                     type: "button",
+                     class: "btn btn-primary btn-sm",
+                     data: things_print_dialog_trigger_data(
+                       action: "thing-selection#prepareBulkPrint print-dialog#open",
+                       thing_selection_target: "printButton",
+                       bulk: true
+                     ) %>
+    <% end %>
+    <%= link_to "Clear", "#", class: "text-12 text-secondary text-decoration-none", data: { action: "thing-selection#clearSelection" } %>
+  </div>
+
+  <div class="text-13 text-secondary mb-2 d-none" data-thing-selection-target="selectAllMatching">
+    All <span data-thing-selection-target="selectAllMatchingCount"><%= @pagy.count %></span> matching filters on this page are selected.
+    <%= link_to "Select all matching", "#", data: { action: "thing-selection#selectAllMatching" } %>.
+  </div>
+<% end %>
+
+<% if @things.any? %>
+  <div class="d-lg-none thing-card-list mb-3">
+    <% @things.each do |thing| %>
+      <%= render "thing_card", thing: thing %>
+    <% end %>
+  </div>
+
+  <div class="table-responsive d-none d-lg-block">
+    <table class="table table-compact table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <% if can_manage_things? %>
+            <th class="select-column d-none" data-thing-selection-target="checkboxColumn">
+              <input type="checkbox"
+                     class="form-check-input"
+                     aria-label="Select all on page"
+                     data-thing-selection-target="headerCheckbox"
+                     data-action="thing-selection#togglePageAll">
+            </th>
+          <% end %>
+          <% if things_column_visible?("name") %>
+            <th><%= things_sort_link("Name", "name") %></th>
+          <% end %>
+          <% if things_column_visible?("manufacturer") %>
+            <th><%= things_sort_link("Manufacturer", "manufacturer") %></th>
+          <% end %>
+          <% if things_column_visible?("model") %>
+            <th><%= things_sort_link("Model", "model") %></th>
+          <% end %>
+          <% if things_column_visible?("integration") %>
+            <th><%= things_sort_link("Integration", "integration") %></th>
+          <% end %>
+          <% if things_column_visible?("hostname") %>
+            <th><%= things_sort_link("Hostname", "hostname") %></th>
+          <% end %>
+          <% if things_column_visible?("ip_address") %>
+            <th><%= things_sort_link("IP address", "ip_address") %></th>
+          <% end %>
+          <% if things_column_visible?("links") %>
+            <th class="num"><%= things_sort_link("Links", "links") %></th>
+          <% end %>
+          <% if things_column_visible?("photos") %>
+            <th class="num"><%= things_sort_link("Photos", "photos") %></th>
+          <% end %>
+          <% if can_manage_things? %>
+            <% if things_column_visible?("labelled") %>
+              <th><%= things_sort_link("Labelled", "labelled") %></th>
+            <% end %>
+            <% if things_column_visible?("visits") %>
+              <th class="num"><%= things_sort_link("Views", "visits") %></th>
+            <% end %>
+            <% if things_column_visible?("nfc") %>
+              <th class="num"><%= things_sort_link("NFC", "nfc") %></th>
+            <% end %>
+            <% if things_column_visible?("qr") %>
+              <th class="num"><%= things_sort_link("QR", "qr") %></th>
+            <% end %>
+            <th></th>
+          <% end %>
+        </tr>
+      </thead>
+      <tbody>
+        <% @things.each do |thing| %>
+          <tr class="clickable-row"
+              data-controller="clickable-row"
+              data-clickable-row-href-value="<%= thing_path(thing) %>"
+              data-action="click->clickable-row#navigate">
+            <% if can_manage_things? %>
+              <td class="select-column d-none" data-thing-selection-target="checkboxColumn">
+                <input type="checkbox"
+                       class="form-check-input"
+                       value="<%= thing.id %>"
+                       aria-label="Select <%= thing.name %>"
+                       data-thing-selection-target="rowCheckbox"
+                       data-action="thing-selection#toggleRow">
+              </td>
+            <% end %>
+            <% if things_column_visible?("name") %>
+              <td class="fw-medium"><%= thing.name %></td>
+            <% end %>
+            <% if things_column_visible?("manufacturer") %>
+              <td><%= things_manufacturer_cell(thing) %></td>
+            <% end %>
+            <% if things_column_visible?("model") %>
+              <td class="text-secondary"><%= thing.model.presence || "—" %></td>
+            <% end %>
+            <% if things_column_visible?("integration") %>
+              <td class="text-secondary"><%= thing.integration_label || "—" %></td>
+            <% end %>
+            <% if things_column_visible?("hostname") %>
+              <td>
+                <% if thing.hostname.present? %>
+                  <code class="text-12"><%= thing.hostname %></code>
+                <% else %>
+                  <span class="text-secondary">—</span>
+                <% end %>
+              </td>
+            <% end %>
+            <% if things_column_visible?("ip_address") %>
+              <td>
+                <% if thing.ip_address.present? %>
+                  <code class="text-12"><%= thing.ip_address %></code>
+                <% else %>
+                  <span class="text-secondary">—</span>
+                <% end %>
+              </td>
+            <% end %>
+            <% if things_column_visible?("links") %>
+              <td class="num <%= thing.links_count.zero? ? 'text-secondary' : '' %>"><%= thing.links_count %></td>
+            <% end %>
+            <% if things_column_visible?("photos") %>
+              <td class="num <%= thing.photos_count.zero? ? 'text-secondary' : '' %>">
+                <% if thing.photos_count.positive? && thing.photos_attachments.first %>
+                  <% photo = thing.photos_attachments.first %>
+                  <%= image_tag things_photo_source(photo, :thumb),
+                                class: "index-photo-thumb me-1",
+                                loading: "lazy",
+                                alt: "",
+                                width: 32,
+                                height: 32 %>
+                <% end %>
+                <%= thing.photos_count %>
+              </td>
+            <% end %>
+            <% if can_manage_things? %>
+              <% if things_column_visible?("labelled") %>
+                <td><%= things_labelled_cell(thing) %></td>
+              <% end %>
+              <% if things_column_visible?("visits") %>
+                <td class="num <%= thing.visit_count.zero? ? 'text-secondary' : '' %>"><%= thing.visit_count %></td>
+              <% end %>
+              <% if things_column_visible?("nfc") %>
+                <td class="num <%= thing.nfc_scan_count.zero? ? 'text-secondary' : '' %>"><%= thing.nfc_scan_count %></td>
+              <% end %>
+              <% if things_column_visible?("qr") %>
+                <td class="num <%= thing.qr_scan_count.zero? ? 'text-secondary' : '' %>"><%= thing.qr_scan_count %></td>
+              <% end %>
+              <td class="text-end row-actions-cell">
+                <%= render "row_actions", thing: thing, printers: @printers %>
+              </td>
+            <% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <% if @pagy.pages > 1 %>
+    <div class="mt-3">
+      <%== @pagy.series_nav(:bootstrap) %>
+    </div>
+  <% end %>
+<% else %>
+  <p class="text-secondary text-13 mb-0">
+    <% if @search_query.present? || @things_index.filters.active? %>
+      No things match<% if @search_query.present? %> “<%= @search_query %>”<% end %><% if @things_index.filters.active? %> with the current filters<% end %>.
+    <% elsif can_manage_things? %>
+      No things yet. Create one to get started.
+    <% else %>
+      No things yet.
+    <% end %>
+  </p>
+<% end %>

@@ -42,12 +42,11 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
   test "24mm strip label is landscape with feed margin along the width" do
     pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer))
     qr = Things::LabelPdf::STRIP_24MM_ROLL_WIDTH_MM
-    expected_width = (qr + Things::LabelPdf::STRIP_24MM_TEXT_GAP_MM +
-                     Things::LabelPdf::STRIP_24MM_TEXT_MIN_WIDTH_MM +
-                     Things::LabelPdf::STRIP_24MM_FEED_MARGIN_MM).round
+    text_width = pdf.send(:strip_text_width_mm)
+    expected_width = (pdf.left_margin_mm + qr + Things::LabelPdf::STRIP_24MM_TEXT_GAP_MM + text_width + pdf.right_margin_mm).round
 
-    assert_equal expected_width, pdf.page_width_mm
-    assert_equal expected_width, pdf.cups_media[/Custom\.24x(\d+)mm/, 1].to_i
+    assert_in_delta expected_width, pdf.page_width_mm, 0.5
+    assert_equal pdf.page_width_mm.round, pdf.cups_media[/Custom\.24x(\d+)mm/, 1].to_i
     assert_in_delta 24, pdf.page_height_mm, 0.1
   end
 
@@ -163,11 +162,8 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
       printer: printers(:label_printer),
       layout: :cable_tag
     )
-    segment = Things::LabelPdf::CABLE_TAG_ROLL_WIDTH_MM +
-              Things::LabelPdf::STRIP_24MM_TEXT_GAP_MM +
-              Things::LabelPdf::STRIP_24MM_TEXT_MIN_WIDTH_MM
-    expected_width = (segment.round + Things::LabelPdf::CABLE_TAG_GAP_MM + segment.round +
-                     Things::LabelPdf::STRIP_24MM_FEED_MARGIN_MM).round
+    segment = pdf.send(:cable_tag_segment_width_mm)
+    expected_width = (pdf.left_margin_mm + segment + pdf.cable_tag_gap_mm + segment + pdf.right_margin_mm).round
 
     assert_equal expected_width, pdf.page_width_mm
     assert_equal expected_width, pdf.cups_media[/Custom\.24x(\d+)mm/, 1].to_i
@@ -193,17 +189,62 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
   end
 
   test "24mm strip label grows when ar marker is attached" do
+    width_without = Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer)).page_width_mm
     thing = attach_ar_anchor(things(:router))
     pdf = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer))
-    qr = Things::LabelPdf::STRIP_24MM_ROLL_WIDTH_MM
-    base_width = (qr + Things::LabelPdf::STRIP_24MM_TEXT_GAP_MM +
-                  Things::LabelPdf::STRIP_24MM_TEXT_MIN_WIDTH_MM +
-                  Things::LabelPdf::STRIP_24MM_FEED_MARGIN_MM).round
     marker_width = Things::LabelPdf::AR_MARKER_GAP_MM + Things::LabelPdf::STRIP_24MM_ROLL_WIDTH_MM
 
-    assert_equal base_width + marker_width, pdf.page_width_mm
+    assert_in_delta width_without + marker_width, pdf.page_width_mm, 0.5
   ensure
     pdf&.cleanup! if pdf&.instance_variable_get(:@generated_path)
+  end
+
+  test "strip label expands width for long title line" do
+    base_pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer))
+    base_width = base_pdf.page_width_mm
+    things(:router).update!(name: "A" * 45, owner: "B" * 45)
+    pdf = Things::LabelPdf.new(thing: things(:router).reload, printer: printers(:label_printer))
+
+    assert_operator pdf.page_width_mm, :>, base_width + 10
+  ensure
+    pdf&.cleanup! if pdf&.instance_variable_get(:@generated_path)
+    base_pdf&.cleanup! if base_pdf&.instance_variable_get(:@generated_path)
+  end
+
+  test "cable tag prints hostname and ip on separate lines" do
+    thing = things(:router)
+    thing.update!(hostname: "router.local")
+    pdf = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer), layout: :cable_tag)
+    lines = pdf.send(:cable_tag_label_lines)
+
+    assert_equal [ "Router romkey", "router.local", "192.168.1.1" ], lines
+  end
+
+  test "uses site setting label margins by default" do
+    SiteSetting.instance.update!(label_print_left_margin_mm: 2, label_print_right_margin_mm: 5, cable_tag_gap_mm: 8)
+    pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer))
+
+    assert_in_delta 2, pdf.left_margin_mm, 0.01
+    assert_in_delta 5, pdf.right_margin_mm, 0.01
+    assert_in_delta 8, pdf.cable_tag_gap_mm, 0.01
+  ensure
+    site_settings(:default).tap do |setting|
+      setting.update!(label_print_left_margin_mm: 0, label_print_right_margin_mm: 3, cable_tag_gap_mm: 10)
+    end
+    pdf&.cleanup! if pdf&.instance_variable_get(:@generated_path)
+  end
+
+  test "accepts margin overrides" do
+    pdf = Things::LabelPdf.new(
+      thing: things(:router),
+      printer: printers(:label_printer),
+      layout: :cable_tag,
+      margins: { left_margin_mm: 2, right_margin_mm: 5, cable_tag_gap_mm: 12 }
+    )
+
+    assert_in_delta 2, pdf.left_margin_mm, 0.01
+    assert_in_delta 5, pdf.right_margin_mm, 0.01
+    assert_in_delta 12, pdf.cable_tag_gap_mm, 0.01
   end
 
   test "landscape label embeds qr and ar marker images" do
@@ -227,6 +268,40 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
 
     assert_nothing_raised { label_pdf.generate }
     assert_in_delta label_pdf.page_width_mm, Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer)).page_width_mm, 0.1
+  ensure
+    label_pdf&.cleanup!
+  end
+
+  test "compact layout on 24mm strip uses a narrow square label" do
+    label_pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer), layout: :compact)
+    standard = Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer))
+
+    assert_operator label_pdf.page_width_mm, :<, standard.page_width_mm
+    assert_in_delta 24, label_pdf.page_height_mm, 0.1
+    assert File.read(label_pdf.generate, 4).start_with?("%PDF")
+  ensure
+    label_pdf&.cleanup!
+  end
+
+  test "compact layout ignores attached ar marker" do
+    thing = attach_ar_anchor(things(:router))
+    compact = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer), layout: :compact)
+    standard = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer))
+
+    assert_in_delta compact.page_width_mm, Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer), layout: :compact).page_width_mm, 0.1
+    assert_operator compact.page_width_mm, :<, standard.page_width_mm
+  ensure
+    compact&.cleanup!
+    standard&.cleanup!
+  end
+
+  test "compact layout renders on portrait fixed labels" do
+    label_pdf = Things::LabelPdf.new(thing: things(:keyboard), printer: printers(:office_laser), layout: :compact)
+    path = label_pdf.generate
+
+    assert File.exist?(path)
+    assert File.read(path, 4).start_with?("%PDF")
+    assert_operator label_pdf.page_height_mm, :>, 0
   ensure
     label_pdf&.cleanup!
   end

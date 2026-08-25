@@ -20,35 +20,38 @@
   <body class="d-flex flex-column min-vh-100">
     <% if show_navigation? %>
       <nav class="navbar navbar-expand-lg border-bottom border-secondary-subtle">
-        <div class="container-fluid d-flex align-items-center gap-2">
+        <div class="container-fluid">
           <% if public_guest? %>
-            <span class="navbar-brand me-0">Links</span>
+            <span class="navbar-brand">Links</span>
             <div class="d-flex align-items-center gap-2 ms-auto">
               <%= link_to "Sign in", login_path, class: "btn btn-outline-secondary btn-sm" %>
             </div>
           <% else %>
-            <%= link_to "Links", root_path, class: "navbar-brand me-0" %>
-            <%= link_to "Things", things_path, class: "btn btn-outline-secondary btn-sm" %>
-            <% if logged_in? %>
-              <%= link_to "Settings", settings_root_path, class: "btn btn-outline-secondary btn-sm" %>
-            <% end %>
-
-            <%= form_with url: things_path, method: :get, class: "navbar-search flex-grow-1 mx-2", html: { role: "search" } do %>
-              <input type="search"
-                     name="q"
-                     value="<%= params[:q] %>"
-                     class="form-control form-control-sm"
-                     placeholder="Search things…"
-                     aria-label="Search things">
-            <% end %>
-
-            <div class="d-flex align-items-center gap-2 ms-auto">
-              <% if logged_in? %>
-                <span class="text-secondary text-13"><%= current_user.name %></span>
-                <%= button_to "Sign out", logout_path, method: :delete, class: "btn btn-outline-secondary btn-sm" %>
-              <% else %>
-                <%= link_to "Sign in", login_path, class: "btn btn-outline-secondary btn-sm" %>
-              <% end %>
+            <%= link_to "Links", root_path, class: "navbar-brand" %>
+            <button class="navbar-toggler btn btn-outline-secondary btn-sm ms-2"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarNav"
+                    aria-controls="navbarNav"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation">
+              <i class="bi bi-list"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+              <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-2 ms-lg-3 mt-2 mt-lg-0">
+                <%= link_to "Things", things_path, class: "btn btn-outline-secondary btn-sm" %>
+                <% if logged_in? %>
+                  <%= link_to "Settings", settings_root_path, class: "btn btn-outline-secondary btn-sm" %>
+                <% end %>
+              </div>
+              <div class="d-flex align-items-center gap-2 ms-lg-auto mt-2 mt-lg-0">
+                <% if logged_in? %>
+                  <span class="text-secondary text-13"><%= current_user.name %></span>
+                  <%= button_to "Sign out", logout_path, method: :delete, class: "btn btn-outline-secondary btn-sm" %>
+                <% else %>
+                  <%= link_to "Sign in", login_path, class: "btn btn-outline-secondary btn-sm" %>
+                <% end %>
+              </div>
             </div>
           <% end %>
         </div>
@@ -69,9 +72,15 @@
     </main>
 
     <footer class="border-top border-secondary-subtle py-2 mt-auto">
-      <div class="container-fluid d-flex justify-content-between text-12 text-secondary">
-        <span>Links</span>
-        <span>v<%= app_version %></span>
+      <div class="container-fluid text-center text-12 text-secondary">
+        <%= link_to "GitHub", github_repo_url, class: "text-secondary", target: "_blank", rel: "noopener" %>
+        <span class="mx-2" aria-hidden="true">·</span>
+        <%= link_to app_version_display,
+                    github_version_url,
+                    class: "text-secondary",
+                    title: "View release on GitHub",
+                    target: "_blank",
+                    rel: "noopener" %>
       </div>
     </footer>
   </body>

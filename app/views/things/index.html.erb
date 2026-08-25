@@ -1,74 +1,79 @@
 <% content_for :title, "Things" %>
 
-<div class="container-fluid py-4">
+<%= tag.div class: "container-fluid py-4", data: things_index_container_data do %>
   <div class="d-flex align-items-end justify-content-between mb-3">
     <div>
       <h1 class="h-page-title mb-0">Things</h1>
       <div class="text-13 text-secondary mt-1">
-        <% if @search_query.present? %>
-          <span class="text-body"><%= @things.size %></span> matching “<%= @search_query %>” ·
-          <%= link_to "Clear", things_path, class: "text-secondary" %>
+        <% if @search_query.present? || @things_index.filters.active? %>
+          <span class="text-body"><%= @pagy.count %></span>
+          <% if @search_query.present? %>
+            matching “<%= @search_query %>”
+          <% else %>
+            total
+          <% end %>
+          <% if @things_index.filters.active? %>
+            · <span class="text-body"><%= @things_index.filters.active_count %></span> filters active
+          <% end %>
+          <% if @search_query.present? %>
+            · <%= link_to "Clear search", things_path(things_index_params(q: nil)), class: "text-secondary" %>
+          <% end %>
         <% else %>
-          <span class="text-body"><%= @things.size %></span> total
+          <span class="text-body"><%= @pagy.count %></span> total
         <% end %>
       </div>
     </div>
-    <div>
+    <div class="d-flex gap-2">
+      <% if can_manage_things? && @things.any? %>
+        <button type="button"
+                class="btn btn-outline-secondary btn-sm d-none d-lg-inline-block"
+                data-thing-selection-target="selectToggle"
+                data-action="thing-selection#toggleSelectionMode">
+          Select
+        </button>
+      <% end %>
       <% if can_manage_things? %>
         <%= link_to "+ New thing", new_thing_path, class: "btn btn-primary btn-sm" %>
       <% end %>
     </div>
   </div>
 
-  <% if @things.any? %>
-    <div class="table-responsive">
-      <table class="table table-compact table-hover align-middle mb-0">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Key</th>
-            <th>Links</th>
-            <th>Photos</th>
-            <% if can_manage_things? %>
-              <th></th>
-            <% end %>
-          </tr>
-        </thead>
-        <tbody>
-          <% @things.each do |thing| %>
-            <tr class="clickable-row" data-href="<%= thing_path(thing) %>">
-              <td class="fw-medium"><%= thing.name %></td>
-              <td><code class="text-12 text-secondary"><%= thing.key %></code></td>
-              <td class="num text-secondary"><%= thing.links_with_urls.size %></td>
-              <td class="num text-secondary"><%= thing.photos.count %></td>
-              <% if can_manage_things? %>
-                <td class="text-end">
-                  <%= render "row_actions", thing: thing, printers: @printers %>
-                </td>
+  <%= turbo_frame_tag "things_results" do %>
+    <%= form_with url: things_path, method: :get, class: "mb-3",
+                  data: { controller: "debounced-submit", debounced_submit_delay_value: 300 } do %>
+      <% things_search_hidden_params.each do |key, value| %>
+        <% if key == :filter && value.is_a?(Hash) %>
+          <% value.each do |filter_key, filter_value| %>
+            <% if filter_key.to_s == "integration" %>
+              <% Array(filter_value).each do |source| %>
+                <%= hidden_field_tag "filter[integration][]", source %>
               <% end %>
-            </tr>
+            <% else %>
+              <%= hidden_field_tag "filter[#{filter_key}]", filter_value %>
+            <% end %>
           <% end %>
-        </tbody>
-      </table>
-    </div>
-  <% else %>
-    <p class="text-secondary text-13 mb-0">
-      <% if @search_query.present? %>
-        No things match “<%= @search_query %>”.
-      <% elsif can_manage_things? %>
-        No things yet. Create one to get started.
-      <% else %>
-        No things yet.
+        <% elsif value.is_a?(Array) %>
+          <% value.each do |item| %>
+            <%= hidden_field_tag "#{key}[]", item %>
+          <% end %>
+        <% else %>
+          <%= hidden_field_tag key, value %>
+        <% end %>
       <% end %>
-    </p>
-  <% end %>
-</div>
+      <input type="search"
+             name="q"
+             value="<%= @search_query %>"
+             class="form-control form-control-sm"
+             placeholder="Search things…"
+             aria-label="Search things"
+             data-action="input->debounced-submit#submit">
+    <% end %>
 
-<script>
-  document.querySelectorAll(".clickable-row").forEach((row) => {
-    row.addEventListener("click", (event) => {
-      if (event.target.closest("a, button")) return;
-      window.location = row.dataset.href;
-    });
-  });
-</script>
+    <%= render "filters_panel" %>
+    <%= render "index_results" %>
+  <% end %>
+
+  <% if can_manage_things? && @printers.present? %>
+    <%= render "print_dialog", printers: @printers %>
+  <% end %>
+<% end %>

@@ -55,7 +55,7 @@ class Unifi::NetworkClientTest < ActiveSupport::TestCase
       "/proxy/network/integration/v1/sites/site-1/devices?limit=200&offset=0" => [ 200, unifi_page([ device ]) ]
     )
 
-    assert_equal "94:2a:6f:26:c6:ca", client.device_records.sole.mac_address
+    assert_equal "94:2a:6f:26:c6:ca", client.device_records.sole.ieee_address
   end
 
   test "maps the most specific role to a kind" do

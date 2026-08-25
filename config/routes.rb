@@ -8,6 +8,9 @@ Rails.application.routes.draw do
   resources :things do
     collection do
       get "by_beacon/:ble_beacon_uuid", action: :by_beacon, as: :by_beacon
+      get :search
+      post :bulk_print
+      get :bulk_label_preview
     end
 
     member do
@@ -16,6 +19,7 @@ Rails.application.routes.draw do
       get :label_preview
       post :duplicate
       post :print
+      patch :labelled, action: :update_labelled
     end
   end
 
@@ -39,6 +43,13 @@ Rails.application.routes.draw do
       end
     end
     resources :unifi_devices, only: :update
+    resources :zigbee2mqtt_bridges do
+      member do
+        post :test_connection
+        post :import
+      end
+    end
+    resources :zigbee2mqtt_devices, only: :update
   end
 
   get "login", to: "sessions#new"

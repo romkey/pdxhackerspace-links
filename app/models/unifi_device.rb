@@ -1,4 +1,6 @@
 class UnifiDevice < ApplicationRecord
+  include IntegrationDevice
+
   KIND_LABELS = {
     "gateway" => "Gateway",
     "switch" => "Switch",
@@ -28,13 +30,10 @@ class UnifiDevice < ApplicationRecord
   validates :external_id, presence: true, uniqueness: { scope: %i[unifi_controller_id source] }
   validates :kind, presence: true
 
-  scope :active, -> { where(archived_at: nil) }
-  scope :archived, -> { where.not(archived_at: nil) }
-  scope :unlinked, -> { where(thing_id: nil) }
   scope :ordered, -> { order(:source, :kind, :name) }
 
-  def archived?
-    archived_at.present?
+  def integration_source
+    "unifi"
   end
 
   def kind_label
@@ -55,5 +54,19 @@ class UnifiDevice < ApplicationRecord
 
   def display_name
     name.presence || model.presence || "#{kind_label} #{external_id}"
+  end
+
+  def desired_thing_attributes
+    {
+      "name" => name.presence,
+      "ip_address" => ip_address.presence,
+      "ieee_address" => ieee_address.presence,
+      "model" => model.presence
+    }.compact
+  end
+
+  def fallback_thing_name
+    identifier = ieee_address.presence || external_id
+    "#{kind_label} #{identifier}"
   end
 end

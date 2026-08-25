@@ -30,7 +30,27 @@
     </div>
 
     <div>
-      <div class="h-section-label mb-2">Analytics</div>
+      <div class="h-section-label mb-2">Label printing</div>
+      <p class="text-secondary text-13 mb-3">
+        Default margins for landscape strip and cable tag labels. Left margin adds space before the QR code; right margin is the trailing feed before the cut. Cable tag gap is the center space for wrapping around a cable.
+      </p>
+      <div class="row g-3">
+        <div class="col-md-3">
+          <%= form.label :label_print_left_margin_mm, "Left margin (mm)", class: "form-label" %>
+          <%= form.number_field :label_print_left_margin_mm, class: "form-control", step: 0.1, min: 0, max: SiteSetting::MAX_LABEL_MARGIN_MM, required: true %>
+        </div>
+        <div class="col-md-3">
+          <%= form.label :label_print_right_margin_mm, "Right margin (mm)", class: "form-label" %>
+          <%= form.number_field :label_print_right_margin_mm, class: "form-control", step: 0.1, min: 0, max: SiteSetting::MAX_LABEL_MARGIN_MM, required: true %>
+        </div>
+        <div class="col-md-3">
+          <%= form.label :cable_tag_gap_mm, "Cable tag gap (mm)", class: "form-label" %>
+          <%= form.number_field :cable_tag_gap_mm, class: "form-control", step: 0.1, min: 0, max: SiteSetting::MAX_LABEL_MARGIN_MM, required: true %>
+        </div>
+      </div>
+    </div>
+
+    <div>
       <p class="text-secondary text-13 mb-3">
         Optional Matomo tracking code is added to every page when both fields are set.
       </p>

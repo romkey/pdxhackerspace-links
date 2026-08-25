@@ -1,0 +1,16 @@
+bulb:
+  zigbee2mqtt_bridge: workshop
+  ieee_address: 90:fd:9f:ff:fe:64:94:fc
+  friendly_name: workshop_bulb
+  device_type: Router
+  manufacturer: IKEA
+  model: LED1624G9
+  supported: true
+  disabled: false
+  applied_attributes:
+    name: workshop_bulb
+    ieee_address: 90:fd:9f:ff:fe:64:94:fc
+    manufacturer: IKEA
+    model: LED1624G9
+  first_seen_at: <%= 3.days.ago.to_fs(:db) %>
+  last_seen_at: <%= 1.hour.ago.to_fs(:db) %>

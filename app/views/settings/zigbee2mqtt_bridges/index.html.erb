@@ -1,0 +1,62 @@
+<% content_for :title, "Zigbee2MQTT" %>
+
+<%= settings_frame do %>
+  <div class="d-flex align-items-end justify-content-between mb-3">
+    <div>
+      <h1 class="h-page-title mb-0">Zigbee2MQTT</h1>
+      <div class="text-13 text-secondary mt-1">
+        <span class="text-body"><%= @zigbee2mqtt_bridges.size %></span> <%= "bridge".pluralize(@zigbee2mqtt_bridges.size) %> ·
+        <span class="<%= Zigbee2mqttDevice.active.count.zero? ? "text-secondary" : "text-body" %>"><%= Zigbee2mqttDevice.active.count %></span> devices imported
+      </div>
+    </div>
+    <div>
+      <%= link_to "+ Add bridge", new_settings_zigbee2mqtt_bridge_path, class: "btn btn-primary btn-sm" %>
+    </div>
+  </div>
+
+  <% if @zigbee2mqtt_bridges.any? %>
+    <div class="table-responsive">
+      <table class="table table-compact table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Broker</th>
+            <th class="num">Devices</th>
+            <th>Last import</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @zigbee2mqtt_bridges.each do |bridge| %>
+            <tr class="clickable-row" data-href="<%= settings_zigbee2mqtt_bridge_path(bridge) %>">
+              <td class="fw-medium"><%= bridge.name %></td>
+              <td class="text-secondary text-12"><code class="text-12"><%= bridge.connection_label %></code></td>
+              <td class="num <%= bridge.device_count.zero? ? "text-secondary" : "" %>"><%= bridge.device_count %></td>
+              <td><%= render "settings/integrations/sync_status", source: bridge %></td>
+              <td class="text-end">
+                <%= link_to "Edit", edit_settings_zigbee2mqtt_bridge_path(bridge), class: "btn btn-outline-secondary btn-sm" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-secondary text-13 mb-2">
+      No Zigbee2MQTT bridges yet. Add a bridge to import Zigbee devices as things.
+    </p>
+    <p class="text-secondary text-12 mb-0">
+      Devices are read from the retained <code class="text-12">bridge/devices</code> MQTT topic. For recency filtering,
+      enable <code class="text-12">advanced.last_seen</code> and retain in your Zigbee2MQTT configuration.
+    </p>
+  <% end %>
+<% end %>
+
+<script>
+  document.querySelectorAll(".clickable-row").forEach((row) => {
+    row.addEventListener("click", (event) => {
+      if (event.target.closest("a, button")) return;
+      window.location = row.dataset.href;
+    });
+  });
+</script>

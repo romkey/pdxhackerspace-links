@@ -1,0 +1,131 @@
+<% content_for :title, @zigbee2mqtt_bridge.name %>
+
+<%= settings_frame do %>
+  <div class="mb-3">
+    <div class="text-12 text-secondary mb-1">
+      <%= link_to "Zigbee2MQTT", settings_zigbee2mqtt_bridges_path, class: "text-secondary text-decoration-none" %>
+      <span class="mx-1">/</span>
+      <span class="text-body"><%= @zigbee2mqtt_bridge.name %></span>
+    </div>
+    <div class="d-flex align-items-end justify-content-between flex-wrap gap-2">
+      <div>
+        <h1 class="h-page-title mb-0"><%= @zigbee2mqtt_bridge.name %></h1>
+        <div class="text-13 text-secondary mt-1">
+          <code class="text-12"><%= @zigbee2mqtt_bridge.connection_label %></code>
+          <% unless @zigbee2mqtt_bridge.enabled? %>
+            · <span class="badge text-bg-secondary-subtle text-12 fw-normal">Disabled</span>
+          <% end %>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <%= button_to "Test connection", test_connection_settings_zigbee2mqtt_bridge_path(@zigbee2mqtt_bridge),
+                      class: "btn btn-outline-secondary btn-sm" %>
+        <%= button_to "Import now", import_settings_zigbee2mqtt_bridge_path(@zigbee2mqtt_bridge),
+                      class: "btn btn-primary btn-sm", disabled: !@zigbee2mqtt_bridge.enabled? %>
+        <%= link_to "Edit", edit_settings_zigbee2mqtt_bridge_path(@zigbee2mqtt_bridge),
+                    class: "btn btn-outline-secondary btn-sm" %>
+      </div>
+    </div>
+  </div>
+
+  <% if @zigbee2mqtt_bridge.last_sync_message.present? %>
+    <div class="status-panel <%= @zigbee2mqtt_bridge.last_sync_ok? ? "status-clear" : "status-attention" %> mb-3 text-13">
+      <%= @zigbee2mqtt_bridge.last_sync_message %>
+    </div>
+  <% end %>
+
+  <div class="row g-4 mb-4">
+    <div class="col-md-6">
+      <div class="h-section-label mb-2">Connection</div>
+      <dl class="row text-13 mb-0">
+        <dt class="col-sm-4 text-secondary">Host</dt>
+        <dd class="col-sm-8"><code class="text-12"><%= @zigbee2mqtt_bridge.mqtt_host %></code></dd>
+        <dt class="col-sm-4 text-secondary">Port</dt>
+        <dd class="col-sm-8"><%= @zigbee2mqtt_bridge.mqtt_port %></dd>
+        <dt class="col-sm-4 text-secondary">Topic</dt>
+        <dd class="col-sm-8"><code class="text-12"><%= @zigbee2mqtt_bridge.base_topic %></code></dd>
+        <dt class="col-sm-4 text-secondary">Recency limit</dt>
+        <dd class="col-sm-8"><%= @zigbee2mqtt_bridge.last_seen_limit_days.present? ? "#{@zigbee2mqtt_bridge.last_seen_limit_days} days" : "None" %></dd>
+        <dt class="col-sm-4 text-secondary">Unknown last_seen</dt>
+        <dd class="col-sm-8"><%= @zigbee2mqtt_bridge.import_unknown_last_seen? ? "Import" : "Skip" %></dd>
+      </dl>
+    </div>
+    <div class="col-md-6">
+      <div class="h-section-label mb-2">System</div>
+      <dl class="row text-12 text-secondary mb-0">
+        <dt class="col-sm-4">Last import</dt>
+        <dd class="col-sm-8">
+          <%= @zigbee2mqtt_bridge.last_synced_at ? "#{time_ago_in_words(@zigbee2mqtt_bridge.last_synced_at)} ago" : "Never" %>
+        </dd>
+        <dt class="col-sm-4">Devices</dt>
+        <dd class="col-sm-8"><%= @zigbee2mqtt_bridge.zigbee2mqtt_devices.active.count %> active, <%= @zigbee2mqtt_bridge.zigbee2mqtt_devices.archived.count %> archived</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="d-flex align-items-end justify-content-between mb-2">
+    <div class="h-section-label mb-0">Devices</div>
+    <div class="text-12">
+      <% if show_archived? %>
+        <%= link_to "Hide archived", settings_zigbee2mqtt_bridge_path(@zigbee2mqtt_bridge), class: "text-secondary" %>
+      <% else %>
+        <%= link_to "Show archived", settings_zigbee2mqtt_bridge_path(@zigbee2mqtt_bridge, archived: "1"), class: "text-secondary" %>
+      <% end %>
+    </div>
+  </div>
+
+  <% if @zigbee2mqtt_devices.any? %>
+    <div class="table-responsive">
+      <table class="table table-compact align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Device</th>
+            <th>Type</th>
+            <th>Manufacturer</th>
+            <th>Model</th>
+            <th>IEEE address</th>
+            <th>Thing</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @zigbee2mqtt_devices.each do |device| %>
+            <tr class="<%= "opacity-50" if device.archived? || device.ignored? %>">
+              <td class="fw-medium">
+                <%= device.display_name %>
+                <% if device.archived? %>
+                  <span class="badge text-bg-secondary-subtle text-11 fw-normal">Archived</span>
+                <% end %>
+                <% if device.ignored? %>
+                  <span class="badge text-bg-secondary-subtle text-11 fw-normal">Ignored</span>
+                <% end %>
+              </td>
+              <td class="text-secondary"><%= device.device_type_label %></td>
+              <td class="text-secondary"><%= device.manufacturer.presence || "—" %></td>
+              <td class="text-secondary"><%= device.model.presence || "—" %></td>
+              <td class="text-secondary text-12"><code class="text-12"><%= Integrations::HardwareAddress.display(device.ieee_address) %></code></td>
+              <td>
+                <% if device.thing %>
+                  <%= link_to device.thing.name, thing_path(device.thing), class: "text-13" %>
+                <% else %>
+                  <span class="text-secondary text-13">—</span>
+                <% end %>
+              </td>
+              <td class="text-end">
+                <%= button_to device.ignored? ? "Unignore" : "Ignore",
+                              settings_zigbee2mqtt_device_path(device, ignored: device.ignored? ? "0" : "1"),
+                              method: :patch,
+                              class: "btn btn-outline-secondary btn-sm",
+                              form: { data: { turbo_confirm: device.ignored? ? nil : "Ignore #{device.display_name} and unlink its thing?" } } %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-secondary text-13 mb-0">
+      No devices imported yet. Test the connection, then run an import.
+    </p>
+  <% end %>
+<% end %>

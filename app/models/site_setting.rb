@@ -1,5 +1,16 @@
 class SiteSetting < ApplicationRecord
+  DEFAULT_LABEL_PRINT_LEFT_MARGIN_MM = 0
+  DEFAULT_LABEL_PRINT_RIGHT_MARGIN_MM = 3
+  DEFAULT_CABLE_TAG_GAP_MM = 10
+  MAX_LABEL_MARGIN_MM = 50
+
   validates :cups_server, presence: true
+  validates :label_print_left_margin_mm,
+            numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: MAX_LABEL_MARGIN_MM }
+  validates :label_print_right_margin_mm,
+            numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: MAX_LABEL_MARGIN_MM }
+  validates :cable_tag_gap_mm,
+            numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: MAX_LABEL_MARGIN_MM }
   validates :matomo_url, format: {
     with: %r{\Ahttps?://.+\z}i,
     allow_blank: true,

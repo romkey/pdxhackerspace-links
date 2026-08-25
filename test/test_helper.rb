@@ -2,6 +2,10 @@ ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
 
+class ActionDispatch::IntegrationTest
+  include ActiveJob::TestHelper
+end
+
 class ActiveSupport::TestCase
   parallelize(workers: :number_of_processors)
 
@@ -51,6 +55,15 @@ class ActiveSupport::TestCase
 
   def attach_ar_anchor(thing, filename: "ar_anchor.png")
     thing.ar_anchor.attach(
+      io: file_fixture(filename).open,
+      filename: filename,
+      content_type: "image/png"
+    )
+    thing
+  end
+
+  def attach_photo(thing, filename: "ar_anchor.png")
+    thing.photos.attach(
       io: file_fixture(filename).open,
       filename: filename,
       content_type: "image/png"
@@ -115,6 +128,12 @@ class ActiveSupport::TestCase
 
   def unifi_page(items)
     { "offset" => 0, "limit" => 200, "count" => items.size, "totalCount" => items.size, "data" => items }
+  end
+
+  def zigbee2mqtt_transport(devices:, last_seen: {})
+    lambda do
+      Zigbee2mqtt::Client::Response.new(devices: devices, last_seen: last_seen)
+    end
   end
 
   def with_fake_cups_client(server: "cups.example.com:631", fail_print: false, &block)

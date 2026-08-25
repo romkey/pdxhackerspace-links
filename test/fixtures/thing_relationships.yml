@@ -1,0 +1,9 @@
+keyboard_router:
+  thing: keyboard
+  related_thing: router
+  note: Front door pair
+
+router_keyboard:
+  thing: router
+  related_thing: keyboard
+  note: Front door pair

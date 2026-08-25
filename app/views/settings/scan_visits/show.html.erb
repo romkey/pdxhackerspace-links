@@ -37,7 +37,10 @@
       </thead>
       <tbody>
         <% @scan_stats.things.each do |thing| %>
-          <tr class="clickable-row" data-href="<%= thing_path(thing) %>">
+          <tr class="clickable-row"
+              data-controller="clickable-row"
+              data-clickable-row-href-value="<%= thing_path(thing) %>"
+              data-action="click->clickable-row#navigate">
             <td class="fw-medium"><%= thing.name %></td>
             <td class="num <%= thing.qr_scan_count.zero? ? 'text-secondary' : '' %>"><%= thing.qr_scan_count %></td>
             <td class="num <%= thing.nfc_scan_count.zero? ? 'text-secondary' : '' %>"><%= thing.nfc_scan_count %></td>
@@ -50,11 +53,3 @@
   </div>
 <% end %>
 
-<script>
-  document.querySelectorAll(".clickable-row").forEach((row) => {
-    row.addEventListener("click", (event) => {
-      if (event.target.closest("a, button")) return;
-      window.location = row.dataset.href;
-    });
-  });
-</script>

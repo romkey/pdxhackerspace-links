@@ -7,7 +7,7 @@ module Unifi
     :kind,
     :name,
     :model,
-    :mac_address,
+    :ieee_address,
     :ip_address,
     :firmware_version,
     :state,
@@ -15,7 +15,7 @@ module Unifi
     :site_name,
     :payload
   ) do
-    def initialize(source:, external_id:, kind:, name: nil, model: nil, mac_address: nil, ip_address: nil,
+    def initialize(source:, external_id:, kind:, name: nil, model: nil, ieee_address: nil, ip_address: nil,
                    firmware_version: nil, state: nil, site_external_id: nil, site_name: nil, payload: {})
       super
     end
@@ -25,7 +25,7 @@ module Unifi
         kind: kind,
         name: name,
         model: model,
-        mac_address: mac_address,
+        ieee_address: ieee_address,
         ip_address: ip_address,
         firmware_version: firmware_version,
         state: state,

@@ -2,14 +2,19 @@
 # check=error=true
 
 ARG RUBY_VERSION=4.0.5
+ARG NODE_VERSION=24.4.0
 ARG APP_VERSION=dev
+ARG GITHUB_REPO_URL=https://github.com/romkey/pdxhackerspace-links
 FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 
 ARG APP_VERSION
+ARG GITHUB_REPO_URL
 WORKDIR /rails
 
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl cups-client libjemalloc2 libpoppler-glib8 libusb-1.0-0 poppler-utils postgresql-client && \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update -qq && \
+    apt-get install --no-install-recommends -y curl cups-client libjemalloc2 libpoppler-glib8 libusb-1.0-0 libvips42 poppler-utils postgresql-client && \
     ln -s /usr/lib/$(uname -m)-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
@@ -18,28 +23,32 @@ ENV RAILS_ENV="production" \
     BUNDLE_PATH="/usr/local/bundle" \
     BUNDLE_WITHOUT="development" \
     LD_PRELOAD="/usr/local/lib/libjemalloc.so" \
-    APP_VERSION="${APP_VERSION}"
+    APP_VERSION="${APP_VERSION}" \
+    GITHUB_REPO_URL="${GITHUB_REPO_URL}"
+
+FROM docker.io/library/node:${NODE_VERSION}-bookworm-slim AS node
+RUN corepack enable && corepack prepare yarn@1.22.22 --activate
 
 FROM base AS build
 
-RUN apt-get update -qq && \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential git libpq-dev libvips libyaml-dev node-gyp pkg-config python-is-python3 && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-ARG NODE_VERSION=24.4.0
-ENV PATH=/usr/local/node/bin:$PATH
-RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ && \
-    /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
-    rm -rf /tmp/node-build-master
-RUN npm install -g yarn@1.22.22
+COPY --from=node /usr/local/ /opt/node/
+ENV PATH=/opt/node/bin:$PATH
 
 COPY Gemfile Gemfile.lock ./
-RUN bundle install && \
+RUN --mount=type=cache,target=/usr/local/bundle/cache,sharing=locked \
+    bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
     bundle exec bootsnap precompile -j 1 --gemfile
 
 COPY package.json yarn.lock ./
-RUN npm install -g yarn@1.22.22 && yarn install --frozen-lockfile
+RUN --mount=type=cache,target=/root/.yarn,sharing=locked \
+    yarn install --frozen-lockfile
 
 COPY . .
 COPY VERSION VERSION

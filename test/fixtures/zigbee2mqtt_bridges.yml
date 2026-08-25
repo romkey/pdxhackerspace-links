@@ -1,0 +1,9 @@
+workshop:
+  name: Workshop bridge
+  mqtt_host: mqtt.example.com
+  mqtt_port: 1883
+  base_topic: zigbee2mqtt
+  enabled: true
+  auto_create_things: true
+  skip_disabled_devices: true
+  import_unknown_last_seen: true

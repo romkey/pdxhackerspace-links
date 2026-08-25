@@ -39,6 +39,7 @@ class Things::NfcTagPayloadTest < ActiveSupport::TestCase
     assert_equal "Keyboard", payload["name"]
     assert_not payload.key?("owner")
     assert_not payload.key?("ip_address")
+    assert_not payload.key?("hostname")
     assert_not payload.key?("notes")
   end
 

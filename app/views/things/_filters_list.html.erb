@@ -1,0 +1,8 @@
+<div class="d-flex flex-wrap align-items-center gap-2">
+  <% things_index_filter_groups.each do |group| %>
+    <%= things_filter_toggle(group[:label], group[:key]) %>
+  <% end %>
+</div>
+<div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+  <%= things_integration_filter_chips %>
+</div>

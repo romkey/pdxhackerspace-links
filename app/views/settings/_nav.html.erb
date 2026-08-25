@@ -3,5 +3,8 @@
   <%= link_to "General", settings_site_path, class: settings_nav_class(:site) %>
   <%= link_to "Scan visits", settings_scan_visits_path, class: settings_nav_class(:scan_visits) %>
   <%= link_to "Printers", settings_printers_path, class: settings_nav_class(:printers) %>
-  <%= link_to "UniFi", settings_unifi_controllers_path, class: settings_nav_class(:unifi) %>
+  <div class="settings-nav-item settings-nav-heading mt-2">Integrations</div>
+  <% Integrations::Registry.all.each do |entry| %>
+    <%= link_to entry.label, send(entry.settings_path), class: settings_nav_class(entry.key) %>
+  <% end %>
 </nav>

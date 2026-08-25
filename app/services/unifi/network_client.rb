@@ -65,7 +65,7 @@ module Unifi
         kind: kind_for(device),
         name: device["name"],
         model: device["model"],
-        mac_address: MacAddress.normalize(device["macAddress"]),
+        ieee_address: Integrations::HardwareAddress.normalize(device["macAddress"]),
         ip_address: device["ipAddress"],
         firmware_version: device["firmwareVersion"],
         state: device["state"],

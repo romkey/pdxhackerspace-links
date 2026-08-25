@@ -24,7 +24,7 @@ class Unifi::ImportTest < ActiveSupport::TestCase
       kind: "switch",
       name: "Rack switch",
       model: "USW-24-PoE",
-      mac_address: "aa:bb:cc:dd:ee:01",
+      ieee_address: "aa:bb:cc:dd:ee:01",
       ip_address: "192.168.1.5",
       firmware_version: "6.6.55",
       state: "ONLINE",
@@ -41,7 +41,7 @@ class Unifi::ImportTest < ActiveSupport::TestCase
       kind: "camera",
       name: "Front door",
       model: "G4 Doorbell",
-      mac_address: "aa:bb:cc:dd:ee:02",
+      ieee_address: "aa:bb:cc:dd:ee:02",
       state: "CONNECTED",
       payload: { "id" => "protect-1" }
     }.merge(overrides))
@@ -156,7 +156,7 @@ class Unifi::ImportTest < ActiveSupport::TestCase
   end
 
   test "links a device to an existing thing with the same MAC" do
-    existing = Thing.create!(name: "Rack switch", mac_address: "aa:bb:cc:dd:ee:01")
+    existing = Thing.create!(name: "Rack switch", ieee_address: "aa:bb:cc:dd:ee:01")
 
     result = import(protect: [])
 
@@ -179,10 +179,10 @@ class Unifi::ImportTest < ActiveSupport::TestCase
   end
 
   test "records a device that cannot be synced without aborting the import" do
-    Thing.create!(name: "Conflicting", mac_address: "aa:bb:cc:dd:ee:02")
+    Thing.create!(name: "Conflicting", ieee_address: "aa:bb:cc:dd:ee:02")
     import
     # Point the network device at the MAC already held by the camera's thing.
-    result = import(network: [ network_record(mac_address: "aa:bb:cc:dd:ee:02") ])
+    result = import(network: [ network_record(ieee_address: "aa:bb:cc:dd:ee:02") ])
 
     assert_not result.success?
     assert_equal 1, result.errors.size
