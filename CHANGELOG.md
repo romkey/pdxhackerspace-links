@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- Bulk **Mark labelled** and **Clear labelled** actions when multiple things are selected on the index
+
 ### Fixed
 
 - Zigbee2MQTT imports no longer stay stuck on "Running" when a bridge is disabled before the queued job runs

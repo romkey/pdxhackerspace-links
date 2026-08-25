@@ -75,6 +75,42 @@ export default class extends Controller {
     trigger.dataset.cableTagEligible = "true"
   }
 
+  prepareBulkSubmit(event) {
+    const form = event.target
+    form.querySelectorAll("[data-dynamic-selection]").forEach((input) => input.remove())
+    this.appendBulkSelection((name, value) => this.appendHiddenField(form, name, value))
+  }
+
+  appendBulkSelection(append) {
+    if (this.selectAllMatchingActive) {
+      append("select_all", "1")
+      Object.entries(this.filterParamsValue).forEach(([ key, value ]) => {
+        if (key === "filter" && value && typeof value === "object") {
+          Object.entries(value).forEach(([ filterKey, filterValue ]) => {
+            if (Array.isArray(filterValue)) {
+              filterValue.forEach((entry) => append(`filter[${filterKey}][]`, entry))
+            } else {
+              append(`filter[${filterKey}]`, filterValue)
+            }
+          })
+        } else if (value != null && value !== "") {
+          append(key, value)
+        }
+      })
+    } else {
+      this.selectedIds().forEach((id) => append("thing_ids[]", id))
+    }
+  }
+
+  appendHiddenField(form, name, value) {
+    const input = document.createElement("input")
+    input.type = "hidden"
+    input.name = name
+    input.value = value
+    input.dataset.dynamicSelection = "true"
+    form.appendChild(input)
+  }
+
   selectedIds() {
     return this.rowCheckboxTargets.filter((checkbox) => checkbox.checked).map((checkbox) => checkbox.value)
   }

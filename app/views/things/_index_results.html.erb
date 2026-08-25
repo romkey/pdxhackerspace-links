@@ -13,6 +13,28 @@
                        bulk: true
                      ) %>
     <% end %>
+    <%= button_to "Mark labelled",
+                  bulk_update_labelled_things_path,
+                  method: :patch,
+                  params: { labelled: 1 },
+                  class: "btn btn-outline-secondary btn-sm",
+                  form: {
+                    data: {
+                      turbo_frame: "_top",
+                      action: "submit->thing-selection#prepareBulkSubmit"
+                    }
+                  } %>
+    <%= button_to "Clear labelled",
+                  bulk_update_labelled_things_path,
+                  method: :patch,
+                  params: { labelled: 0 },
+                  class: "btn btn-outline-secondary btn-sm",
+                  form: {
+                    data: {
+                      turbo_frame: "_top",
+                      action: "submit->thing-selection#prepareBulkSubmit"
+                    }
+                  } %>
     <%= link_to "Clear", "#", class: "text-12 text-secondary text-decoration-none", data: { action: "thing-selection#clearSelection" } %>
   </div>
 

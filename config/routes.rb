@@ -11,6 +11,7 @@ Rails.application.routes.draw do
       get :search
       post :bulk_print
       get :bulk_label_preview
+      patch :bulk_update_labelled
     end
 
     member do
