@@ -94,7 +94,7 @@ class PublicThingAccessTest < ActionDispatch::IntegrationTest
       get thing_path(things(:keyboard)), env: from_network("192.168.1.50")
       assert_response :success
       assert_select "a[href=?]", things_path
-      assert_select "input[type=search]"
+      assert_select "input[type=search]", count: 0
     end
   end
 end

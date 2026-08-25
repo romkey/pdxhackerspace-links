@@ -1,0 +1,75 @@
+<% if can_manage_things? %>
+  <div class="thing-show-actions-desktop d-flex justify-content-end gap-2 mb-3">
+    <%= link_to "Edit", edit_thing_path(thing), class: "btn btn-primary btn-sm" %>
+    <div class="dropdown">
+      <button type="button"
+              class="btn btn-outline-secondary btn-sm"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+              aria-label="More actions">
+        ⋯
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <% if printers.any? %>
+          <li>
+            <%= button_tag "Print label",
+                           type: "button",
+                           class: "dropdown-item",
+                           data: things_print_dialog_trigger_data(
+                             print_url: print_thing_path(thing),
+                             preview_url_template: label_preview_thing_path(thing, printer_id: "__PRINTER__"),
+                             thing_name: thing.name,
+                             cable_tag_eligible: thing.cable_tag_printable?
+                           ) %>
+          </li>
+        <% end %>
+        <li>
+          <%= button_to "Duplicate",
+                        duplicate_thing_path(thing),
+                        method: :post,
+                        class: "dropdown-item",
+                        form: { class: "d-inline" } %>
+        </li>
+        <li><%= render "nfc_write", thing: thing, menu_item: true %></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="thing-show-actions-mobile d-lg-none">
+    <div class="d-flex gap-2">
+      <%= link_to "Edit", edit_thing_path(thing), class: "btn btn-primary btn-sm flex-grow-1 tap-target" %>
+      <div class="dropdown">
+        <button type="button"
+                class="btn btn-outline-secondary btn-sm tap-target"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                aria-label="More actions">
+          ⋯
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <% if printers.any? %>
+            <li>
+              <%= button_tag "Print label",
+                             type: "button",
+                             class: "dropdown-item",
+                             data: things_print_dialog_trigger_data(
+                               print_url: print_thing_path(thing),
+                               preview_url_template: label_preview_thing_path(thing, printer_id: "__PRINTER__"),
+                               thing_name: thing.name,
+                               cable_tag_eligible: thing.cable_tag_printable?
+                             ) %>
+            </li>
+          <% end %>
+          <li>
+            <%= button_to "Duplicate",
+                          duplicate_thing_path(thing),
+                          method: :post,
+                          class: "dropdown-item",
+                          form: { class: "d-inline" } %>
+          </li>
+          <li><%= render "nfc_write", thing: thing, menu_item: true %></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+<% end %>

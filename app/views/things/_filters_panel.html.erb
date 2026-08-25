@@ -1,0 +1,53 @@
+<div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+  <button type="button"
+          class="btn btn-outline-secondary btn-sm d-lg-none"
+          data-bs-toggle="collapse"
+          data-bs-target="#things-filters"
+          aria-expanded="false"
+          aria-controls="things-filters">
+    Filters
+    <% if @things_index.filters.active? %>
+      <span class="badge text-bg-secondary-subtle ms-1"><%= @things_index.filters.active_count %></span>
+    <% end %>
+  </button>
+
+  <% if @things_index.filters.active? %>
+    <%= things_active_filter_pills %>
+    <%= link_to "Clear", things_clear_filters_path, class: "text-12 text-secondary text-decoration-none" %>
+  <% end %>
+
+  <% if can_manage_things? %>
+    <div class="dropdown ms-lg-auto">
+      <button type="button"
+              class="btn btn-outline-secondary btn-sm dropdown-toggle"
+              data-bs-toggle="dropdown"
+              aria-expanded="false">
+        Columns
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <% ThingsHelper::THINGS_OPTIONAL_COLUMNS.each do |column| %>
+          <li>
+            <%= link_to things_column_toggle_path(column),
+                        class: "dropdown-item #{'active' if things_column_visible?(column)}" do %>
+              <% if things_column_visible?(column) %>
+                <i class="bi bi-check-lg text-11 me-1"></i>
+              <% else %>
+                <span class="d-inline-block text-11 me-1" style="width: 1rem;"></span>
+              <% end %>
+              <%= ThingsHelper::THINGS_COLUMN_LABELS[column] %>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+</div>
+
+<div class="collapse things-filters mb-2" id="things-filters">
+  <%= render "things/filters_list" %>
+  <% if @things_index.filters.active? %>
+    <div class="mt-2 d-lg-none">
+      <%= link_to "Clear filters", things_clear_filters_path, class: "btn btn-outline-secondary btn-sm" %>
+    </div>
+  <% end %>
+</div>

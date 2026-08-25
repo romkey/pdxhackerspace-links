@@ -1,17 +1,22 @@
-<% content_for :title, @layout == :cable_tag ? "Cable tag preview" : "Label preview" %>
+<% content_for :title, "#{Things::LabelPdf.layout_label(@layout)} preview" %>
+<% preview_media_format = @printer.command? ? "png" : "pdf" %>
+<% preview_media_path = label_preview_thing_path(@thing, printer_id: @printer.id, **@preview_params, format: preview_media_format) %>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4"
+     data-controller="label-preview"
+     data-label-preview-preview-path-value="<%= label_preview_thing_path(@thing, printer_id: @printer.id, **@preview_params.except(:left_margin_mm, :right_margin_mm, :cable_tag_gap_mm)) %>"
+     data-label-preview-media-format-value="<%= preview_media_format %>">
   <div class="mb-3">
     <div class="text-12 text-secondary mb-1">
       <%= link_to "Things", things_path, class: "text-secondary text-decoration-none" %>
       <span class="mx-1">/</span>
       <%= link_to @thing.name, thing_path(@thing), class: "text-secondary text-decoration-none" %>
       <span class="mx-1">/</span>
-      <span class="text-body"><%= @layout == :cable_tag ? "Cable tag preview" : "Label preview" %></span>
+      <span class="text-body"><%= Things::LabelPdf.layout_label(@layout) %> preview</span>
     </div>
     <div class="d-flex align-items-end justify-content-between">
       <div>
-        <h1 class="h-page-title mb-0"><%= @layout == :cable_tag ? "Cable tag preview" : "Label preview" %></h1>
+        <h1 class="h-page-title mb-0"><%= Things::LabelPdf.layout_label(@layout) %> preview</h1>
         <div class="text-13 text-secondary mt-1">
           <%= @thing.name %> · <%= @printer.name %>
           <% if @label.landscape? %>
@@ -23,10 +28,14 @@
       </div>
       <div class="d-flex gap-2">
         <%= link_to "Back", thing_path(@thing), class: "btn btn-outline-secondary btn-sm" %>
-        <%= button_to @layout == :cable_tag ? "Print cable tag" : "Print label",
-                      print_thing_path(@thing, printer_id: @printer.id, **@preview_params),
+        <%= button_to "Print label",
+                      print_thing_path(@thing, printer_id: @printer.id),
+                      params: @preview_params,
                       class: "btn btn-primary btn-sm",
-                      form: { class: "d-inline" } %>
+                      form: {
+                        class: "d-inline",
+                        data: { label_preview_target: "printForm" }
+                      } %>
       </div>
     </div>
   </div>
@@ -37,24 +46,70 @@
         <div class="label-preview-frame mx-auto bg-white border border-secondary-subtle shadow-sm"
              style="width: min(100%, <%= (@label.page_width_mm * 5).round %>px); aspect-ratio: <%= @label.page_width_mm %> / <%= @label.page_height_mm %>;">
           <% if @printer.command? %>
-            <%= image_tag label_preview_thing_path(@thing, printer_id: @printer.id, format: :png, **@preview_params),
+            <%= image_tag preview_media_path,
                           alt: "Label preview for #{@thing.name}",
-                          class: "w-100 h-100 object-fit-contain" %>
+                          class: "w-100 h-100 object-fit-contain",
+                          data: { label_preview_target: "frame" } %>
           <% else %>
-            <iframe src="<%= label_preview_thing_path(@thing, printer_id: @printer.id, format: :pdf, **@preview_params) %>"
+            <iframe src="<%= preview_media_path %>"
                     title="Label preview for <%= @thing.name %>"
                     class="w-100 h-100 border-0"
-                    loading="lazy"></iframe>
+                    data-label-preview-target="frame"></iframe>
           <% end %>
         </div>
       </div>
     </div>
 
     <div class="col-lg-4">
+      <% if @label.landscape? %>
+        <div class="h-section-label mb-2">Margins</div>
+        <p class="text-secondary text-13 mb-2">Adjust to preview spacing. Site defaults apply when fields match saved settings.</p>
+        <div class="row g-2 mb-4">
+          <div class="col-6">
+            <label class="form-label text-12" for="label-left-margin">Left (mm)</label>
+            <input type="number"
+                   id="label-left-margin"
+                   class="form-control form-control-sm"
+                   step="0.1"
+                   min="0"
+                   max="<%= SiteSetting::MAX_LABEL_MARGIN_MM %>"
+                   value="<%= @label.left_margin_mm %>"
+                   data-label-preview-target="leftMargin"
+                   data-action="input->label-preview#update change->label-preview#update">
+          </div>
+          <div class="col-6">
+            <label class="form-label text-12" for="label-right-margin">Right (mm)</label>
+            <input type="number"
+                   id="label-right-margin"
+                   class="form-control form-control-sm"
+                   step="0.1"
+                   min="0"
+                   max="<%= SiteSetting::MAX_LABEL_MARGIN_MM %>"
+                   value="<%= @label.right_margin_mm %>"
+                   data-label-preview-target="rightMargin"
+                   data-action="input->label-preview#update change->label-preview#update">
+          </div>
+          <% if @layout == :cable_tag %>
+            <div class="col-12">
+              <label class="form-label text-12" for="label-middle-gap">Middle gap (mm)</label>
+              <input type="number"
+                     id="label-middle-gap"
+                     class="form-control form-control-sm"
+                     step="0.1"
+                     min="0"
+                     max="<%= SiteSetting::MAX_LABEL_MARGIN_MM %>"
+                     value="<%= @label.cable_tag_gap_mm %>"
+                     data-label-preview-target="middleGap"
+                     data-action="input->label-preview#update change->label-preview#update">
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
       <div class="h-section-label mb-2">Layout</div>
       <dl class="row text-13 mb-4">
         <dt class="col-sm-5 text-secondary">Type</dt>
-        <dd class="col-sm-7"><%= @layout == :cable_tag ? "Wrap-around cable tag" : "Standard label" %></dd>
+        <dd class="col-sm-7"><%= Things::LabelPdf.layout_label(@layout) %></dd>
         <dt class="col-sm-5 text-secondary">Format</dt>
         <dd class="col-sm-7"><%= @printer.command? ? "PNG" : "PDF" %></dd>
         <dt class="col-sm-5 text-secondary">Orientation</dt>
@@ -66,20 +121,25 @@
           <dd class="col-sm-7"><%= number_with_precision(@label.page_height_mm, precision: 1, strip_insignificant_zeros: true) %> mm</dd>
           <% if @layout == :cable_tag %>
             <dt class="col-sm-5 text-secondary">Wrap gap</dt>
-            <dd class="col-sm-7"><%= number_with_precision(Things::LabelPdf::CABLE_TAG_GAP_MM, precision: 1, strip_insignificant_zeros: true) %> mm center gap for cable wrap; both halves print the same content</dd>
+            <dd class="col-sm-7"><%= number_with_precision(@label.cable_tag_gap_mm, precision: 1, strip_insignificant_zeros: true) %> mm center gap; both halves print the same content</dd>
           <% end %>
           <dt class="col-sm-5 text-secondary">Feed + cut</dt>
-          <dd class="col-sm-7"><%= number_with_precision(@printer.command? || @printer.page_size == "label_strip_24mm" ? Things::LabelPdf::STRIP_24MM_FEED_MARGIN_MM : Things::LabelPdf::LANDSCAPE_FEED_MARGIN_MM, precision: 1, strip_insignificant_zeros: true) %> mm trailing margin before cut</dd>
+          <dd class="col-sm-7"><%= number_with_precision(@label.right_margin_mm, precision: 1, strip_insignificant_zeros: true) %> mm trailing margin before cut</dd>
         <% end %>
       </dl>
 
       <div class="h-section-label mb-2">Content</div>
       <dl class="row text-13 mb-0">
-        <dt class="col-sm-5 text-secondary">Line 1</dt>
-        <dd class="col-sm-7"><%= @thing.label_title_line %></dd>
-        <% if @thing.label_ip_line.present? %>
-          <dt class="col-sm-5 text-secondary">Line 2</dt>
-          <dd class="col-sm-7"><code class="text-12"><%= @thing.label_ip_line %></code></dd>
+        <% if @layout == :compact %>
+          <dt class="col-sm-5 text-secondary">Name</dt>
+          <dd class="col-sm-7"><%= @thing.name %></dd>
+        <% else %>
+          <dt class="col-sm-5 text-secondary">Line 1</dt>
+          <dd class="col-sm-7"><%= @thing.label_title_line %></dd>
+          <% @thing.label_network_lines.each_with_index do |line, index| %>
+            <dt class="col-sm-5 text-secondary">Line <%= index + 2 %></dt>
+            <dd class="col-sm-7"><code class="text-12"><%= line %></code></dd>
+          <% end %>
         <% end %>
         <dt class="col-sm-5 text-secondary">QR code</dt>
         <dd class="col-sm-7"><code class="text-12 text-break"><%= @thing_qr_url %></code></dd>

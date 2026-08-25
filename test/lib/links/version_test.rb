@@ -11,8 +11,20 @@ class Links::VersionTest < ActiveSupport::TestCase
   test "prefers APP_VERSION environment variable" do
     previous = ENV["APP_VERSION"]
     ENV["APP_VERSION"] = "v9.9.9"
-    assert_equal "v9.9.9", Links::Version.current
+    assert_equal "9.9.9", Links::Version.current
   ensure
     previous.nil? ? ENV.delete("APP_VERSION") : ENV["APP_VERSION"] = previous
+  end
+
+  test "display shows semver without v prefix" do
+    assert_equal "1.2.3", Links::Version.display("1.2.3")
+    assert_equal "1.2.3", Links::Version.display("v1.2.3")
+    assert_equal "staging", Links::Version.display("staging")
+    assert_equal "dev", Links::Version.display("dev")
+  end
+
+  test "release_tag normalizes version tags" do
+    assert_equal "v1.2.3", Links::Version.release_tag("1.2.3")
+    assert_nil Links::Version.release_tag("staging")
   end
 end

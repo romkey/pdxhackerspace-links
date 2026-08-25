@@ -2,7 +2,7 @@ class Thing < ApplicationRecord
   IPV4_REGEX = /\A(?:\d{1,3}\.){3}\d{1,3}\z/
   HOSTNAME_REGEX = /\A(?=.{1,253}\z)(?!-)[a-zA-Z0-9-]{1,63}(?<!-)(?:\.(?!-)[a-zA-Z0-9-]{1,63}(?<!-))*\z/
   BLE_BEACON_UUID_REGEX = /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/
-  MAC_ADDRESS_REGEX = /\A[0-9a-f]{2}(?::[0-9a-f]{2}){5}\z/
+  IEEE_ADDRESS_REGEX = /\A(?:[0-9a-f]{2}:){5}[0-9a-f]{2}|(?:[0-9a-f]{2}:){7}[0-9a-f]{2}\z/
   SLUG_REGEX = /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/
   KEY_LENGTH = 8
   KEY_REGEX = /\A[a-z][a-z0-9]{7}\z/
@@ -11,32 +11,48 @@ class Thing < ApplicationRecord
   RESERVED_KEYS = (%w[login logout settings sidekiq things up auth] + RESERVED_SLUGS).freeze
 
   has_many :links, class_name: "ThingLink", dependent: :destroy, inverse_of: :thing
+  has_many :thing_relationships, dependent: :destroy, inverse_of: :thing
+  has_many :related_things, through: :thing_relationships, source: :related_thing
   has_many :unifi_devices, dependent: :nullify
-  has_many_attached :photos
+  has_many :zigbee2mqtt_devices, dependent: :nullify
+  has_many_attached :photos do |attachable|
+    attachable.variant :hero, resize_to_limit: [ 1200, 1200 ], preprocessed: true
+    attachable.variant :thumb, resize_to_limit: [ 400, 400 ], preprocessed: true
+  end
   has_one_attached :ar_anchor
 
   accepts_nested_attributes_for :links, allow_destroy: true, reject_if: :reject_blank_link?
+  accepts_nested_attributes_for :thing_relationships, allow_destroy: true,
+                                reject_if: ->(attrs) { attrs["related_thing_id"].blank? }
 
   validates :name, presence: true
   validates :key, presence: true, uniqueness: true, format: { with: KEY_REGEX }
   validates :slug, uniqueness: { allow_blank: true }
   validates :ble_beacon_uuid, uniqueness: { allow_blank: true }
-  validates :mac_address, uniqueness: { allow_blank: true }
-  validate :ip_address_or_hostname
+  validates :ieee_address, uniqueness: { allow_blank: true }
+  validates :manufacturer_url, format: {
+    with: %r{\Ahttps?://.+\z}i,
+    allow_blank: true,
+    message: "must be an http or https URL"
+  }
+  validate :ip_address_format
+  validate :hostname_format
   validate :ble_beacon_uuid_format
-  validate :mac_address_format
+  validate :ieee_address_format
   validate :slug_format
   validate :reserved_key
 
   before_validation :normalize_slug
   before_validation :normalize_ble_beacon_uuid
-  before_validation :normalize_mac_address
+  before_validation :normalize_ieee_address
   before_validation :assign_key, on: :create
-  before_destroy :ignore_unifi_devices, prepend: true
+  before_destroy :ignore_integration_devices, prepend: true
   validate :acceptable_photos
   validate :acceptable_ar_anchor
 
   scope :publicly_accessible, -> { where(public_access: true) }
+  scope :labelled, -> { where.not(labelled_at: nil) }
+  scope :unlabelled, -> { where(labelled_at: nil) }
 
   scope :search, lambda { |query|
     term = query.to_s.strip
@@ -44,7 +60,7 @@ class Thing < ApplicationRecord
 
     pattern = "%#{sanitize_sql_like(term)}%"
     left_joins(:links).where(
-      "things.name ILIKE :q OR things.key ILIKE :q OR things.slug ILIKE :q OR things.description ILIKE :q OR things.notes ILIKE :q OR things.ar_anchor_note ILIKE :q OR things.owner ILIKE :q OR things.ip_address ILIKE :q OR things.mac_address ILIKE :q OR things.ble_beacon_uuid ILIKE :q OR thing_links.title ILIKE :q OR thing_links.url ILIKE :q OR thing_links.note ILIKE :q",
+      "things.name ILIKE :q OR things.key ILIKE :q OR things.slug ILIKE :q OR things.description ILIKE :q OR things.notes ILIKE :q OR things.ar_anchor_note ILIKE :q OR things.owner ILIKE :q OR things.ip_address ILIKE :q OR things.hostname ILIKE :q OR things.ieee_address ILIKE :q OR things.manufacturer ILIKE :q OR things.model ILIKE :q OR things.ble_beacon_uuid ILIKE :q OR thing_links.title ILIKE :q OR thing_links.url ILIKE :q OR thing_links.note ILIKE :q",
       q: pattern
     ).distinct
   }
@@ -69,10 +85,18 @@ class Thing < ApplicationRecord
     links.select(&:present_link?).sort_by { |link| [ link.standard? ? 0 : 1, link.position || 0, link.display_title ] }
   end
 
+  def where_link
+    links.find { |link| link.link_where? && link.present_link? }
+  end
+
   def links_for_display
-    links.select { |link| link.present_link? || link.standard_note? }.sort_by do |link|
+    links.select { |link| (link.present_link? || link.standard_note?) && !link.link_where? }.sort_by do |link|
       [ link.standard? ? 0 : 1, link.position || 0, link.display_title ]
     end
+  end
+
+  def related_things_for_display
+    thing_relationships.includes(:related_thing).sort_by { |rel| rel.related_thing.name.downcase }
   end
 
   def label_title_line
@@ -83,12 +107,60 @@ class Thing < ApplicationRecord
     ip_address.presence
   end
 
+  def label_hostname_line
+    hostname.presence
+  end
+
+  def label_network_lines
+    [ label_hostname_line, label_ip_line ].compact
+  end
+
+  def cable_tag_printable?
+    label_network_lines.any?
+  end
+
+  def labelled?
+    labelled_at.present?
+  end
+
+  def mark_labelled!(at = Time.current)
+    update!(labelled_at: at)
+  end
+
+  def unmark_labelled!
+    update!(labelled_at: nil)
+  end
+
   def scan_total_count
     qr_scan_count + nfc_scan_count
   end
 
   def unifi_managed?
     unifi_devices.any?
+  end
+
+  def integration_managed?
+    unifi_devices.any? || zigbee2mqtt_devices.any?
+  end
+
+  def integration_label
+    Integrations::Registry.label_for(integration_source) if integration_source.present?
+  end
+
+  def safe_manufacturer_url
+    url = manufacturer_url.to_s.strip
+    return nil if url.blank?
+
+    uri = URI.parse(url)
+    return url if uri.is_a?(URI::HTTP) && uri.host.present?
+
+    nil
+  rescue URI::InvalidURIError
+    nil
+  end
+
+  def ieee_address_display
+    Integrations::HardwareAddress.display(ieee_address)
   end
 
   def to_param
@@ -164,31 +236,39 @@ class Thing < ApplicationRecord
     errors.add(:ble_beacon_uuid, "must be a valid UUID")
   end
 
-  def normalize_mac_address
-    value = mac_address.to_s.strip
-    self.mac_address = value.blank? ? nil : (Unifi::MacAddress.normalize(value) || value)
+  def normalize_ieee_address
+    value = ieee_address.to_s.strip
+    self.ieee_address = value.blank? ? nil : (Integrations::HardwareAddress.normalize(value) || value)
   end
 
-  def mac_address_format
-    value = mac_address.to_s
+  def ieee_address_format
+    value = ieee_address.to_s
     return if value.blank?
-    return if value.match?(MAC_ADDRESS_REGEX)
+    return if value.match?(IEEE_ADDRESS_REGEX)
 
-    errors.add(:mac_address, "must be a valid MAC address")
+    errors.add(:ieee_address, "must be a valid IEEE address")
   end
 
-  # Keeps a deleted thing from being recreated by the next UniFi import.
-  def ignore_unifi_devices
+  # Keeps a deleted thing from being recreated by the next import.
+  def ignore_integration_devices
     unifi_devices.update_all(ignored: true, thing_id: nil, updated_at: Time.current)
+    zigbee2mqtt_devices.update_all(ignored: true, thing_id: nil, updated_at: Time.current)
   end
 
-  def ip_address_or_hostname
+  def ip_address_format
     value = ip_address.to_s.strip
     return if value.blank?
     return if value.match?(IPV4_REGEX)
+
+    errors.add(:ip_address, "must be a valid IPv4 address")
+  end
+
+  def hostname_format
+    value = hostname.to_s.strip
+    return if value.blank?
     return if value.match?(HOSTNAME_REGEX)
 
-    errors.add(:ip_address, "must be a valid IPv4 address or hostname")
+    errors.add(:hostname, "must be a valid hostname")
   end
 
   def reject_blank_link?(attributes)

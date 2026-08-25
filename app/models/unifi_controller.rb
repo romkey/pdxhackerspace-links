@@ -1,6 +1,7 @@
 class UnifiController < ApplicationRecord
+  include IntegrationSource
+
   HOST_FORMAT = /\A[a-z0-9]([a-z0-9\-.]*[a-z0-9])?\z/
-  SYNC_STATUSES = %w[running success partial failed skipped].freeze
 
   encrypts :api_key
 
@@ -11,7 +12,6 @@ class UnifiController < ApplicationRecord
   validates :host, presence: true, format: { with: HOST_FORMAT }, uniqueness: { scope: :port }
   validates :port, numericality: { only_integer: true, greater_than: 0, less_than_or_equal_to: 65_535 }
   validates :api_key, presence: true
-  validates :last_sync_status, inclusion: { in: SYNC_STATUSES }, allow_nil: true
   validate :at_least_one_application_enabled
 
   normalizes :name, with: ->(value) { value.to_s.strip }
@@ -47,22 +47,6 @@ class UnifiController < ApplicationRecord
     applications << "network" if network_enabled?
     applications << "protect" if protect_enabled?
     applications
-  end
-
-  def syncing?
-    last_sync_status == "running"
-  end
-
-  def last_sync_ok?
-    last_sync_status == "success"
-  end
-
-  def last_sync_failed?
-    last_sync_status == "failed"
-  end
-
-  def last_sync_skipped?
-    last_sync_status == "skipped"
   end
 
   def device_count

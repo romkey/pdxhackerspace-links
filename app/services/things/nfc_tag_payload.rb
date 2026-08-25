@@ -50,6 +50,7 @@ module Things
         name: @thing.name.to_s,
         owner: @thing.owner.to_s,
         ip_address: @thing.ip_address.to_s,
+        hostname: @thing.hostname.to_s,
         description: @thing.description.to_s,
         notes: @thing.notes.to_s
       }.compact_blank

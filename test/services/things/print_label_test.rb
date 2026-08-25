@@ -102,6 +102,46 @@ class Things::PrintLabelTest < ActiveSupport::TestCase
     end
   end
 
+  test "compact print works on non cable tag printers" do
+    printer = printers(:brother_printer)
+    captured = []
+    runner = lambda do |*_args|
+      captured << _args
+      case _args[1]
+      when "lp" then [ "request id is Brother-1 (1 file(s))\n", "", Struct.new(:success?).new(true) ]
+      when "lpstat" then [ "", "", Struct.new(:success?).new(true) ]
+      else [ "", "", Struct.new(:success?).new(false) ]
+      end
+    end
+    client = Cups::Client.new(server: printer.cups_server, runner: runner)
+
+    assert Things::PrintLabel.call(
+      thing: things(:keyboard),
+      printer: printer,
+      layout: :compact,
+      cups_client: client
+    )
+  end
+
+  test "mark_labelled sets labelled_at after a successful print" do
+    thing = things(:keyboard)
+    printer = printers(:brother_printer)
+    captured = []
+    runner = lambda do |*_args|
+      captured << _args
+      case _args[1]
+      when "lp" then [ "request id is Brother-1 (1 file(s))\n", "", Struct.new(:success?).new(true) ]
+      when "lpstat" then [ "", "", Struct.new(:success?).new(true) ]
+      else [ "", "", Struct.new(:success?).new(false) ]
+      end
+    end
+    client = Cups::Client.new(server: printer.cups_server, runner: runner)
+
+    assert_not thing.labelled?
+    Things::PrintLabel.call(thing: thing, printer: printer, cups_client: client, mark_labelled: true)
+    assert thing.reload.labelled?
+  end
+
   test "command printer runs print command with generated png" do
     printer = printers(:command_printer)
     captured = []

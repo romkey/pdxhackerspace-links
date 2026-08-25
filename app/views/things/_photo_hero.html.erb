@@ -1,0 +1,18 @@
+<% if photo = thing.photos.first %>
+  <% hero_dims = things_photo_dimensions(photo, max_width: 800) %>
+  <div class="thing-hero mb-3">
+    <%= link_to "#",
+                class: "d-block w-100 h-100",
+                data: {
+                  action: "lightbox#open",
+                  lightbox_url_value: things_photo_source(photo, :hero)
+                } do %>
+      <%= image_tag things_photo_source(photo, :hero),
+                    class: "img-fluid",
+                    loading: "eager",
+                    fetchpriority: "high",
+                    alt: thing.name,
+                    **hero_dims %>
+    <% end %>
+  </div>
+<% end %>

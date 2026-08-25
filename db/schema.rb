@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_18_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_22_000005) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -63,8 +63,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_000003) do
   end
 
   create_table "site_settings", force: :cascade do |t|
+    t.decimal "cable_tag_gap_mm", precision: 5, scale: 2, default: "10.0", null: false
     t.datetime "created_at", null: false
     t.string "cups_server", default: "localhost:631", null: false
+    t.decimal "label_print_left_margin_mm", precision: 5, scale: 2, default: "0.0", null: false
+    t.decimal "label_print_right_margin_mm", precision: 5, scale: 2, default: "3.0", null: false
     t.string "matomo_site_id"
     t.string "matomo_url"
     t.datetime "updated_at", null: false
@@ -84,14 +87,31 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_000003) do
     t.index ["thing_id"], name: "index_thing_links_on_thing_id"
   end
 
+  create_table "thing_relationships", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "note"
+    t.bigint "related_thing_id", null: false
+    t.bigint "thing_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["related_thing_id"], name: "index_thing_relationships_on_related_thing_id"
+    t.index ["thing_id", "related_thing_id"], name: "index_thing_relationships_on_thing_id_and_related_thing_id", unique: true
+    t.index ["thing_id"], name: "index_thing_relationships_on_thing_id"
+  end
+
   create_table "things", force: :cascade do |t|
     t.text "ar_anchor_note"
     t.string "ble_beacon_uuid"
     t.datetime "created_at", null: false
     t.text "description"
+    t.string "hostname"
+    t.string "ieee_address"
+    t.string "integration_source"
     t.string "ip_address"
     t.string "key", null: false
-    t.string "mac_address"
+    t.datetime "labelled_at"
+    t.string "manufacturer"
+    t.string "manufacturer_url"
+    t.string "model"
     t.string "name", null: false
     t.integer "nfc_scan_count", default: 0, null: false
     t.text "notes"
@@ -102,8 +122,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_000003) do
     t.datetime "updated_at", null: false
     t.integer "visit_count", default: 0, null: false
     t.index ["ble_beacon_uuid"], name: "index_things_on_ble_beacon_uuid", unique: true, where: "(ble_beacon_uuid IS NOT NULL)"
+    t.index ["ieee_address"], name: "index_things_on_ieee_address", unique: true, where: "(ieee_address IS NOT NULL)"
+    t.index ["integration_source"], name: "index_things_on_integration_source"
     t.index ["key"], name: "index_things_on_key", unique: true
-    t.index ["mac_address"], name: "index_things_on_mac_address", unique: true, where: "(mac_address IS NOT NULL)"
+    t.index ["labelled_at"], name: "index_things_on_labelled_at"
     t.index ["name"], name: "index_things_on_name"
     t.index ["slug"], name: "index_things_on_slug", unique: true, where: "(slug IS NOT NULL)"
   end
@@ -136,11 +158,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_000003) do
     t.string "external_id", null: false
     t.string "firmware_version"
     t.datetime "first_seen_at", null: false
+    t.string "ieee_address"
     t.boolean "ignored", default: false, null: false
     t.string "ip_address"
     t.string "kind", null: false
     t.datetime "last_seen_at", null: false
-    t.string "mac_address"
     t.string "model"
     t.string "name"
     t.jsonb "payload", default: {}, null: false
@@ -152,7 +174,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_000003) do
     t.bigint "unifi_controller_id", null: false
     t.datetime "updated_at", null: false
     t.index ["archived_at"], name: "index_unifi_devices_on_archived_at"
-    t.index ["mac_address"], name: "index_unifi_devices_on_mac_address"
+    t.index ["ieee_address"], name: "index_unifi_devices_on_ieee_address"
     t.index ["source"], name: "index_unifi_devices_on_source"
     t.index ["thing_id"], name: "index_unifi_devices_on_thing_id"
     t.index ["unifi_controller_id", "source", "external_id"], name: "index_unifi_devices_on_controller_source_and_external_id", unique: true
@@ -171,8 +193,66 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_18_000003) do
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true, where: "((provider IS NOT NULL) AND (uid IS NOT NULL))"
   end
 
+  create_table "zigbee2mqtt_bridges", force: :cascade do |t|
+    t.boolean "auto_create_things", default: true, null: false
+    t.string "base_topic", default: "zigbee2mqtt", null: false
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.boolean "enabled", default: true, null: false
+    t.boolean "import_unknown_last_seen", default: true, null: false
+    t.integer "last_seen_limit_days"
+    t.text "last_sync_message"
+    t.string "last_sync_status"
+    t.datetime "last_synced_at"
+    t.string "mqtt_host", null: false
+    t.text "mqtt_password"
+    t.integer "mqtt_port", default: 1883, null: false
+    t.boolean "mqtt_tls", default: false, null: false
+    t.string "mqtt_username"
+    t.string "name", null: false
+    t.boolean "skip_disabled_devices", default: true, null: false
+    t.datetime "updated_at", null: false
+    t.index ["enabled"], name: "index_zigbee2mqtt_bridges_on_enabled"
+    t.index ["name"], name: "index_zigbee2mqtt_bridges_on_name", unique: true
+  end
+
+  create_table "zigbee2mqtt_devices", force: :cascade do |t|
+    t.jsonb "applied_attributes", default: {}, null: false
+    t.datetime "archived_at"
+    t.datetime "created_at", null: false
+    t.string "date_code"
+    t.string "device_type"
+    t.boolean "disabled", default: false, null: false
+    t.datetime "first_seen_at", null: false
+    t.string "friendly_name"
+    t.string "ieee_address", null: false
+    t.boolean "ignored", default: false, null: false
+    t.datetime "last_seen_at", null: false
+    t.string "manufacturer"
+    t.string "model"
+    t.text "model_description"
+    t.integer "network_address"
+    t.jsonb "payload", default: {}, null: false
+    t.string "power_source"
+    t.datetime "reported_last_seen_at"
+    t.string "software_build_id"
+    t.boolean "supported", default: true, null: false
+    t.bigint "thing_id"
+    t.datetime "updated_at", null: false
+    t.bigint "zigbee2mqtt_bridge_id", null: false
+    t.index ["archived_at"], name: "index_zigbee2mqtt_devices_on_archived_at"
+    t.index ["ieee_address"], name: "index_zigbee2mqtt_devices_on_ieee_address"
+    t.index ["thing_id"], name: "index_zigbee2mqtt_devices_on_thing_id"
+    t.index ["zigbee2mqtt_bridge_id", "ieee_address"], name: "index_z2m_devices_on_bridge_and_ieee_address", unique: true
+    t.index ["zigbee2mqtt_bridge_id"], name: "index_zigbee2mqtt_devices_on_zigbee2mqtt_bridge_id"
+  end
+
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "thing_links", "things"
+  add_foreign_key "thing_relationships", "things", column: "related_thing_id", on_delete: :cascade
+  add_foreign_key "thing_relationships", "things", on_delete: :cascade
   add_foreign_key "unifi_devices", "things"
   add_foreign_key "unifi_devices", "unifi_controllers"
+  add_foreign_key "zigbee2mqtt_devices", "things"
+  add_foreign_key "zigbee2mqtt_devices", "zigbee2mqtt_bridges"
 end

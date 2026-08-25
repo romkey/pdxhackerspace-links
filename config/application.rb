@@ -15,8 +15,7 @@ module Links
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 8.1
 
-    # Thing photos are served without variants; skip vips/ImageMagick at boot.
-    config.active_storage.variant_processor = :disabled
+    config.active_storage.variant_processor = :vips
 
     # Encrypts the UniFi controller API key at rest.
     config.active_record.encryption.primary_key = Links::EncryptionKeys.primary_key

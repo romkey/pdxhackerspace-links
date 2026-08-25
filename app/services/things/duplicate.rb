@@ -16,9 +16,14 @@ module Things
           notes: thing.notes,
           owner: thing.owner,
           ip_address: thing.ip_address,
+          hostname: thing.hostname,
+          manufacturer: thing.manufacturer,
+          model: thing.model,
+          manufacturer_url: thing.manufacturer_url,
           ar_anchor_note: thing.ar_anchor_note
         )
         copy_links(copy)
+        copy_relationships(copy)
         copy_photos(copy)
         copy_ar_anchor(copy)
         copy
@@ -30,7 +35,7 @@ module Things
     attr_reader :thing
 
     def copy_links(copy)
-      thing.links_for_display.each do |link|
+      thing.links.select { |link| link.present_link? || link.standard_note? }.each do |link|
         if link.link_custom?
           copy.links.create!(
             link_type: :custom,
@@ -42,6 +47,15 @@ module Things
         else
           copy.links.create!(link_type: link.link_type, url: link.url, note: link.note)
         end
+      end
+    end
+
+    def copy_relationships(copy)
+      thing.related_things_for_display.each do |relationship|
+        copy.thing_relationships.create!(
+          related_thing: relationship.related_thing,
+          note: relationship.note
+        )
       end
     end
 

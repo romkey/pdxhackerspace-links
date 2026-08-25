@@ -1,0 +1,12 @@
+<% if (presenter = things_where_presenter(thing)) %>
+  <%= link_to presenter.href,
+              target: "_blank",
+              rel: "noopener",
+              class: "where-panel tap-target mb-3 d-flex" do %>
+    <i class="bi bi-geo-alt fs-5 text-primary flex-shrink-0"></i>
+    <div>
+      <div class="where-panel-label"><%= presenter.label %></div>
+    </div>
+    <span class="where-panel-affordance"><%= presenter.affordance %> <i class="bi bi-box-arrow-up-right"></i></span>
+  <% end %>
+<% end %>

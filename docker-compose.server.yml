@@ -16,7 +16,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       SECRET_KEY_BASE: ${SECRET_KEY_BASE:-}
       RAILS_MASTER_KEY: ${RAILS_MASTER_KEY:-}
-      APP_VERSION: ${APP_VERSION:-dev}
+      GITHUB_REPO_URL: ${GITHUB_REPO_URL:-https://github.com/romkey/pdxhackerspace-links}
       SENTRY_DSN: ${SENTRY_DSN:-}
       SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-production}
       SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0}
@@ -38,7 +38,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       SECRET_KEY_BASE: ${SECRET_KEY_BASE:-}
       RAILS_MASTER_KEY: ${RAILS_MASTER_KEY:-}
-      APP_VERSION: ${APP_VERSION:-dev}
+      GITHUB_REPO_URL: ${GITHUB_REPO_URL:-https://github.com/romkey/pdxhackerspace-links}
       SENTRY_DSN: ${SENTRY_DSN:-}
       SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-production}
       SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0}

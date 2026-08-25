@@ -37,6 +37,14 @@ class SiteSettingTest < ActiveSupport::TestCase
     assert_not setting.valid?
   end
 
+  test "validates label margin ranges" do
+    setting = site_settings(:default)
+    setting.label_print_left_margin_mm = -1
+
+    assert_not setting.valid?
+    assert_includes setting.errors[:label_print_left_margin_mm], "must be greater than or equal to 0"
+  end
+
   test "requires paired matomo fields" do
     setting = site_settings(:default)
     setting.matomo_url = "https://matomo.example.com"
