@@ -1,7 +1,9 @@
-<% if source.last_synced_at.blank? && !source.syncing? %>
-  <span class="text-secondary text-13">Never</span>
-<% elsif source.syncing? %>
+<% if source.syncing? %>
   <span class="badge text-bg-secondary-subtle text-12 fw-normal">Running</span>
+<% elsif source.last_sync_skipped? %>
+  <span class="badge text-bg-secondary-subtle text-12 fw-normal" title="<%= source.last_sync_message %>">Skipped</span>
+<% elsif source.last_synced_at.blank? %>
+  <span class="text-secondary text-13">Never</span>
 <% else %>
   <span class="text-13">
     <% if source.last_sync_ok? %>
