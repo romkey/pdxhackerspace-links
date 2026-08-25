@@ -642,6 +642,7 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select ".bulk-action-bar button", text: "Mark labelled"
     assert_select ".bulk-action-bar button", text: "Clear labelled"
+    assert_select ".bulk-action-bar form[data-turbo-frame='_top']", count: 2
   end
 
   test "bulk label preview shows each selected thing" do
