@@ -1,0 +1,17 @@
+<div class="offcanvas offcanvas-start things-filters-offcanvas d-lg-none"
+     tabindex="-1"
+     id="things-filters-offcanvas"
+     aria-labelledby="things-filters-offcanvas-label">
+  <div class="offcanvas-header py-2">
+    <h2 class="offcanvas-title h6 mb-0" id="things-filters-offcanvas-label">Filters</h2>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body pt-0">
+    <%= render "things/filters_list" %>
+    <% if @things_index.filters.active? %>
+      <div class="mt-3">
+        <%= link_to "Clear filters", things_clear_filters_path, class: "btn btn-outline-secondary btn-sm" %>
+      </div>
+    <% end %>
+  </div>
+</div>

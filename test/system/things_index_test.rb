@@ -27,4 +27,13 @@ class ThingsIndexTest < ApplicationSystemTestCase
     assert_selector "#things-filters-offcanvas.show", visible: :all
     assert_selector "#things-filters-offcanvas .filter-chip", minimum: 1
   end
+
+  test "desktop shows inline filters without offcanvas toggle" do
+    page.driver.browser.manage.window.resize_to(1440, 900)
+    visit things_path
+
+    assert_no_selector "button", text: "Filters"
+    assert_selector ".filter-chip", minimum: 1
+    assert_no_selector "#things-filters-offcanvas.show"
+  end
 end
