@@ -1,9 +1,10 @@
 <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
   <button type="button"
           class="btn btn-outline-secondary btn-sm d-lg-none"
-          data-bs-toggle="offcanvas"
-          data-bs-target="#things-filters-offcanvas"
-          aria-controls="things-filters-offcanvas">
+          data-bs-toggle="collapse"
+          data-bs-target="#things-filters"
+          aria-expanded="false"
+          aria-controls="things-filters">
     Filters
     <% if @things_index.filters.active? %>
       <span class="badge text-bg-secondary-subtle ms-1"><%= @things_index.filters.active_count %></span>
@@ -42,6 +43,11 @@
   <% end %>
 </div>
 
-<div class="d-none d-lg-block mb-2">
+<div class="collapse things-filters mb-2" id="things-filters">
   <%= render "things/filters_list" %>
+  <% if @things_index.filters.active? %>
+    <div class="mt-2 d-lg-none">
+      <%= link_to "Clear filters", things_clear_filters_path, class: "btn btn-outline-secondary btn-sm" %>
+    </div>
+  <% end %>
 </div>

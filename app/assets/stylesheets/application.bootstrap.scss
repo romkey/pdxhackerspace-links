@@ -240,11 +240,13 @@
   color: var(--bs-body-color);
 }
 
-.things-filters-offcanvas {
-  background-color: var(--bs-offcanvas-bg);
-
-  &.show {
-    background-color: var(--bs-offcanvas-bg);
+.things-filters {
+  @include media-breakpoint-up(lg) {
+    &.collapse {
+      display: block;
+      height: auto;
+      visibility: visible;
+    }
   }
 }
 

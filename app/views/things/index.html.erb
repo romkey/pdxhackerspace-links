@@ -73,8 +73,6 @@
     <%= render "index_results" %>
   <% end %>
 
-  <%= render "filters_offcanvas" %>
-
   <% if can_manage_things? && @printers.present? %>
     <%= render "print_dialog", printers: @printers %>
   <% end %>
