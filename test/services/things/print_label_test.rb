@@ -3,6 +3,7 @@ require "test_helper"
 class Things::PrintLabelTest < ActiveSupport::TestCase
   test "submits generated label to cups with matching media" do
     printer = printers(:brother_printer)
+    expected_media = Things::LabelPdf.new(thing: things(:keyboard), printer: printer).cups_media
     captured = []
     runner = lambda do |*_args|
       captured << _args
@@ -26,7 +27,7 @@ class Things::PrintLabelTest < ActiveSupport::TestCase
     assert_includes lp_args, printer.cups_name
     assert_includes lp_args, "-n"
     assert_includes lp_args, "2"
-    assert_includes lp_args, "media=Custom.62x94mm"
+    assert_includes lp_args, "media=#{expected_media}"
     assert_includes lp_args, "print-scaling=none"
   end
 

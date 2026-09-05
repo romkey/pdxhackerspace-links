@@ -211,6 +211,99 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
     base_pdf&.cleanup! if base_pdf&.instance_variable_get(:@generated_path)
   end
 
+  test "two text lines each take half the strip height" do
+    pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer))
+    lines = pdf.send(:strip_style_label_lines)
+    expected_mm = (24 - Things::LabelPdf::TEXT_LINE_GAP_MM) / 2
+
+    assert_equal 2, lines.size
+    assert_in_delta expected_mm, text_row_height_mm(pdf, lines.size), 0.01
+  end
+
+  test "three text lines split the strip height evenly" do
+    thing = things(:router)
+    thing.update!(hostname: "router.local")
+    pdf = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer))
+    lines = pdf.send(:strip_style_label_lines)
+    expected_mm = (24 - (2 * Things::LabelPdf::TEXT_LINE_GAP_MM)) / 3
+
+    assert_equal 3, lines.size
+    assert_in_delta expected_mm, text_row_height_mm(pdf, lines.size), 0.01
+  end
+
+  test "text row height is capped on wide rolls" do
+    pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:brother_printer))
+
+    assert_in_delta Things::LabelPdf::MAX_TEXT_ROW_MM, text_row_height_mm(pdf, 2), 0.01
+  end
+
+  test "strip label text fills the strip height" do
+    label_pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer))
+    path = label_pdf.generate
+    png_path = rasterize_label_pdf(path)
+    image = ChunkyPNG::Image.from_file(png_path)
+    text_start = (image.width * (Things::LabelPdf::STRIP_24MM_ROLL_WIDTH_MM / label_pdf.page_width_mm)).ceil
+    text_top, text_bottom = qr_vertical_extent(image, x_range: text_start...image.width)
+
+    assert_operator text_bottom - text_top, :>=, (image.height * 0.7).round
+  ensure
+    label_pdf&.cleanup!
+    File.delete(png_path) if png_path && File.exist?(png_path)
+  end
+
+  test "strip label prints the owner with the name" do
+    label_pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer))
+    text = extract_label_pdf_text(label_pdf.generate)
+
+    assert_includes text, "Router"
+    assert_includes text, "romkey"
+  ensure
+    label_pdf&.cleanup!
+  end
+
+  test "brother roll label prints the owner with the name" do
+    label_pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:brother_printer))
+    text = extract_label_pdf_text(label_pdf.generate)
+
+    assert_includes text, "Router"
+    assert_includes text, "romkey"
+  ensure
+    label_pdf&.cleanup!
+  end
+
+  test "avery label prints the owner with the name" do
+    label_pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:office_laser))
+    text = extract_label_pdf_text(label_pdf.generate)
+
+    assert_includes text, "Router"
+    assert_includes text, "romkey"
+  ensure
+    label_pdf&.cleanup!
+  end
+
+  test "compact label prints the owner with the name" do
+    label_pdf = Things::LabelPdf.new(
+      thing: things(:router),
+      printer: printers(:label_printer),
+      layout: :compact
+    )
+    text = extract_label_pdf_text(label_pdf.generate)
+
+    assert_includes text, "Router"
+    assert_includes text, "romkey"
+  ensure
+    label_pdf&.cleanup!
+  end
+
+  test "labels without an owner print only the name" do
+    label_pdf = Things::LabelPdf.new(thing: things(:keyboard), printer: printers(:label_printer))
+    text = extract_label_pdf_text(label_pdf.generate)
+
+    assert_includes text, "Keyboard"
+  ensure
+    label_pdf&.cleanup!
+  end
+
   test "cable tag prints hostname and ip on separate lines" do
     thing = things(:router)
     thing.update!(hostname: "router.local")
@@ -324,6 +417,17 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
     assert_operator dark_pixels, :>, 100, "expected QR code pixels in the #{region} region of the label"
   ensure
     File.delete(png_path) if png_path && File.exist?(png_path)
+  end
+
+  def text_row_height_mm(label_pdf, line_count)
+    label_pdf.send(:text_row_height_pt, line_count) / Things::LabelPdf::MM_TO_PT
+  end
+
+  def extract_label_pdf_text(path)
+    stdout, stderr, status = Open3.capture3("pdftotext", "-layout", path, "-")
+    raise "pdftotext failed: #{stderr}" unless status.success?
+
+    stdout
   end
 
   def rasterize_label_pdf(path)

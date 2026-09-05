@@ -10,6 +10,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 - Bulk **Mark labelled** and **Clear labelled** actions when multiple things are selected on the index
 
+### Changed
+
+- Label text is much larger: text rows now divide the label height evenly (capped at 12mm per row) with a small gap between them, so a two-line label prints each line at half the label height
+- Labels print the thing's owner after its name on every layout, including Brother roll, Avery/letter, and Compact labels
+
 ### Fixed
 
 - Zigbee2MQTT imports no longer stay stuck on "Running" when a bridge is disabled before the queued job runs

@@ -9,16 +9,16 @@ module Things
     LETTER_WIDTH = 8.5 * IN_TO_PT
     LETTER_HEIGHT = 11 * IN_TO_PT
     STRIP_24MM_ROLL_WIDTH_MM = 24
-    STRIP_24MM_TEXT_ROW_MM = 6
     STRIP_24MM_TEXT_GAP_MM = 0.75
     STRIP_24MM_TEXT_MIN_WIDTH_MM = 28
-    STRIP_24MM_TEXT_SIZE = 10
     CABLE_TAG_ROLL_WIDTH_MM = 24
     LANDSCAPE_TEXT_MIN_WIDTH_MM = 28
-    LANDSCAPE_TEXT_SIZE = 11
     AR_MARKER_GAP_MM = 0.75
+    TEXT_LINE_GAP_MM = 0.5
+    MAX_TEXT_ROW_MM = 12
+    TEXT_ROW_FILL_RATIO = 0.85
+    MIN_TEXT_SIZE = 6
     COMPACT_NAME_ROW_MM = 4
-    COMPACT_NAME_SIZE = 6
     LAYOUTS = %i[standard cable_tag compact].freeze
     LAYOUT_LABELS = {
       standard: "Standard label",
@@ -276,22 +276,39 @@ module Things
     end
 
     def strip_text_width_mm
-      text_column_width_mm(strip_style_label_lines, font_size: STRIP_24MM_TEXT_SIZE)
+      text_column_width_mm(strip_style_label_lines)
     end
 
     def cable_tag_text_width_mm
-      text_column_width_mm(cable_tag_label_lines, font_size: STRIP_24MM_TEXT_SIZE)
+      text_column_width_mm(cable_tag_label_lines)
     end
 
     def landscape_text_width_mm
-      lines = [ thing.name ] + landscape_bottom_lines
-      text_column_width_mm(lines, font_size: LANDSCAPE_TEXT_SIZE)
+      text_column_width_mm([ title_line ] + landscape_bottom_lines)
     end
 
-    def text_column_width_mm(lines, font_size:)
-      measured_mm = measure_text_lines_mm(lines, font_size: font_size)
+    def text_column_width_mm(lines)
+      measured_mm = measure_text_lines_mm(lines, font_size: text_size_for(lines.size))
       min_width = strip_style_label? || cable_tag? ? STRIP_24MM_TEXT_MIN_WIDTH_MM : LANDSCAPE_TEXT_MIN_WIDTH_MM
       [ min_width, measured_mm ].max.round(2)
+    end
+
+    # Text rows split the strip height evenly, so two lines each get half the label.
+    def text_row_height_pt(line_count, strip_height: strip_height_pt)
+      rows = [ line_count, 1 ].max
+      available = strip_height - ((rows - 1) * mm(TEXT_LINE_GAP_MM))
+
+      [ available / rows, mm(MAX_TEXT_ROW_MM) ].min
+    end
+
+    def text_size_for(line_count, strip_height: strip_height_pt)
+      row_height = text_row_height_pt(line_count, strip_height: strip_height)
+
+      [ row_height * TEXT_ROW_FILL_RATIO, MIN_TEXT_SIZE ].max
+    end
+
+    def strip_height_pt
+      mm(page_height_mm)
     end
 
     def measure_text_lines_mm(lines, font_size:)
@@ -310,12 +327,16 @@ module Things
       @text_metrics.width_of(text, size: size, style: style)
     end
 
+    def title_line
+      thing.label_title_line
+    end
+
     def cable_tag_label_lines
-      [ thing.label_title_line ] + thing.label_network_lines
+      [ title_line ] + thing.label_network_lines
     end
 
     def strip_style_label_lines
-      [ thing.label_title_line ] + strip_style_bottom_lines
+      [ title_line ] + strip_style_bottom_lines
     end
 
     def strip_style_bottom_lines
@@ -363,8 +384,7 @@ module Things
         lines: lines,
         text_left: text_left,
         text_width: text_width,
-        strip_height: strip_height,
-        font_size: STRIP_24MM_TEXT_SIZE
+        strip_height: strip_height
       )
     end
 
@@ -395,14 +415,15 @@ module Things
     end
 
     def render_compact_name(pdf, x:, width:, bottom:, height:)
-      pdf.text_box thing.name.to_s,
+      pdf.text_box title_line.to_s,
                    at: [ x, bottom + height ],
                    width: width,
                    height: height,
-                   size: COMPACT_NAME_SIZE,
+                   size: [ height * TEXT_ROW_FILL_RATIO, MIN_TEXT_SIZE ].max,
                    align: :center,
                    valign: :center,
-                   overflow: :truncate,
+                   overflow: :shrink_to_fit,
+                   min_font_size: MIN_TEXT_SIZE,
                    single_line: true,
                    color: "444444"
     end
@@ -412,16 +433,10 @@ module Things
     end
 
     def render_strip_style_label(pdf)
-      render_landscape_roll_label(
-        pdf,
-        top_line: thing.label_title_line,
-        bottom_lines: strip_style_bottom_lines,
-        font_size: STRIP_24MM_TEXT_SIZE
-      )
+      render_landscape_roll_label(pdf, bottom_lines: strip_style_bottom_lines)
     end
 
-    def render_landscape_roll_label(pdf, top_line: thing.name, bottom_lines: landscape_bottom_lines, font_size: nil)
-      font_size ||= strip_text_size
+    def render_landscape_roll_label(pdf, top_line: title_line, bottom_lines: landscape_bottom_lines)
       bottom_lines = Array(bottom_lines).compact
       lines = [ top_line ] + bottom_lines
       left_offset = mm(left_margin_mm)
@@ -442,8 +457,7 @@ module Things
         lines: lines,
         text_left: text_left,
         text_width: text_width,
-        strip_height: strip_height,
-        font_size: font_size
+        strip_height: strip_height
       )
 
       return unless ar_marker_attached?
@@ -452,10 +466,11 @@ module Things
       draw_ar_marker(pdf, x: marker_x, y: 0, size: marker_size)
     end
 
-    def render_text_lines(pdf, lines:, text_left:, text_width:, strip_height:, font_size:)
+    def render_text_lines(pdf, lines:, text_left:, text_width:, strip_height:)
       text_rows = lines.size
-      text_row_height = mm(STRIP_24MM_TEXT_ROW_MM)
-      text_gap = mm(STRIP_24MM_TEXT_GAP_MM)
+      text_row_height = text_row_height_pt(text_rows, strip_height: strip_height)
+      text_gap = mm(TEXT_LINE_GAP_MM)
+      font_size = text_size_for(text_rows, strip_height: strip_height)
       text_block_height = (text_rows * text_row_height) + ((text_rows - 1) * text_gap)
       row_top = ((strip_height - text_block_height) / 2) + text_block_height
 
@@ -466,7 +481,8 @@ module Things
                      height: text_row_height,
                      size: font_size,
                      style: index.zero? ? :bold : :normal,
-                     overflow: :expand,
+                     overflow: :shrink_to_fit,
+                     min_font_size: MIN_TEXT_SIZE,
                      single_line: true,
                      valign: :center,
                      color: index.zero? ? "000000" : "444444"
@@ -500,10 +516,6 @@ module Things
       ).to_s
     end
 
-    def strip_text_size
-      strip_24mm_label? ? STRIP_24MM_TEXT_SIZE : LANDSCAPE_TEXT_SIZE
-    end
-
     def render_avery_label(pdf)
       config = printer.avery_template_config || Printer::AVERY_TEMPLATES["avery_5160"]
       bounds = avery_label_bounds(config, row: 0, col: 0)
@@ -535,7 +547,7 @@ module Things
       show_qr = qr_size >= 24 && content_width >= 36
 
       pdf.bounding_box([ x + padding, top - padding ], width: content_width, height: content_height) do
-        pdf.text thing.name, size: title_size(content_width), style: :bold, align: :center
+        pdf.text title_line, size: title_size(content_width), style: :bold, align: :center
 
         if show_qr
           pdf.move_down 4
