@@ -7,6 +7,7 @@ class Thing < ApplicationRecord
   KEY_LENGTH = 8
   KEY_REGEX = /\A[a-z][a-z0-9]{7}\z/
   KEY_ALPHABET = ("a".."z").to_a + ("0".."9").to_a
+  LABEL_SEPARATOR = " - ".freeze
   RESERVED_SLUGS = %w[by_beacon new edit].freeze
   RESERVED_KEYS = (%w[login logout settings sidekiq things up auth] + RESERVED_SLUGS).freeze
 
@@ -100,7 +101,7 @@ class Thing < ApplicationRecord
   end
 
   def label_title_line
-    [ name, owner.presence ].compact.join(" ")
+    [ name, owner.presence ].compact.join(LABEL_SEPARATOR)
   end
 
   def label_ip_line
@@ -111,8 +112,11 @@ class Thing < ApplicationRecord
     hostname.presence
   end
 
+  # Hostname and IP share the bottom row so the label keeps to two taller lines.
   def label_network_lines
-    [ label_hostname_line, label_ip_line ].compact
+    line = [ label_hostname_line, label_ip_line ].compact.join(LABEL_SEPARATOR)
+
+    line.present? ? [ line ] : []
   end
 
   def cable_tag_printable?

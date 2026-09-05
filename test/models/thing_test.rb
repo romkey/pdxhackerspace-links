@@ -46,9 +46,9 @@ class ThingTest < ActiveSupport::TestCase
     assert_equal "Shelf B", thing.links.find_by(link_type: :wiki).note
   end
 
-  test "label title line includes owner when set" do
+  test "label title line separates owner from name with a dash" do
     router = things(:router)
-    assert_equal "Router romkey", router.label_title_line
+    assert_equal "Router - romkey", router.label_title_line
     assert_equal "192.168.1.1", router.label_ip_line
     assert_nil router.label_hostname_line
   end
@@ -74,12 +74,22 @@ class ThingTest < ActiveSupport::TestCase
     assert_nil thing.safe_manufacturer_url
   end
 
-  test "label network lines include hostname and ip when both set" do
+  test "label network lines put hostname and ip on one line when both set" do
     router = things(:router)
     router.update!(hostname: "router.local")
 
-    assert_equal [ "router.local", "192.168.1.1" ], router.label_network_lines
+    assert_equal [ "router.local - 192.168.1.1" ], router.label_network_lines
     assert router.cable_tag_printable?
+  end
+
+  test "label network lines hold a single value when only one is set" do
+    router = things(:router)
+
+    assert_equal [ "192.168.1.1" ], router.label_network_lines
+
+    router.update!(ip_address: nil, hostname: "router.local")
+
+    assert_equal [ "router.local" ], router.label_network_lines
   end
 
   test "label title line omits blank owner" do

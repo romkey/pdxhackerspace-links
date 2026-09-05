@@ -398,6 +398,44 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_match(/cable tag/i, flash[:notice])
   end
 
+  test "qr code only preview and print use the qr only layout" do
+    get label_preview_thing_path(things(:router), printer_id: printers(:label_printer).id, layout: :qr_only)
+
+    assert_response :success
+    assert_select "h1", "QR code only preview"
+    assert_select "iframe[src=?]",
+                  label_preview_thing_path(things(:router), printer_id: printers(:label_printer).id, format: :pdf, layout: :qr_only)
+    assert_match(/QR code only/, response.body)
+
+    with_fake_cups_client do
+      post print_thing_path(things(:router)), params: { printer_id: printers(:label_printer).id, layout: :qr_only }
+    end
+
+    assert_redirected_to thing_path(things(:router))
+    assert_match(/qr code only/i, flash[:notice])
+  end
+
+  test "print dialog offers the qr code only layout" do
+    get thing_path(things(:router))
+
+    assert_response :success
+    assert_select "input#print-layout-qr_only"
+    assert_select "label[for=?]", "print-layout-qr_only", text: "QR code only"
+  end
+
+  test "bulk print queues qr only labels" do
+    assert_enqueued_with(job: Things::BulkPrintJob) do
+      post bulk_print_things_path, params: {
+        thing_ids: [ things(:keyboard).id, things(:router).id ],
+        printer_id: printers(:label_printer).id,
+        layout: "qr_only"
+      }
+    end
+
+    assert_redirected_to things_path
+    assert_match(/Queued 2 labels/, flash[:notice])
+  end
+
   test "index includes scan counts for admins" do
     things(:router).update!(qr_scan_count: 4, nfc_scan_count: 2, visit_count: 10)
 
