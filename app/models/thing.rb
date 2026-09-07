@@ -44,6 +44,7 @@ class Thing < ApplicationRecord
   validate :reserved_key
 
   before_validation :normalize_slug
+  before_validation :normalize_label_name
   before_validation :normalize_ble_beacon_uuid
   before_validation :normalize_ieee_address
   before_validation :assign_key, on: :create
@@ -61,7 +62,7 @@ class Thing < ApplicationRecord
 
     pattern = "%#{sanitize_sql_like(term)}%"
     left_joins(:links).where(
-      "things.name ILIKE :q OR things.key ILIKE :q OR things.slug ILIKE :q OR things.description ILIKE :q OR things.notes ILIKE :q OR things.ar_anchor_note ILIKE :q OR things.owner ILIKE :q OR things.ip_address ILIKE :q OR things.hostname ILIKE :q OR things.ieee_address ILIKE :q OR things.manufacturer ILIKE :q OR things.model ILIKE :q OR things.ble_beacon_uuid ILIKE :q OR thing_links.title ILIKE :q OR thing_links.url ILIKE :q OR thing_links.note ILIKE :q",
+      "things.name ILIKE :q OR things.label_name ILIKE :q OR things.key ILIKE :q OR things.slug ILIKE :q OR things.description ILIKE :q OR things.notes ILIKE :q OR things.ar_anchor_note ILIKE :q OR things.owner ILIKE :q OR things.ip_address ILIKE :q OR things.hostname ILIKE :q OR things.ieee_address ILIKE :q OR things.manufacturer ILIKE :q OR things.model ILIKE :q OR things.ble_beacon_uuid ILIKE :q OR thing_links.title ILIKE :q OR thing_links.url ILIKE :q OR thing_links.note ILIKE :q",
       q: pattern
     ).distinct
   }
@@ -100,8 +101,13 @@ class Thing < ApplicationRecord
     thing_relationships.includes(:related_thing).sort_by { |rel| rel.related_thing.name.downcase }
   end
 
+  # Name printed on labels, which may be shortened to fit.
+  def label_display_name
+    label_name.presence || name
+  end
+
   def label_title_line
-    [ name, owner.presence ].compact.join(LABEL_SEPARATOR)
+    [ label_display_name, owner.presence ].compact.join(LABEL_SEPARATOR)
   end
 
   def label_ip_line
@@ -189,6 +195,10 @@ class Thing < ApplicationRecord
 
   def normalize_slug
     self.slug = slug.to_s.strip.downcase.presence
+  end
+
+  def normalize_label_name
+    self.label_name = label_name.to_s.strip.presence
   end
 
   def slug_format

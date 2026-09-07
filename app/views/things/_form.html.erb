@@ -7,10 +7,18 @@
 
   <div>
     <div class="h-section-label mb-2">Identity</div>
-    <div class="row g-3">
+    <div class="row g-3" data-controller="label-name" data-label-name-fallback-value="Same as name">
       <div class="col-md-6">
         <%= form.label :name, class: "form-label" %>
-        <%= form.text_field :name, class: "form-control", required: true %>
+        <%= form.text_field :name, class: "form-control", required: true,
+                            data: { label_name_target: "source", action: "input->label-name#update" } %>
+      </div>
+      <div class="col-md-6">
+        <%= form.label :label_name, "Label name", class: "form-label" %>
+        <%= form.text_field :label_name, class: "form-control",
+                            placeholder: thing.name.presence || "Same as name",
+                            data: { label_name_target: "field" } %>
+        <div class="form-text text-12">Optional shorter name to print on labels.</div>
       </div>
       <div class="col-md-6">
         <%= form.label :owner, class: "form-label" %>

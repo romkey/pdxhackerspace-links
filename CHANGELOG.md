@@ -6,8 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-09-06
+
 ### Added
 
+- **Label name** field on things: an optional shorter name to print on labels when the full name is too long. Leave it blank and labels keep using the regular name, which the form shows as faded placeholder text
 - Bulk **Mark labelled** and **Clear labelled** actions when multiple things are selected on the index
 - **QR code only** label layout — a square label with nothing but the QR code, for very small items
 
@@ -19,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 
+- Print confirmations keep the QR acronym capitalized instead of reading "Sent qr code only …"
 - Zigbee2MQTT imports no longer stay stuck on "Running" when a bridge is disabled before the queued job runs
 
 ## [0.11.8] - 2026-08-24

@@ -92,6 +92,34 @@ class ThingTest < ActiveSupport::TestCase
     assert_equal [ "router.local" ], router.label_network_lines
   end
 
+  test "label title line uses the label name when set" do
+    router = things(:router)
+    router.update!(label_name: "Rtr")
+
+    assert_equal "Rtr", router.label_display_name
+    assert_equal "Rtr - romkey", router.label_title_line
+  end
+
+  test "label display name falls back to the name" do
+    keyboard = things(:keyboard)
+
+    assert_nil keyboard.label_name
+    assert_equal "Keyboard", keyboard.label_display_name
+  end
+
+  test "blank label name is stored as nil" do
+    thing = Thing.create!(name: "Thermostat", label_name: "   ")
+
+    assert_nil thing.label_name
+    assert_equal "Thermostat", thing.label_display_name
+  end
+
+  test "search matches the label name" do
+    things(:router).update!(label_name: "Rtr")
+
+    assert_includes Thing.search("rtr"), things(:router)
+  end
+
   test "label title line omits blank owner" do
     assert_equal "Keyboard", things(:keyboard).label_title_line
     assert_equal [], things(:keyboard).label_network_lines

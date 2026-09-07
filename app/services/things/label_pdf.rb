@@ -26,6 +26,13 @@ module Things
       compact: "Compact",
       qr_only: "QR code only"
     }.freeze
+    # Same names for mid-sentence use, where "QR" stays an acronym.
+    LAYOUT_SENTENCE_LABELS = {
+      standard: "standard label",
+      cable_tag: "cable tag",
+      compact: "compact",
+      qr_only: "QR code only"
+    }.freeze
 
     PAGE_LAYOUTS = {
       "label_brother_12mm" => { width_mm: 12, height_mm: 40 },
@@ -69,6 +76,10 @@ module Things
 
     def self.layout_label(layout)
       LAYOUT_LABELS.fetch(layout.to_sym, "Standard label")
+    end
+
+    def self.layout_sentence_label(layout)
+      LAYOUT_SENTENCE_LABELS.fetch(layout.to_sym, "standard label")
     end
 
     def left_margin_mm
