@@ -19,6 +19,12 @@ export default class extends Controller {
   }
 
   connect() {
+    this.resetSelection()
+  }
+
+  // The results frame swaps in fresh markup for the whole index on every
+  // search, filter and sort, so the selection has to start over with it.
+  resetSelection() {
     this.selectionMode = false
     this.selectAllMatchingActive = false
     this.updateUI()
@@ -118,7 +124,10 @@ export default class extends Controller {
   updateUI() {
     const visible = this.selectionMode
     this.checkboxColumnTargets.forEach((column) => column.classList.toggle("d-none", !visible))
-    this.actionBarTarget.classList.toggle("d-none", !visible || this.selectedCount() === 0)
+
+    if (this.hasActionBarTarget) {
+      this.actionBarTarget.classList.toggle("d-none", !visible || this.selectedCount() === 0)
+    }
 
     if (this.hasSelectToggleTarget) {
       this.selectToggleTarget.textContent = visible ? "Done" : "Select"

@@ -709,6 +709,30 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "turbo-frame#things_results a.thing-card[data-turbo-frame='_top']"
   end
 
+  test "index result summary renders inside the results turbo frame so search updates it" do
+    get things_path, params: { q: "keyboard" }
+
+    assert_response :success
+    assert_select "turbo-frame#things_results" do
+      assert_select "h1", text: "Things"
+      assert_select "a", text: "Clear search"
+    end
+  end
+
+  test "index new thing link breaks out of the results turbo frame" do
+    get things_path
+
+    assert_response :success
+    assert_select "turbo-frame#things_results a[data-turbo-frame='_top']", text: "+ New thing"
+  end
+
+  test "index resets bulk selection when the results frame reloads" do
+    get things_path
+
+    assert_response :success
+    assert_select "[data-action~=?]", "turbo:frame-load->thing-selection#resetSelection"
+  end
+
   test "bulk label preview shows each selected thing" do
     get bulk_label_preview_things_path, params: {
       thing_ids: [ things(:keyboard).id, things(:router).id ],
