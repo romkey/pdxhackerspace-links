@@ -8,7 +8,7 @@
   </button>
   <ul class="dropdown-menu dropdown-menu-end">
     <li>
-      <%= link_to "Edit", edit_thing_path(thing), class: "dropdown-item" %>
+      <%= link_to "Edit", edit_thing_path(thing), class: "dropdown-item", data: { turbo_frame: "_top" } %>
     </li>
     <% if printers.any? %>
       <li>
@@ -28,7 +28,7 @@
                     duplicate_thing_path(thing),
                     method: :post,
                     class: "dropdown-item",
-                    form: { class: "d-inline" } %>
+                    form: { class: "d-inline", data: { turbo_frame: "_top" } } %>
     </li>
     <li>
       <% if thing.labelled? %>
@@ -37,14 +37,14 @@
                       method: :patch,
                       params: { labelled: 0 },
                       class: "dropdown-item",
-                      form: { class: "d-inline" } %>
+                      form: { class: "d-inline", data: { turbo_frame: "_top" } } %>
       <% else %>
         <%= button_to "Mark labelled",
                       labelled_thing_path(thing),
                       method: :patch,
                       params: { labelled: 1 },
                       class: "dropdown-item",
-                      form: { class: "d-inline" } %>
+                      form: { class: "d-inline", data: { turbo_frame: "_top" } } %>
       <% end %>
     </li>
     <li><hr class="dropdown-divider"></li>
@@ -55,7 +55,7 @@
                     class: "dropdown-item text-danger",
                     form: {
                       class: "d-inline",
-                      data: { turbo_confirm: "Delete “#{thing.name}”?" }
+                      data: { turbo_confirm: "Delete “#{thing.name}”?", turbo_frame: "_top" }
                     } %>
     </li>
     <li><%= render "nfc_write", thing: thing, menu_item: true %></li>

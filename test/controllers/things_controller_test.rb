@@ -683,6 +683,32 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".bulk-action-bar form[data-turbo-frame='_top']", count: 2
   end
 
+  test "index row actions break out of the results turbo frame" do
+    get things_path, params: { q: "keyboard" }
+
+    assert_response :success
+    assert_select "turbo-frame#things_results" do
+      assert_select ".row-actions-cell a[data-turbo-frame='_top']", text: "Edit"
+      assert_select ".row-actions-cell form[data-turbo-frame='_top']" do
+        assert_select "button", text: "Duplicate"
+      end
+      assert_select ".row-actions-cell form[data-turbo-frame='_top']" do
+        assert_select "button", text: "Mark labelled"
+      end
+      assert_select ".row-actions-cell form[data-turbo-frame='_top']" do
+        assert_select "button", text: "Delete"
+      end
+    end
+    assert_select ".row-actions-cell a:not([data-turbo-frame])", count: 0
+  end
+
+  test "index thing cards break out of the results turbo frame" do
+    get things_path, params: { q: "keyboard" }
+
+    assert_response :success
+    assert_select "turbo-frame#things_results a.thing-card[data-turbo-frame='_top']"
+  end
+
   test "bulk label preview shows each selected thing" do
     get bulk_label_preview_things_path, params: {
       thing_ids: [ things(:keyboard).id, things(:router).id ],
