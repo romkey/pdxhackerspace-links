@@ -3,7 +3,7 @@ module Printers
     LinkDisplay = Struct.new(:display_title, keyword_init: true)
 
     def label_title_line
-      [ name, owner ].compact_blank.join(" ")
+      [ name, owner ].compact_blank.join(Thing::LABEL_SEPARATOR)
     end
 
     def label_ip_line
@@ -15,7 +15,9 @@ module Printers
     end
 
     def label_network_lines
-      [ label_hostname_line, label_ip_line ].compact
+      line = [ label_hostname_line, label_ip_line ].compact_blank.join(Thing::LABEL_SEPARATOR)
+
+      line.present? ? [ line ] : []
     end
 
     def links_with_urls

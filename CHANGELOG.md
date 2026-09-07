@@ -9,11 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 
 - Bulk **Mark labelled** and **Clear labelled** actions when multiple things are selected on the index
+- **QR code only** label layout — a square label with nothing but the QR code, for very small items
 
 ### Changed
 
 - Label text is much larger: text rows now divide the label height evenly (capped at 12mm per row) with a small gap between them, so a two-line label prints each line at half the label height
-- Labels print the thing's owner after its name on every layout, including Brother roll, Avery/letter, and Compact labels
+- Labels print the thing's owner after its name on every layout, including Brother roll, Avery/letter, and Compact labels, separated by a dash (`Router - romkey`)
+- Hostname and IP address share the bottom label line (`router.local - 192.168.1.1`) instead of taking a line each, so labels stay at two lines with larger text
 
 ### Fixed
 

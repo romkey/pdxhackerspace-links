@@ -221,14 +221,18 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
   end
 
   test "three text lines split the strip height evenly" do
+    pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer))
+    expected_mm = (24 - (2 * Things::LabelPdf::TEXT_LINE_GAP_MM)) / 3
+
+    assert_in_delta expected_mm, text_row_height_mm(pdf, 3), 0.01
+  end
+
+  test "hostname and ip share the bottom text line" do
     thing = things(:router)
     thing.update!(hostname: "router.local")
     pdf = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer))
-    lines = pdf.send(:strip_style_label_lines)
-    expected_mm = (24 - (2 * Things::LabelPdf::TEXT_LINE_GAP_MM)) / 3
 
-    assert_equal 3, lines.size
-    assert_in_delta expected_mm, text_row_height_mm(pdf, lines.size), 0.01
+    assert_equal [ "Router - romkey", "router.local - 192.168.1.1" ], pdf.send(:strip_style_label_lines)
   end
 
   test "text row height is capped on wide rolls" do
@@ -251,12 +255,11 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
     File.delete(png_path) if png_path && File.exist?(png_path)
   end
 
-  test "strip label prints the owner with the name" do
+  test "strip label prints the owner after the name with a dash" do
     label_pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer))
     text = extract_label_pdf_text(label_pdf.generate)
 
-    assert_includes text, "Router"
-    assert_includes text, "romkey"
+    assert_includes text, "Router - romkey"
   ensure
     label_pdf&.cleanup!
   end
@@ -304,13 +307,13 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
     label_pdf&.cleanup!
   end
 
-  test "cable tag prints hostname and ip on separate lines" do
+  test "cable tag prints hostname and ip together on the bottom line" do
     thing = things(:router)
     thing.update!(hostname: "router.local")
     pdf = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer), layout: :cable_tag)
     lines = pdf.send(:cable_tag_label_lines)
 
-    assert_equal [ "Router romkey", "router.local", "192.168.1.1" ], lines
+    assert_equal [ "Router - romkey", "router.local - 192.168.1.1" ], lines
   end
 
   test "uses site setting label margins by default" do
@@ -386,6 +389,59 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
   ensure
     compact&.cleanup!
     standard&.cleanup!
+  end
+
+  test "qr only layout is a square strip label with no text" do
+    label_pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer), layout: :qr_only)
+    path = label_pdf.generate
+    expected_width = (label_pdf.left_margin_mm + 24 + label_pdf.right_margin_mm).round
+
+    assert label_pdf.landscape?
+    assert_in_delta 24, label_pdf.page_height_mm, 0.1
+    assert_in_delta expected_width, label_pdf.page_width_mm, 0.1
+    assert_equal expected_width, label_pdf.cups_media[/Custom\.24x(\d+)mm/, 1].to_i
+    assert_equal "", extract_label_pdf_text(path).strip
+  ensure
+    label_pdf&.cleanup!
+  end
+
+  test "qr only layout fills the strip height with the qr code" do
+    label_pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer), layout: :qr_only)
+    path = label_pdf.generate
+    png_path = rasterize_label_pdf(path)
+    image = ChunkyPNG::Image.from_file(png_path)
+    qr_top, qr_bottom = qr_vertical_extent(image, x_range: 0...(image.width / 3))
+
+    assert_operator qr_bottom - qr_top, :>=, (image.height * 0.9).round
+  ensure
+    label_pdf&.cleanup!
+    File.delete(png_path) if png_path && File.exist?(png_path)
+  end
+
+  test "qr only layout ignores attached ar markers" do
+    thing = attach_ar_anchor(things(:router))
+    qr_only = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer), layout: :qr_only)
+    standard = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer))
+    expected_width = (qr_only.left_margin_mm + 24 + qr_only.right_margin_mm).round
+
+    assert_in_delta expected_width, qr_only.page_width_mm, 0.1
+    assert_operator qr_only.page_width_mm, :<, standard.page_width_mm
+  end
+
+  test "qr only layout renders on portrait fixed labels without text" do
+    label_pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:office_laser), layout: :qr_only)
+    path = label_pdf.generate
+
+    assert File.read(path, 4).start_with?("%PDF")
+    assert_equal "", extract_label_pdf_text(path).strip
+    assert_qr_visible_in_label_pdf(path, region: :any)
+  ensure
+    label_pdf&.cleanup!
+  end
+
+  test "qr only layout is offered and labelled" do
+    assert_includes Things::LabelPdf::LAYOUTS, :qr_only
+    assert_equal "QR code only", Things::LabelPdf.layout_label(:qr_only)
   end
 
   test "compact layout renders on portrait fixed labels" do

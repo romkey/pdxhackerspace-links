@@ -26,7 +26,7 @@ class Printers::PrintTestLabelTest < ActiveSupport::TestCase
     printer = printers(:label_printer)
     label = Printers::TestLabel.for_printer(printer)
 
-    assert_equal "Test label Links", label.label_title_line
+    assert_equal "Test label - Links", label.label_title_line
     assert_equal "192.168.1.1", label.label_ip_line
   end
 
@@ -34,7 +34,7 @@ class Printers::PrintTestLabelTest < ActiveSupport::TestCase
     printer = printers(:command_printer)
     label = Printers::TestLabel.for_printer(printer)
 
-    assert_equal "Test label Links", label.label_title_line
+    assert_equal "Test label - Links", label.label_title_line
     assert_equal "192.168.1.1", label.label_ip_line
   end
 

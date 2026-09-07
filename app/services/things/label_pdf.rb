@@ -19,11 +19,12 @@ module Things
     TEXT_ROW_FILL_RATIO = 0.85
     MIN_TEXT_SIZE = 6
     COMPACT_NAME_ROW_MM = 4
-    LAYOUTS = %i[standard cable_tag compact].freeze
+    LAYOUTS = %i[standard cable_tag compact qr_only].freeze
     LAYOUT_LABELS = {
       standard: "Standard label",
       cable_tag: "Cable tag",
-      compact: "Compact"
+      compact: "Compact",
+      qr_only: "QR code only"
     }.freeze
 
     PAGE_LAYOUTS = {
@@ -60,6 +61,10 @@ module Things
 
     def compact?
       @layout == :compact
+    end
+
+    def qr_only?
+      @layout == :qr_only
     end
 
     def self.layout_label(layout)
@@ -149,14 +154,18 @@ module Things
       Prawn::Document.generate(file.path, margin: 0, page_size: [ page_width, page_height ]) do |pdf|
         if letter_page?
           if compact?
-            config = printer.avery_template_config || Printer::AVERY_TEMPLATES["avery_5160"]
-            bounds = avery_label_bounds(config, row: 0, col: 0)
-            render_compact_label(pdf, bounds: bounds)
+            render_compact_label(pdf, bounds: default_avery_bounds)
+          elsif qr_only?
+            render_qr_only_label(pdf, bounds: default_avery_bounds)
           else
             render_avery_label(pdf)
           end
         elsif cable_tag?
           render_cable_tag_label(pdf)
+        elsif qr_only? && (strip_style_label? || landscape_label?)
+          render_qr_only_strip_label(pdf)
+        elsif qr_only?
+          render_qr_only_label(pdf, bounds: [ 0, page_height, page_width, page_height ])
         elsif compact? && (strip_style_label? || landscape_label?)
           render_compact_strip_label(pdf)
         elsif strip_style_label?
@@ -217,6 +226,7 @@ module Things
 
     def landscape_label_width_mm
       return cable_tag_width_mm if cable_tag?
+      return qr_only_width_mm if qr_only?
       return compact_width_mm if compact?
       return strip_24mm_width_mm if strip_24mm_label?
 
@@ -227,6 +237,10 @@ module Things
       strip_height = roll_width_mm
       qr_size = compact_qr_size_mm(strip_height)
       (left_margin_mm + qr_size + right_margin_mm).round
+    end
+
+    def qr_only_width_mm
+      (left_margin_mm + roll_width_mm + right_margin_mm).round
     end
 
     def strip_24mm_width_mm
@@ -242,7 +256,7 @@ module Things
     end
 
     def ar_marker_reserved_width_mm
-      return 0 if compact?
+      return 0 if compact? || qr_only?
       return 0 unless ar_marker_attached?
 
       AR_MARKER_GAP_MM + marker_display_size_mm
@@ -432,6 +446,20 @@ module Things
       strip_height_mm - COMPACT_NAME_ROW_MM - 0.5
     end
 
+    def render_qr_only_strip_label(pdf)
+      draw_qr_code(pdf, x: mm(left_margin_mm), y: 0, size: page_height, border_modules: 0)
+    end
+
+    def render_qr_only_label(pdf, bounds:)
+      x, top, width, height = bounds
+      padding = [ width * 0.05, 4 ].max
+      qr_size = [ width - (2 * padding), height - (2 * padding) ].min
+      qr_x = x + ((width - qr_size) / 2)
+      qr_y = top - height + ((height - qr_size) / 2)
+
+      draw_qr_code(pdf, x: qr_x, y: qr_y, size: qr_size, border_modules: 0)
+    end
+
     def render_strip_style_label(pdf)
       render_landscape_roll_label(pdf, bottom_lines: strip_style_bottom_lines)
     end
@@ -517,9 +545,13 @@ module Things
     end
 
     def render_avery_label(pdf)
+      render_label(pdf, bounds: default_avery_bounds)
+    end
+
+    def default_avery_bounds
       config = printer.avery_template_config || Printer::AVERY_TEMPLATES["avery_5160"]
-      bounds = avery_label_bounds(config, row: 0, col: 0)
-      render_label(pdf, bounds: bounds)
+
+      avery_label_bounds(config, row: 0, col: 0)
     end
 
     def avery_label_bounds(config, row:, col:)
