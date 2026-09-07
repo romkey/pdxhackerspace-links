@@ -35,7 +35,8 @@ Use `-f docker-compose.<stack>.yml`; each stack sets a top-level `name:` so volu
 
 ## GitHub Actions
 
-- **ci.yml:** Push/PR to `main` and `staging`; PostgreSQL 16 and Redis 8 services; runs Brakeman, bundler-audit, RuboCop, and `bin/rails test`
+- **ci.yml:** Push/PR to `main` and `staging`; PostgreSQL 16 and Redis 8 services; runs Brakeman, bundler-audit, and `bin/rails test`
+- **lint.yml:** Push/PR to `main` and `staging`; runs RuboCop with a cached `tmp/rubocop` root
 - **staging.yml:** Push to `staging`; tests then builds/pushes `:staging` image to `ghcr.io`
 - **release.yml:** Push tag `v*`; tests then builds/pushes semver + `:latest` images with `APP_VERSION` from tag
 - Uses `ruby/setup-ruby` with bundler-cache and `actions/setup-node` with yarn cache
