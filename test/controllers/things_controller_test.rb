@@ -412,7 +412,7 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_redirected_to thing_path(things(:router))
-    assert_match(/qr code only/i, flash[:notice])
+    assert_equal "Sent QR code only for “#{things(:router).name}” to #{printers(:label_printer).name}.", flash[:notice]
   end
 
   test "print dialog offers the qr code only layout" do
@@ -885,6 +885,32 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Core Router", router.name
     assert_equal "Moved to rack 3", router.notes
     assert_equal "12345678-1234-1234-1234-123456789abc", router.ble_beacon_uuid
+  end
+
+  test "updates label name" do
+    patch thing_path(things(:router)), params: {
+      thing: {
+        name: things(:router).name,
+        label_name: "Rtr"
+      }
+    }
+
+    assert_redirected_to thing_path(things(:router))
+    assert_equal "Rtr", things(:router).reload.label_name
+  end
+
+  test "edit form shows the name as the label name placeholder" do
+    get edit_thing_path(things(:router))
+
+    assert_response :success
+    assert_select "input[name=?][placeholder=?]", "thing[label_name]", "Router"
+  end
+
+  test "new form falls back to a placeholder hint for the label name" do
+    get new_thing_path
+
+    assert_response :success
+    assert_select "input[name=?][placeholder=?]", "thing[label_name]", "Same as name"
   end
 
   test "updates standard link notes" do

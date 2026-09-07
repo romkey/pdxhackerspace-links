@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_22_000005) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_06_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -108,6 +108,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_22_000005) do
     t.string "integration_source"
     t.string "ip_address"
     t.string "key", null: false
+    t.string "label_name"
     t.datetime "labelled_at"
     t.string "manufacturer"
     t.string "manufacturer_url"

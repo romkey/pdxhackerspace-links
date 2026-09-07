@@ -1,6 +1,10 @@
 <section class="mb-4">
   <div class="h-section-label mb-2">Technical details</div>
   <dl class="detail-list">
+    <% if thing.label_name.present? %>
+      <dt>Label name</dt>
+      <dd><span><%= thing.label_name %></span></dd>
+    <% end %>
     <% if thing.owner.present? %>
       <dt>Owner</dt>
       <dd><span><%= thing.owner %></span></dd>

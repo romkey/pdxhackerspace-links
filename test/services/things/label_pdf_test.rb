@@ -255,6 +255,18 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
     File.delete(png_path) if png_path && File.exist?(png_path)
   end
 
+  test "labels print the label name instead of the name when set" do
+    thing = things(:router)
+    thing.update!(label_name: "Rtr")
+    label_pdf = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer))
+    text = extract_label_pdf_text(label_pdf.generate)
+
+    assert_includes text, "Rtr - romkey"
+    assert_not_includes text, "Router"
+  ensure
+    label_pdf&.cleanup!
+  end
+
   test "strip label prints the owner after the name with a dash" do
     label_pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer))
     text = extract_label_pdf_text(label_pdf.generate)

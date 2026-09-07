@@ -341,6 +341,7 @@ class ThingsController < ApplicationController
   def thing_params
     params.require(:thing).permit(
       :name,
+      :label_name,
       :slug,
       :description,
       :notes,
@@ -478,8 +479,8 @@ class ThingsController < ApplicationController
   end
 
   def print_notice(thing_name, printer_name, layout)
-    layout_label = Things::LabelPdf.layout_label(layout)
-    "Sent #{layout_label.downcase} for “#{thing_name}” to #{printer_name}."
+    layout_label = Things::LabelPdf.layout_sentence_label(layout)
+    "Sent #{layout_label} for “#{thing_name}” to #{printer_name}."
   end
 
   def prevent_label_preview_caching
