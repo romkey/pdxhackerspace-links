@@ -1,8 +1,8 @@
 # Links
 
 [![CI](https://github.com/romkey/pdxhackerspace-links/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/romkey/pdxhackerspace-links/actions/workflows/ci.yml)
-[![Lint](https://img.shields.io/github/actions/workflow/status/romkey/pdxhackerspace-links/ci.yml?branch=main&label=lint)](https://github.com/romkey/pdxhackerspace-links/actions/workflows/ci.yml)
-[![Build](https://img.shields.io/github/actions/workflow/status/romkey/pdxhackerspace-links/staging.yml?label=build)](https://github.com/romkey/pdxhackerspace-links/actions/workflows/staging.yml)
+[![Lint](https://github.com/romkey/pdxhackerspace-links/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/romkey/pdxhackerspace-links/actions/workflows/lint.yml)
+[![Release](https://github.com/romkey/pdxhackerspace-links/actions/workflows/release.yml/badge.svg)](https://github.com/romkey/pdxhackerspace-links/actions/workflows/release.yml)
 [![Ruby](https://img.shields.io/badge/Ruby-4.0.5-red?logo=ruby&logoColor=white)](https://www.ruby-lang.org/)
 [![Rails](https://img.shields.io/badge/Rails-8.1-red?logo=rubyonrails&logoColor=white)](https://rubyonrails.org/)
 [![License: MIT](https://img.shields.io/github/license/romkey/pdxhackerspace-links)](https://github.com/romkey/pdxhackerspace-links/blob/main/LICENSE)
@@ -170,7 +170,8 @@ Open PRs into `staging`, not `main`. See `.cursor/rules/deployment-rules.mdc` fo
 
 | Workflow | Trigger | Result |
 |----------|---------|--------|
-| `ci.yml` | Push/PR to `main` or `staging` | Brakeman, bundler-audit, RuboCop, tests |
+| `ci.yml` | Push/PR to `main` or `staging` | Brakeman, bundler-audit, tests |
+| `lint.yml` | Push/PR to `main` or `staging` | RuboCop |
 | `staging.yml` | Push to `staging` | Tests, then push `ghcr.io/<repo>:staging` |
 | `release.yml` | Push tag `v*` | Tests, then push versioned + `:latest` images |
 

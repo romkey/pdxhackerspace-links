@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed
+
+- RuboCop now runs in its own `Lint` workflow instead of as a job inside `CI`, so the README lint badge reports the linter's own status rather than the whole CI run
+- The README build badge tracks the `Release` workflow, which actually builds and pushes images; it previously pointed at `Staging`, which had never run and so showed "no status"
+- README workflow badges use GitHub's own badge images rather than shields.io, whose Actions status endpoint intermittently times out and left the lint badge rendering as a broken image
+
 ## [0.12.0] - 2026-09-06
 
 ### Added
