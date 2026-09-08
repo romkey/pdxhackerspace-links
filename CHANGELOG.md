@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Choosing **Edit** (or Duplicate, Delete, or the labelled toggles) from a thing's ⋯ menu on the index no longer shows "Content missing" instead of the page. These actions were being loaded into the search results frame, which only the index itself can fill. Deleting and marking labelled from that menu now show their confirmation message too, which the frame had been swallowing
+- Tapping a thing on the index on a phone opens the thing instead of showing "Content missing"
+- The count under the Things heading now keeps up with the search box, so searching updates "6 total" to "2 matching “door”" instead of leaving the old total on screen
+- Turning on **Select**, picking some things, and then searching no longer leaves the button reading "Done" with no checkboxes in sight; changing the results clears the selection and resets the button
+
 ### Changed
 
 - RuboCop now runs in its own `Lint` workflow instead of as a job inside `CI`, so the README lint badge reports the linter's own status rather than the whole CI run

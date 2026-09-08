@@ -1,4 +1,4 @@
-<%= link_to thing_path(thing), class: "thing-card tap-target" do %>
+<%= link_to thing_path(thing), class: "thing-card tap-target", data: { turbo_frame: "_top" } do %>
   <div class="d-flex align-items-start justify-content-between gap-2">
     <div class="min-w-0 flex-grow-1">
       <div class="text-15 fw-medium text-body text-truncate"><%= thing.name %></div>
