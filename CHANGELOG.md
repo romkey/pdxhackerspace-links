@@ -13,6 +13,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - 
 ### Fixed
 
+- Printing a label for a thing whose name, label name, owner, or link title contains emoji (or any other character the label fonts can't print) no longer fails with a 500 error. Those characters are dropped from the printed text instead — a label name of `🍎RMT S2 Big` prints as `RMT S2 Big`, and a label name made up entirely of emoji falls back to the thing's regular name
+- The **Content** panel on the label preview now lists the lines the label will actually print, per layout, instead of always showing the name and network lines
 - Choosing **Edit** (or Duplicate, Delete, or the labelled toggles) from a thing's ⋯ menu on the index no longer shows "Content missing" instead of the page. These actions were being loaded into the search results frame, which only the index itself can fill. Deleting and marking labelled from that menu now show their confirmation message too, which the frame had been swallowing
 - Tapping a thing on the index on a phone opens the thing instead of showing "Content missing"
 - The count under the Things heading now keeps up with the search box, so searching updates "6 total" to "2 matching “door”" instead of leaving the old total on screen

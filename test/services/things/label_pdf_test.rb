@@ -267,6 +267,40 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
     label_pdf&.cleanup!
   end
 
+  test "emoji in the label name is dropped instead of raising" do
+    thing = things(:router)
+    thing.update!(label_name: "🍎RMT S2 Big")
+    label_pdf = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer))
+
+    assert_nothing_raised { label_pdf.page_width_mm }
+    assert_equal [ "RMT S2 Big - romkey", "192.168.1.1" ], label_pdf.printed_lines
+    assert_includes extract_label_pdf_text(label_pdf.generate), "RMT S2 Big - romkey"
+  ensure
+    label_pdf&.cleanup!
+  end
+
+  test "label name of only unprintable characters falls back to the thing name" do
+    thing = things(:router)
+    thing.update!(label_name: "🍎")
+    label_pdf = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer))
+
+    assert_equal "Router - romkey", label_pdf.printed_lines.first
+  ensure
+    label_pdf&.cleanup!
+  end
+
+  test "emoji in a link title is dropped from landscape labels" do
+    thing = things(:keyboard)
+    thing.links.destroy_all
+    thing.links.create!(link_type: :custom, title: "🔧 Manual", url: "https://example.com/manual", position: 0)
+    label_pdf = Things::LabelPdf.new(thing: thing.reload, printer: printers(:brother_printer))
+
+    assert_equal [ "Keyboard", "Manual" ], label_pdf.printed_lines
+    assert_includes extract_label_pdf_text(label_pdf.generate), "Manual"
+  ensure
+    label_pdf&.cleanup!
+  end
+
   test "strip label prints the owner after the name with a dash" do
     label_pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:label_printer))
     text = extract_label_pdf_text(label_pdf.generate)

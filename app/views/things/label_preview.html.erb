@@ -130,18 +130,17 @@
 
       <div class="h-section-label mb-2">Content</div>
       <dl class="row text-13 mb-0">
-        <% if @layout == :qr_only %>
+        <% printed_lines = @label.printed_lines %>
+        <% if printed_lines.empty? %>
           <dt class="col-sm-5 text-secondary">Text</dt>
           <dd class="col-sm-7 text-secondary">None — QR code only</dd>
         <% elsif @layout == :compact %>
           <dt class="col-sm-5 text-secondary">Name</dt>
-          <dd class="col-sm-7"><%= @thing.label_title_line %></dd>
+          <dd class="col-sm-7"><%= printed_lines.first %></dd>
         <% else %>
-          <dt class="col-sm-5 text-secondary">Line 1</dt>
-          <dd class="col-sm-7"><%= @thing.label_title_line %></dd>
-          <% @thing.label_network_lines.each_with_index do |line, index| %>
-            <dt class="col-sm-5 text-secondary">Line <%= index + 2 %></dt>
-            <dd class="col-sm-7"><code class="text-12"><%= line %></code></dd>
+          <% printed_lines.each_with_index do |line, index| %>
+            <dt class="col-sm-5 text-secondary">Line <%= index + 1 %></dt>
+            <dd class="col-sm-7 <%= "text-secondary" unless index.zero? %>"><%= line %></dd>
           <% end %>
         <% end %>
         <dt class="col-sm-5 text-secondary">QR code</dt>
