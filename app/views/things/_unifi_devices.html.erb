@@ -19,6 +19,10 @@
           <dt class="col-5 text-secondary">Model</dt>
           <dd class="col-7"><%= unifi_device.model %></dd>
         <% end %>
+        <% if unifi_device.serial_number.present? %>
+          <dt class="col-5 text-secondary">Serial</dt>
+          <dd class="col-7"><code class="text-12"><%= unifi_device.serial_number %></code></dd>
+        <% end %>
         <% if unifi_device.firmware_version.present? %>
           <dt class="col-5 text-secondary">Firmware</dt>
           <dd class="col-7"><%= unifi_device.firmware_version %></dd>

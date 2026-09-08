@@ -5,9 +5,9 @@
     </div>
   <% end %>
 
-  <div>
+  <div class="form-section" data-controller="label-name" data-label-name-fallback-value="Same as name">
     <div class="h-section-label mb-2">Identity</div>
-    <div class="row g-3" data-controller="label-name" data-label-name-fallback-value="Same as name">
+    <div class="row g-3">
       <div class="col-md-6">
         <%= form.label :name, class: "form-label" %>
         <%= form.text_field :name, class: "form-control", required: true,
@@ -29,6 +29,35 @@
         <%= form.text_field :slug, class: "form-control", placeholder: "Optional" %>
         <div class="form-text text-12">Optional short URL path, e.g. /things/front-door-keyboard</div>
       </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="h-section-label mb-2">Hardware</div>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <%= form.label :manufacturer, class: "form-label" %>
+        <%= form.text_field :manufacturer, class: "form-control", placeholder: "Optional" %>
+      </div>
+      <div class="col-md-6">
+        <%= form.label :model, class: "form-label" %>
+        <%= form.text_field :model, class: "form-control", placeholder: "Optional" %>
+      </div>
+      <div class="col-md-6">
+        <%= form.label :serial_number, "Serial number", class: "form-label" %>
+        <%= form.text_field :serial_number, class: "form-control", placeholder: "Optional" %>
+        <div class="form-text text-12">Filled in from an integration when the device reports one.</div>
+      </div>
+      <div class="col-md-6">
+        <%= form.label :manufacturer_url, "Manufacturer link", class: "form-label" %>
+        <%= form.url_field :manufacturer_url, class: "form-control", placeholder: "https://" %>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="h-section-label mb-2">Network and radios</div>
+    <div class="row g-3">
       <div class="col-md-6">
         <%= form.label :ip_address, "IP address", class: "form-label" %>
         <%= form.text_field :ip_address, class: "form-control", placeholder: "192.168.1.10" %>
@@ -43,22 +72,16 @@
         <div class="form-text text-12">Optional. Used to match this thing to an imported device.</div>
       </div>
       <div class="col-md-6">
-        <%= form.label :manufacturer, class: "form-label" %>
-        <%= form.text_field :manufacturer, class: "form-control", placeholder: "Optional" %>
-      </div>
-      <div class="col-md-6">
-        <%= form.label :model, class: "form-label" %>
-        <%= form.text_field :model, class: "form-control", placeholder: "Optional" %>
-      </div>
-      <div class="col-md-6">
-        <%= form.label :manufacturer_url, "Manufacturer link", class: "form-label" %>
-        <%= form.url_field :manufacturer_url, class: "form-control", placeholder: "https://" %>
-      </div>
-      <div class="col-md-6">
         <%= form.label :ble_beacon_uuid, "BLE beacon UUID", class: "form-label" %>
         <%= form.text_field :ble_beacon_uuid, class: "form-control", placeholder: "fda50693-f4c2-4a1b-8fb9-9d9458836f36" %>
         <div class="form-text text-12">Optional iBeacon UUID for lookup at /things/by_beacon/&lt;uuid&gt;</div>
       </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="h-section-label mb-2">Description and notes</div>
+    <div class="row g-3">
       <div class="col-12">
         <%= form.label :description, class: "form-label" %>
         <%= form.text_area :description, class: "form-control", rows: 4 %>
@@ -67,17 +90,19 @@
         <%= form.label :notes, class: "form-label" %>
         <%= form.text_area :notes, class: "form-control", rows: 3, placeholder: "Optional" %>
       </div>
-      <div class="col-12">
-        <div class="form-check">
-          <%= form.check_box :public_access, class: "form-check-input" %>
-          <%= form.label :public_access, "Public", class: "form-check-label" %>
-        </div>
-        <div class="form-text text-12">Anyone with the link can view this thing without signing in.</div>
-      </div>
     </div>
   </div>
 
-  <div>
+  <div class="form-section">
+    <div class="h-section-label mb-2">Visibility</div>
+    <div class="form-check">
+      <%= form.check_box :public_access, class: "form-check-input" %>
+      <%= form.label :public_access, "Public", class: "form-check-label" %>
+    </div>
+    <div class="form-text text-12">Anyone with the link can view this thing without signing in.</div>
+  </div>
+
+  <div class="form-section">
     <div class="h-section-label mb-2">Standard links</div>
     <p class="text-secondary text-13 mb-3">Optional links shared by every thing: Asset, Wiki, Slack, Where, and AR.</p>
     <div class="vstack gap-2">
@@ -99,7 +124,7 @@
     </div>
   </div>
 
-  <div data-controller="nested-form">
+  <div class="form-section" data-controller="nested-form">
     <div class="h-section-label mb-2">Custom links</div>
     <div class="vstack gap-2" data-nested-form-target="container">
       <%= form.fields_for :links do |link_form| %>
@@ -121,7 +146,8 @@
     <p class="text-secondary text-12 mt-2 mb-0">Leave custom link fields blank to omit them.</p>
   </div>
 
-  <div data-controller="related-things"
+  <div class="form-section"
+       data-controller="related-things"
        data-related-things-search-url-value="<%= search_things_path(format: :json) %>"
        data-related-things-exclude-id-value="<%= thing.id if thing.persisted? %>">
     <div class="h-section-label mb-2">Related things</div>
@@ -170,7 +196,7 @@
     </div>
   </div>
 
-  <div>
+  <div class="form-section">
     <div class="h-section-label mb-2">AR Marker</div>
     <p class="text-secondary text-13 mb-3">Optional image marker printed at the end of labels for AR apps.</p>
     <% if thing.ar_anchor.attached? %>
@@ -197,7 +223,7 @@
     </div>
   </div>
 
-  <div>
+  <div class="form-section">
     <div class="h-section-label mb-2">Photos</div>
     <% if thing.photos.attached? %>
       <div class="row g-2 mb-3">

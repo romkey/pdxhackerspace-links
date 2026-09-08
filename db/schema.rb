@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_06_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_08_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -119,6 +119,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_06_000001) do
     t.string "owner"
     t.boolean "public_access", default: false, null: false
     t.integer "qr_scan_count", default: 0, null: false
+    t.string "serial_number"
     t.string "slug"
     t.datetime "updated_at", null: false
     t.integer "visit_count", default: 0, null: false
@@ -128,6 +129,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_06_000001) do
     t.index ["key"], name: "index_things_on_key", unique: true
     t.index ["labelled_at"], name: "index_things_on_labelled_at"
     t.index ["name"], name: "index_things_on_name"
+    t.index ["serial_number"], name: "index_things_on_serial_number", where: "(serial_number IS NOT NULL)"
     t.index ["slug"], name: "index_things_on_slug", unique: true, where: "(slug IS NOT NULL)"
   end
 

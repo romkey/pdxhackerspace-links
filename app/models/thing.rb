@@ -45,6 +45,7 @@ class Thing < ApplicationRecord
 
   before_validation :normalize_slug
   before_validation :normalize_label_name
+  before_validation :normalize_serial_number
   before_validation :normalize_ble_beacon_uuid
   before_validation :normalize_ieee_address
   before_validation :assign_key, on: :create
@@ -62,7 +63,7 @@ class Thing < ApplicationRecord
 
     pattern = "%#{sanitize_sql_like(term)}%"
     left_joins(:links).where(
-      "things.name ILIKE :q OR things.label_name ILIKE :q OR things.key ILIKE :q OR things.slug ILIKE :q OR things.description ILIKE :q OR things.notes ILIKE :q OR things.ar_anchor_note ILIKE :q OR things.owner ILIKE :q OR things.ip_address ILIKE :q OR things.hostname ILIKE :q OR things.ieee_address ILIKE :q OR things.manufacturer ILIKE :q OR things.model ILIKE :q OR things.ble_beacon_uuid ILIKE :q OR thing_links.title ILIKE :q OR thing_links.url ILIKE :q OR thing_links.note ILIKE :q",
+      "things.name ILIKE :q OR things.label_name ILIKE :q OR things.key ILIKE :q OR things.slug ILIKE :q OR things.description ILIKE :q OR things.notes ILIKE :q OR things.ar_anchor_note ILIKE :q OR things.owner ILIKE :q OR things.ip_address ILIKE :q OR things.hostname ILIKE :q OR things.ieee_address ILIKE :q OR things.manufacturer ILIKE :q OR things.model ILIKE :q OR things.serial_number ILIKE :q OR things.ble_beacon_uuid ILIKE :q OR thing_links.title ILIKE :q OR thing_links.url ILIKE :q OR thing_links.note ILIKE :q",
       q: pattern
     ).distinct
   }
@@ -199,6 +200,10 @@ class Thing < ApplicationRecord
 
   def normalize_label_name
     self.label_name = label_name.to_s.strip.presence
+  end
+
+  def normalize_serial_number
+    self.serial_number = serial_number.to_s.strip.presence
   end
 
   def slug_format

@@ -227,7 +227,16 @@ test/            # Minitest suite
 
 ### Things
 
-Each **Thing** has a name, an optional **label name** (a shorter name printed on labels in place of the name — the form shows the name as faded placeholder text to make the default clear), optional description, optional owner, optional IP address, optional hostname, optional IEEE address, optional manufacturer and model, optional manufacturer link, optional standard links (Asset, Wiki, Slack, Where, AR), optional custom links with titles, optional **related things** (symmetric links to other things, such as a TV and its remote, with an optional note), and one or more photos (Active Storage, served as hero/thumbnail variants). The **Where** link is shown prominently on the thing page; other technical fields live in a collapsed **Details** section. Search runs on the Things index (not the nav bar). Imported things also record which integration created them.
+Each **Thing** has a name, an optional **label name** (a shorter name printed on labels in place of the name — the form shows the name as faded placeholder text to make the default clear), an optional description, and optional fields grouped by what they describe:
+
+| Group | Fields |
+|-------|--------|
+| Identity | Owner, slug |
+| Hardware | Manufacturer, model, serial number, manufacturer link |
+| Network and radios | IP address, hostname, IEEE address, BLE beacon UUID |
+| Identifiers | Short URL key, slug, BLE beacon UUID |
+
+A thing also has optional standard links (Asset, Wiki, Slack, Where, AR), optional custom links with titles, optional **related things** (symmetric links to other things, such as a TV and its remote, with an optional note), and one or more photos (Active Storage, served as hero/thumbnail variants). The edit form uses the same grouping, and the thing page shows the groups side by side below the **Where** link, hiding any group whose fields are all empty. Search runs on the Things index (not the nav bar) and matches the serial number along with the name, model, and addresses. Imported things also record which integration created them.
 
 After enabling photo variants on an existing install, run `bin/rails photos:backfill_variants` once to preprocess hero/thumbnail sizes for photos already on disk.
 
@@ -253,11 +262,12 @@ Consoles ship a self-signed certificate, so **Verify the TLS certificate** is of
 How devices become things:
 
 - A device is matched to an existing thing by IEEE address first, so a console that appears in both applications maps to one thing. Otherwise a new thing is created, unless the controller has **Create a thing for each new device** turned off.
-- Name, IP address, and IEEE address are kept in sync until you edit them by hand. The import remembers what it last wrote and leaves a field alone once its value differs, so manual names and addresses survive every later import.
+- Name, IP address, IEEE address, model, and serial number are kept in sync until you edit them by hand. The import remembers what it last wrote and leaves a field alone once its value differs, so manual names and addresses survive every later import. A field the import has never written counts as empty, so a field added to Links after a thing already exists is filled in on the next import instead of only on newly created things.
+- Serial numbers come from whatever the console puts in the raw device payload. Neither UniFi integration API promises one, so many devices import without a serial and the field stays blank for you to fill in.
 - Devices that disappear from a console are archived, not deleted, and their things are kept. They un-archive if the device comes back. When one application is unreachable the other still imports, and nothing is archived for the failed one.
 - **Ignore** on a device unlinks its thing and stops future imports from recreating one. Deleting a UniFi-managed thing does the same.
 
-Model, firmware, site, and last-seen details stay on the device record and are shown in a UniFi card on the thing page for signed-in users.
+Model, serial, firmware, site, and last-seen details stay on the device record and are shown in a UniFi card on the thing page for signed-in users.
 
 #### Zigbee2MQTT import
 
@@ -265,7 +275,7 @@ Model, firmware, site, and last-seen details stay on the device record and are s
 
 For recency filtering, enable `advanced.last_seen` in your Zigbee2MQTT configuration and retain device state messages so Links can read `last_seen` during import. Each bridge can skip disabled devices, limit imports to devices seen within N days, and choose whether to import devices whose `last_seen` is unknown.
 
-Imported things receive manufacturer, model, IEEE address, and an auto-filled manufacturer link to the Zigbee2MQTT device page when the model is known.
+Imported things receive manufacturer, model, IEEE address, a serial number when the device reports one (most Zigbee devices do not), and an auto-filled manufacturer link to the Zigbee2MQTT device page when the model is known.
 
 ### Printing
 

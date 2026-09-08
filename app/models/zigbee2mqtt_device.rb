@@ -28,12 +28,17 @@ class Zigbee2mqttDevice < ApplicationRecord
     friendly_name.presence || model.presence || "#{device_type_label} #{ieee_address}"
   end
 
+  def serial_number
+    Integrations::SerialNumber.extract(payload)
+  end
+
   def desired_thing_attributes
     {
       "name" => friendly_name.presence,
       "ieee_address" => ieee_address.presence,
       "manufacturer" => manufacturer.presence,
       "model" => model.presence,
+      "serial_number" => serial_number,
       "manufacturer_url" => Zigbee2mqtt::ManufacturerUrl.for(model)
     }.compact
   end

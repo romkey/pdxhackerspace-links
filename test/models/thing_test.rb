@@ -120,6 +120,24 @@ class ThingTest < ActiveSupport::TestCase
     assert_includes Thing.search("rtr"), things(:router)
   end
 
+  test "blank serial number is stored as nil" do
+    thing = Thing.create!(name: "Thermostat", serial_number: "   ")
+
+    assert_nil thing.serial_number
+  end
+
+  test "trims whitespace around the serial number" do
+    thing = Thing.create!(name: "Thermostat", serial_number: " FCECDA123456 ")
+
+    assert_equal "FCECDA123456", thing.serial_number
+  end
+
+  test "search matches the serial number" do
+    things(:router).update!(serial_number: "FCECDA123456")
+
+    assert_includes Thing.search("fcecda"), things(:router)
+  end
+
   test "label title line omits blank owner" do
     assert_equal "Keyboard", things(:keyboard).label_title_line
     assert_equal [], things(:keyboard).label_network_lines

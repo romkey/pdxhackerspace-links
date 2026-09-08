@@ -192,6 +192,47 @@ module ThingsHelper
     [ thing.manufacturer.presence, thing.model.presence ].compact.join(" · ")
   end
 
+  # Groups the flat pile of thing attributes into the buckets people actually
+  # think in. Empty fields and wholly empty groups drop out.
+  def things_detail_groups(thing)
+    [
+      {
+        label: "Identity",
+        rows: [
+          { label: "Owner", value: thing.owner },
+          { label: "Label name", value: thing.label_name }
+        ]
+      },
+      {
+        label: "Hardware",
+        rows: [
+          { label: "Manufacturer", value: thing.manufacturer, url: thing.safe_manufacturer_url },
+          { label: "Model", value: thing.model },
+          { label: "Serial number", value: thing.serial_number, code: true, copy: true }
+        ]
+      },
+      {
+        label: "Network",
+        rows: [
+          { label: "IP address", value: thing.ip_address, code: true, copy: true },
+          { label: "Hostname", value: thing.hostname, code: true, copy: true },
+          { label: "IEEE address", value: thing.ieee_address_display, code: true, copy: true }
+        ]
+      },
+      {
+        label: "Identifiers",
+        rows: [
+          { label: "Short URL key", value: thing.key, code: true, copy: true },
+          { label: "Slug", value: thing.slug, code: true, copy: true },
+          { label: "BLE beacon UUID", value: thing.ble_beacon_uuid, code: true, copy: true }
+        ]
+      }
+    ].filter_map do |group|
+      rows = group[:rows].select { |row| row[:value].present? }
+      group.merge(rows: rows) if rows.any?
+    end
+  end
+
   def things_photo_source(photo, variant_name)
     url_for(photo.variant(variant_name))
   rescue StandardError

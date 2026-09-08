@@ -6,7 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- **Serial number** field on things, searchable from the Things index alongside name, model, and addresses
+- Imports read a serial number out of the device payload when the console reports one, and show it on the UniFi and Zigbee2MQTT cards on the thing page
+
 ### Changed
+
+- Thing fields are grouped instead of listed in one long run. The edit form now has **Identity**, **Hardware**, **Network and radios**, **Description and notes**, and **Visibility** sections, and the thing page shows **Identity**, **Hardware**, **Network**, and **Identifiers** groups side by side in place of the single Technical details list. Groups with nothing in them are hidden
 
 - RuboCop now runs in its own `Lint` workflow instead of as a job inside `CI`, so the README lint badge reports the linter's own status rather than the whole CI run
 - The README build badge tracks the `Release` workflow, which actually builds and pushes images; it previously pointed at `Staging`, which had never run and so showed "no status"
