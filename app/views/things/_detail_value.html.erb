@@ -1,0 +1,17 @@
+<% if row[:code] %>
+  <code><%= row[:value] %></code>
+<% elsif row[:url].present? %>
+  <%= link_to row[:value], row[:url], target: "_blank", rel: "noopener" %>
+<% else %>
+  <span><%= row[:value] %></span>
+<% end %>
+<% if row[:copy] %>
+  <button type="button"
+          class="btn btn-outline-secondary btn-sm py-0 px-1"
+          data-controller="clipboard"
+          data-clipboard-text-value="<%= row[:value] %>"
+          data-action="clipboard#copy"
+          aria-label="Copy <%= row[:label] %>">
+    <i class="bi bi-clipboard"></i>
+  </button>
+<% end %>

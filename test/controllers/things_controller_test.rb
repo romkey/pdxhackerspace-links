@@ -937,6 +937,49 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "12345678-1234-1234-1234-123456789abc", router.ble_beacon_uuid
   end
 
+  test "updates serial number" do
+    patch thing_path(things(:router)), params: {
+      thing: {
+        name: things(:router).name,
+        serial_number: "FCECDA123456"
+      }
+    }
+
+    assert_redirected_to thing_path(things(:router))
+    assert_equal "FCECDA123456", things(:router).reload.serial_number
+  end
+
+  test "form groups fields under section headings" do
+    get edit_thing_path(things(:router))
+
+    assert_response :success
+    assert_select ".form-section .h-section-label", text: "Identity"
+    assert_select ".form-section .h-section-label", text: "Hardware"
+    assert_select ".form-section .h-section-label", text: "Network and radios"
+    assert_select "input[name=?]", "thing[serial_number]"
+  end
+
+  test "show page groups details and lists the serial number under hardware" do
+    things(:router).update!(serial_number: "FCECDA123456")
+
+    get thing_path(things(:router))
+
+    assert_response :success
+    assert_select ".detail-group .h-section-label", text: "Hardware"
+    assert_select ".detail-group .h-section-label", text: "Network"
+    assert_select ".detail-group .h-section-label", text: "Identifiers"
+    assert_select ".detail-group code", text: "FCECDA123456"
+  end
+
+  test "show page omits detail groups with nothing in them" do
+    get thing_path(things(:keyboard))
+
+    assert_response :success
+    assert_select ".detail-group .h-section-label", text: "Identifiers"
+    assert_select ".detail-group .h-section-label", text: "Hardware", count: 0
+    assert_select ".detail-group .h-section-label", text: "Network", count: 0
+  end
+
   test "updates label name" do
     patch thing_path(things(:router)), params: {
       thing: {

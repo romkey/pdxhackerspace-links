@@ -1,10 +1,6 @@
 module Integrations
   # Links an imported integration device to a thing, matching by IEEE address.
   class SyncThing
-    MANAGED_ATTRIBUTES = %w[
-      name ip_address ieee_address manufacturer model manufacturer_url integration_source
-    ].freeze
-
     def self.call(integration_device:, auto_create: true)
       new(integration_device: integration_device, auto_create: auto_create).call
     end
@@ -58,6 +54,11 @@ module Integrations
       newly_linked ? :linked : :updated
     end
 
+    # Writes a field when the thing has nothing there or still holds the value
+    # this device last wrote, and leaves anything edited by hand alone. A field
+    # the integration has never written counts as blank, so an attribute added
+    # to desired_thing_attributes after a thing exists is backfilled on the
+    # next import rather than only on newly created things.
     def apply_attributes(thing)
       applied = integration_device.applied_attributes.presence || {}
 

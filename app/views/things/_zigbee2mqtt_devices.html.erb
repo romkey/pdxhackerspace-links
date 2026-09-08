@@ -21,6 +21,10 @@
           <dt class="col-5 text-secondary">Model</dt>
           <dd class="col-7"><%= device.model %></dd>
         <% end %>
+        <% if device.serial_number.present? %>
+          <dt class="col-5 text-secondary">Serial</dt>
+          <dd class="col-7"><code class="text-12"><%= device.serial_number %></code></dd>
+        <% end %>
         <dt class="col-5 text-secondary">IEEE address</dt>
         <dd class="col-7"><code class="text-12"><%= Integrations::HardwareAddress.display(device.ieee_address) %></code></dd>
         <dt class="col-5 text-secondary">Last seen</dt>

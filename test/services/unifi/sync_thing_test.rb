@@ -30,6 +30,22 @@ class Unifi::SyncThingTest < ActiveSupport::TestCase
     assert_equal "unifi", thing.integration_source
   end
 
+  test "imports the serial number when the controller reports one" do
+    device = build_device(payload: { "serialNumber" => "FCECDA123456" })
+
+    Unifi::SyncThing.call(unifi_device: device)
+
+    assert_equal "FCECDA123456", device.reload.thing.serial_number
+  end
+
+  test "leaves the serial number blank when the controller omits it" do
+    device = build_device(payload: { "model" => "U6-Lite" })
+
+    Unifi::SyncThing.call(unifi_device: device)
+
+    assert_nil device.reload.thing.serial_number
+  end
+
   test "names a thing after its kind and IEEE address when the device is unnamed" do
     device = build_device(name: nil)
 

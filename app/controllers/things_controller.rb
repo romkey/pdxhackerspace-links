@@ -351,6 +351,7 @@ class ThingsController < ApplicationController
       :ieee_address,
       :manufacturer,
       :model,
+      :serial_number,
       :manufacturer_url,
       :ble_beacon_uuid,
       :ar_anchor_note,

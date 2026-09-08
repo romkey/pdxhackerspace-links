@@ -56,12 +56,17 @@ class UnifiDevice < ApplicationRecord
     name.presence || model.presence || "#{kind_label} #{external_id}"
   end
 
+  def serial_number
+    Integrations::SerialNumber.extract(payload)
+  end
+
   def desired_thing_attributes
     {
       "name" => name.presence,
       "ip_address" => ip_address.presence,
       "ieee_address" => ieee_address.presence,
-      "model" => model.presence
+      "model" => model.presence,
+      "serial_number" => serial_number
     }.compact
   end
 
