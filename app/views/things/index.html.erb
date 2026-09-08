@@ -1,44 +1,44 @@
 <% content_for :title, "Things" %>
 
 <%= tag.div class: "container-fluid py-4", data: things_index_container_data do %>
-  <div class="d-flex align-items-end justify-content-between mb-3">
-    <div>
-      <h1 class="h-page-title mb-0">Things</h1>
-      <div class="text-13 text-secondary mt-1">
-        <% if @search_query.present? || @things_index.filters.active? %>
-          <span class="text-body"><%= @pagy.count %></span>
-          <% if @search_query.present? %>
-            matching “<%= @search_query %>”
+  <%= turbo_frame_tag "things_results" do %>
+    <div class="d-flex align-items-end justify-content-between mb-3">
+      <div>
+        <h1 class="h-page-title mb-0">Things</h1>
+        <div class="text-13 text-secondary mt-1">
+          <% if @search_query.present? || @things_index.filters.active? %>
+            <span class="text-body"><%= @pagy.count %></span>
+            <% if @search_query.present? %>
+              matching “<%= @search_query %>”
+            <% else %>
+              total
+            <% end %>
+            <% if @things_index.filters.active? %>
+              · <span class="text-body"><%= @things_index.filters.active_count %></span> filters active
+            <% end %>
+            <% if @search_query.present? %>
+              · <%= link_to "Clear search", things_path(things_index_params(q: nil)), class: "text-secondary" %>
+            <% end %>
           <% else %>
-            total
+            <span class="text-body"><%= @pagy.count %></span> total
           <% end %>
-          <% if @things_index.filters.active? %>
-            · <span class="text-body"><%= @things_index.filters.active_count %></span> filters active
-          <% end %>
-          <% if @search_query.present? %>
-            · <%= link_to "Clear search", things_path(things_index_params(q: nil)), class: "text-secondary" %>
-          <% end %>
-        <% else %>
-          <span class="text-body"><%= @pagy.count %></span> total
+        </div>
+      </div>
+      <div class="d-flex gap-2">
+        <% if can_manage_things? && @things.any? %>
+          <button type="button"
+                  class="btn btn-outline-secondary btn-sm d-none d-lg-inline-block"
+                  data-thing-selection-target="selectToggle"
+                  data-action="thing-selection#toggleSelectionMode">
+            Select
+          </button>
+        <% end %>
+        <% if can_manage_things? %>
+          <%= link_to "+ New thing", new_thing_path, class: "btn btn-primary btn-sm", data: { turbo_frame: "_top" } %>
         <% end %>
       </div>
     </div>
-    <div class="d-flex gap-2">
-      <% if can_manage_things? && @things.any? %>
-        <button type="button"
-                class="btn btn-outline-secondary btn-sm d-none d-lg-inline-block"
-                data-thing-selection-target="selectToggle"
-                data-action="thing-selection#toggleSelectionMode">
-          Select
-        </button>
-      <% end %>
-      <% if can_manage_things? %>
-        <%= link_to "+ New thing", new_thing_path, class: "btn btn-primary btn-sm" %>
-      <% end %>
-    </div>
-  </div>
 
-  <%= turbo_frame_tag "things_results" do %>
     <%= form_with url: things_path, method: :get, class: "mb-3",
                   data: { controller: "debounced-submit", debounced_submit_delay_value: 300 } do %>
       <% things_search_hidden_params.each do |key, value| %>
