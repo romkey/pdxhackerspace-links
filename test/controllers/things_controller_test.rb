@@ -319,6 +319,16 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "button", text: /Print label/
   end
 
+  test "label preview renders when the label name contains emoji" do
+    thing = things(:router)
+    thing.update!(label_name: "🍎RMT S2 Big")
+
+    get label_preview_thing_path(thing, printer_id: printers(:label_printer).id)
+
+    assert_response :success
+    assert_match "RMT S2 Big - romkey", response.body
+  end
+
   test "label preview pdf format returns inline pdf" do
     get label_preview_thing_path(things(:router), printer_id: printers(:label_printer).id, format: :pdf)
 

@@ -19,6 +19,9 @@ module Things
     TEXT_ROW_FILL_RATIO = 0.85
     MIN_TEXT_SIZE = 6
     COMPACT_NAME_ROW_MM = 4
+    # Prawn's built-in fonts only cover Windows-1252, so characters outside it
+    # (emoji, CJK, ...) have to be dropped before they reach the PDF.
+    PDF_TEXT_ENCODING = Encoding::WINDOWS_1252
     LAYOUTS = %i[standard cable_tag compact qr_only].freeze
     LAYOUT_LABELS = {
       standard: "Standard label",
@@ -133,6 +136,16 @@ module Things
 
     def landscape?
       landscape_label?
+    end
+
+    # The text the label actually prints, after unprintable characters are dropped.
+    def printed_lines
+      return [] if qr_only?
+      return [ title_line ] if compact?
+      return cable_tag_label_lines if cable_tag?
+      return strip_style_label_lines if strip_style_label?
+
+      [ title_line ] + landscape_bottom_lines
     end
 
     def cups_media
@@ -352,12 +365,18 @@ module Things
       @text_metrics.width_of(text, size: size, style: style)
     end
 
+    # Built from its parts so dropping an unprintable name doesn't leave a
+    # dangling separator, and an all-emoji label name still falls back to the name.
     def title_line
-      thing.label_title_line
+      [ printable_label_name, printable_text(thing.owner) ].compact_blank.join(Thing::LABEL_SEPARATOR)
+    end
+
+    def printable_label_name
+      printable_text(thing.label_display_name).presence || printable_text(thing.name)
     end
 
     def cable_tag_label_lines
-      [ title_line ] + thing.label_network_lines
+      [ title_line ] + printable_lines(thing.label_network_lines)
     end
 
     def strip_style_label_lines
@@ -365,15 +384,36 @@ module Things
     end
 
     def strip_style_bottom_lines
-      return thing.label_network_lines if strip_24mm_label? || command_label?
+      return printable_lines(thing.label_network_lines) if strip_24mm_label? || command_label?
 
-      link = thing.links_with_urls.first&.display_title
-      link.present? ? [ link ] : []
+      link_subtitle_lines
     end
 
     def landscape_bottom_lines
-      link = thing.links_with_urls.first&.display_title
-      link.present? ? [ link ] : []
+      link_subtitle_lines
+    end
+
+    def link_subtitle_lines
+      printable_lines([ link_subtitle ])
+    end
+
+    def link_subtitle
+      printable_text(thing.links_with_urls.first&.display_title)
+    end
+
+    # Drops characters the PDF fonts can't render rather than letting Prawn raise.
+    def printable_text(value)
+      text = value.to_s
+      return text if text.ascii_only?
+
+      text.encode(PDF_TEXT_ENCODING, invalid: :replace, undef: :replace, replace: "")
+          .encode(Encoding::UTF_8)
+          .gsub(/\s+/, " ")
+          .strip
+    end
+
+    def printable_lines(lines)
+      Array(lines).map { |line| printable_text(line) }.compact_blank
     end
 
     def render_cable_tag_label(pdf)
@@ -600,7 +640,7 @@ module Things
           pdf.move_down qr_size
         end
 
-        subtitle = thing.links_with_urls.first&.display_title
+        subtitle = link_subtitle
         if subtitle.present? && pdf.cursor > 12
           pdf.move_down 4
           pdf.text subtitle, size: [ title_size(content_width) - 2, 6 ].max, align: :center, color: "666666"

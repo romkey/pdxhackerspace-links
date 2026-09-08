@@ -39,6 +39,7 @@ module Things
     end
 
     delegate :page_width_mm, :page_height_mm, :landscape?, :left_margin_mm, :right_margin_mm, :cable_tag_gap_mm,
+             :printed_lines,
              to: :@label_pdf
 
     private

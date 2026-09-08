@@ -2,6 +2,10 @@ module Printers
   class TestLabel < Data.define(:name, :owner, :ip_address, :subtitle)
     LinkDisplay = Struct.new(:display_title, keyword_init: true)
 
+    def label_display_name
+      name
+    end
+
     def label_title_line
       [ name, owner ].compact_blank.join(Thing::LABEL_SEPARATOR)
     end
