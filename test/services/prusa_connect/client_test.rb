@@ -94,6 +94,10 @@ class PrusaConnect::ClientTest < ActiveSupport::TestCase
 
     assert_equal 1, response.records.size
     assert_equal 1, response.errors.size
+    assert_equal(
+      %w[11111111-1111-4111-8111-111111111111 22222222-2222-4222-8222-222222222222],
+      response.listed_external_ids
+    )
     assert_match "Missing printer", response.errors.first
     assert_match "22222222-2222-4222-8222-222222222222", response.errors.first
   end
