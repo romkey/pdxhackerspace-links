@@ -1173,4 +1173,127 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to thing_path(keyboard)
     assert keyboard.reload.related_things.include?(dongle)
   end
+
+  test "merge offers a picker when no source is chosen" do
+    get merge_thing_path(things(:keyboard))
+
+    assert_response :success
+    assert_select "[data-controller='thing-picker']"
+    assert_select "input#merge-source-search"
+  end
+
+  test "merge shows conflicting fields for the chosen source" do
+    get merge_thing_path(things(:keyboard), source_id: things(:router).id)
+
+    assert_response :success
+    assert_select "input[name=?]", "resolution[name]"
+    assert_select "textarea[name=?]", "resolution[description]"
+    assert_select "input[name=?][value=?]", "source_id", things(:router).id.to_s
+  end
+
+  test "merge lists what is carried over without asking" do
+    get merge_thing_path(things(:keyboard), source_id: things(:router).id)
+
+    assert_response :success
+    assert_select ".h-section-label", text: "Filled in from Router"
+    assert_select "code", text: things(:router).key
+  end
+
+  test "merge does not ask about fields that already agree" do
+    things(:router).update!(name: things(:keyboard).name)
+
+    get merge_thing_path(things(:keyboard), source_id: things(:router).id)
+
+    assert_response :success
+    assert_select "input[name=?]", "resolution[name]", count: 0
+  end
+
+  test "merge refuses a thing merging into itself" do
+    get merge_thing_path(things(:keyboard), source_id: things(:keyboard).id)
+
+    assert_redirected_to merge_thing_path(things(:keyboard))
+    assert_equal "Pick a different thing to merge in.", flash[:alert]
+  end
+
+  test "merge reports an unknown source" do
+    get merge_thing_path(things(:keyboard), source_id: "nosuchth")
+
+    assert_redirected_to merge_thing_path(things(:keyboard))
+    assert_equal "That thing could not be found.", flash[:alert]
+  end
+
+  test "perform_merge folds the source in and redirects" do
+    keyboard = things(:keyboard)
+
+    assert_difference -> { Thing.count }, -1 do
+      post perform_merge_thing_path(keyboard), params: {
+        source_id: things(:router).id,
+        resolution: { name: "Front door keyboard" }
+      }
+    end
+
+    assert_redirected_to thing_path(keyboard)
+    assert_equal "Merged “Router” into “Front door keyboard”.", flash[:notice]
+    assert_equal "Front door keyboard", keyboard.reload.name
+    assert_equal "romkey", keyboard.owner
+  end
+
+  test "perform_merge keeps the retired short link working" do
+    retired = things(:router).key
+
+    post perform_merge_thing_path(things(:keyboard)), params: {
+      source_id: things(:router).id,
+      resolution: { name: "Front door keyboard" }
+    }
+
+    get short_thing_path(retired)
+
+    assert_response :success
+    assert_select "h1", "Front door keyboard"
+  end
+
+  test "perform_merge needs a source" do
+    post perform_merge_thing_path(things(:keyboard))
+
+    assert_redirected_to merge_thing_path(things(:keyboard))
+    assert_equal "Choose a thing to merge in.", flash[:alert]
+  end
+
+  test "perform_merge redisplays the form when a resolved value is invalid" do
+    assert_no_difference -> { Thing.count } do
+      post perform_merge_thing_path(things(:keyboard)), params: {
+        source_id: things(:router).id,
+        resolution: { name: "" }
+      }
+    end
+
+    assert_response :unprocessable_entity
+    assert_equal "Name can't be blank", flash[:alert]
+    assert_select "input[name=?]", "resolution[name]"
+  end
+
+  test "merge requires authentication" do
+    delete logout_path
+
+    get merge_thing_path(things(:keyboard))
+
+    assert_redirected_to login_path
+  end
+
+  test "perform_merge requires authentication" do
+    delete logout_path
+
+    assert_no_difference -> { Thing.count } do
+      post perform_merge_thing_path(things(:keyboard)), params: { source_id: things(:router).id }
+    end
+
+    assert_redirected_to login_path
+  end
+
+  test "show offers merge in the actions menu" do
+    get thing_path(things(:keyboard))
+
+    assert_response :success
+    assert_select "a.dropdown-item[href=?]", merge_thing_path(things(:keyboard)), text: "Merge…"
+  end
 end

@@ -19,6 +19,8 @@ Rails.application.routes.draw do
       delete :ar_anchor, to: "things#purge_ar_anchor"
       get :label_preview
       post :duplicate
+      get :merge
+      post :merge, action: :perform_merge, as: :perform_merge
       post :print
       patch :labelled, action: :update_labelled
     end

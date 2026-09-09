@@ -1,0 +1,81 @@
+<%= form_with url: perform_merge_thing_path(thing), method: :post, class: "vstack gap-4" do |form| %>
+  <%= hidden_field_tag :source_id, source.id %>
+
+  <div class="status-panel status-attention">
+    <span class="text-body"><%= source.name %></span> is deleted once merged. Its short link
+    <code><%= source.key %></code> keeps pointing here, so labels and tags already made for it still work.
+  </div>
+
+  <% if plan.conflicts? %>
+    <% plan.groups.each do |group| %>
+      <% conflicts = group[:fields].select(&:conflict?) %>
+      <% next if conflicts.empty? %>
+
+      <div class="form-section">
+        <div class="h-section-label mb-2"><%= group[:label] %></div>
+        <div class="vstack gap-3">
+          <% conflicts.each do |field| %>
+            <%= render "merge_conflict_field", field: field, thing: thing, source: source %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="form-section">
+      <div class="h-section-label mb-2">Fields</div>
+      <p class="text-secondary text-13 mb-0">Nothing conflicts, so there is nothing to decide here.</p>
+    </div>
+  <% end %>
+
+  <% if plan.carried_over_fields.any? %>
+    <div class="form-section">
+      <div class="h-section-label mb-2">Filled in from <%= source.name %></div>
+      <dl class="row text-12 mb-0">
+        <% plan.carried_over_fields.each do |field| %>
+          <dt class="col-sm-3 fw-normal text-secondary"><%= field.label %></dt>
+          <dd class="col-sm-9 mb-1"><%= truncate(field.source_value.to_s, length: 160) %></dd>
+        <% end %>
+      </dl>
+    </div>
+  <% end %>
+
+  <div class="form-section">
+    <div class="h-section-label mb-2">Also merged</div>
+    <ul class="list-unstyled text-13 mb-0 vstack gap-1">
+      <li>
+        <% if plan.retired_slug %>
+          Short link <code><%= plan.retired_key %></code> and path <code>/<%= plan.retired_slug %></code> kept as aliases for this thing
+        <% else %>
+          Short link <code><%= plan.retired_key %></code> kept as an alias for this thing
+        <% end %>
+      </li>
+      <% if plan.photo_count.positive? %>
+        <li><%= pluralize plan.photo_count, "photo" %></li>
+      <% end %>
+      <% if plan.custom_links.any? %>
+        <li><%= pluralize plan.custom_links.size, "custom link" %></li>
+      <% end %>
+      <% if plan.relationship_additions.any? %>
+        <li><%= pluralize plan.relationship_additions.size, "related thing" %></li>
+      <% end %>
+      <% if plan.integration_device_count.positive? %>
+        <li><%= pluralize plan.integration_device_count, "imported device" %> stay linked, so imports keep updating this thing</li>
+      <% end %>
+      <% if plan.ar_anchor_carried_over? %>
+        <li>AR marker image</li>
+      <% end %>
+      <% if plan.scan_total.positive? || plan.visit_total.positive? %>
+        <li class="text-secondary">
+          <%= pluralize plan.scan_total, "scan" %> and <%= pluralize plan.visit_total, "visit" %> added to this thing's counts
+        </li>
+      <% end %>
+    </ul>
+  </div>
+
+  <div class="d-flex gap-2">
+    <%= form.submit "Merge", class: "btn btn-primary btn-sm",
+                    data: { turbo_confirm: "Merge “#{source.name}” into “#{thing.name}”? #{source.name} will be deleted." } %>
+    <%= link_to "Pick a different thing", merge_thing_path(thing), class: "btn btn-outline-secondary btn-sm" %>
+    <%= link_to "Cancel", thing_path(thing), class: "btn btn-outline-secondary btn-sm" %>
+  </div>
+<% end %>

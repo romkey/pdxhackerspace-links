@@ -95,11 +95,11 @@ Things can have an optional **BLE beacon UUID** (iBeacon format). Set it when cr
 
 ### Short URL keys
 
-Every thing gets an auto-generated **8-character key** (lowercase letters and numbers). QR codes and NFC tags encode `SHORT_URL/<key>?q` or `?n` — for example `http://l.ctrlh/kbd12345?q` when `SHORT_URL=http://l.ctrlh`. Scanning redirects to the full thing URL on `APP_HOST` with `utm_source` set for tracking. Keys are shown on the things index and thing detail pages, and are searchable.
+Every thing gets an auto-generated **8-character key** (lowercase letters and numbers). QR codes and NFC tags encode `SHORT_URL/<key>?q` or `?n` — for example `http://l.ctrlh/kbd12345?q` when `SHORT_URL=http://l.ctrlh`. Scanning redirects to the full thing URL on `APP_HOST` with `utm_source` set for tracking. Keys are shown on the things index and thing detail pages, and are searchable. A key retired by merging one thing into another keeps resolving, to the thing it was merged into.
 
 ### URL slugs
 
-Things can have an optional **slug** for a readable admin URL path. When set, the thing is available at `/things/<slug>` instead of `/things/<id>`. Slugs are lowercase letters, numbers, and hyphens; they are searchable from the things list. Duplicating a thing does not copy its slug. QR codes and NFC tags use the short URL key, not the slug.
+Things can have an optional **slug** for a readable admin URL path. When set, the thing is available at `/things/<slug>` instead of `/things/<id>`. Slugs are lowercase letters, numbers, and hyphens; they are searchable from the things list. Duplicating a thing does not copy its slug. Merging keeps the absorbed thing’s slug as an alias unless you hand it to the merged thing. QR codes and NFC tags use the short URL key, not the slug.
 
 When the app runs behind a reverse proxy, set `TRUSTED_REVERSE_PROXIES` to the proxy IP addresses or CIDR blocks so Rails uses the client IP from `X-Forwarded-For` (for example when evaluating `NETWORK_WHITELIST`). These entries are merged with Rails' default private-network proxies.
 
@@ -214,7 +214,7 @@ Release versions are tagged automatically from `APP_VERSION`. Signed-in users ar
 ```
 app/
   controllers/   # HTTP layer (auth, things, settings)
-  models/        # User, Thing, ThingLink, SiteSetting, Printer, UnifiController, UnifiDevice
+  models/        # User, Thing, ThingLink, ThingAlias, SiteSetting, Printer, UnifiController, UnifiDevice
   services/      # CUPS print client, UniFi and Prusa Connect integration clients and import
   views/         # Bootstrap 5.3 templates
   jobs/          # ActiveJob → Sidekiq
@@ -239,6 +239,14 @@ Each **Thing** has a name, an optional **label name** (a shorter name printed on
 A thing also has optional standard links (Asset, Wiki, Slack, Where, AR), optional custom links with titles, optional **related things** (symmetric links to other things, such as a TV and its remote, with an optional note), and one or more photos (Active Storage, served as hero/thumbnail variants). The edit form uses the same grouping, and the thing page shows the groups side by side below the **Where** link, hiding any group whose fields are all empty. Search runs on the Things index (not the nav bar) and matches the serial number along with the name, model, and addresses. Imported things also record which integration created them.
 
 After enabling photo variants on an existing install, run `bin/rails photos:backfill_variants` once to preprocess hero/thumbnail sizes for photos already on disk.
+
+### Merging duplicates
+
+A thing sometimes ends up entered twice, or an integration imports one that was already created by hand. **Merge…** in a thing’s ⋯ menu — on its own page or on its row on the Things index — folds a second thing into it.
+
+Pick the duplicate and the merge page asks about every field the two disagree on: click either value to use it, or type something else. Fields that only one of them has are filled in without asking. Photos, custom links, related things, and imported devices move across, and scan and visit counts are added together. Imported devices stay linked, so the next import updates the thing you merged into rather than recreating the one you absorbed.
+
+The absorbed thing is then deleted, but its short URL key and slug are kept as aliases pointing at the merged thing, so QR codes and NFC tags already printed still resolve. A retired key or slug is never handed out to a new thing.
 
 ### Integrations
 

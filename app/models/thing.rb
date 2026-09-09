@@ -12,6 +12,7 @@ class Thing < ApplicationRecord
   RESERVED_KEYS = (%w[login logout settings sidekiq things up auth] + RESERVED_SLUGS).freeze
 
   has_many :links, class_name: "ThingLink", dependent: :destroy, inverse_of: :thing
+  has_many :thing_aliases, dependent: :destroy, inverse_of: :thing
   has_many :thing_relationships, dependent: :destroy, inverse_of: :thing
   has_many :related_things, through: :thing_relationships, source: :related_thing
   has_many :unifi_devices, dependent: :nullify
@@ -43,6 +44,8 @@ class Thing < ApplicationRecord
   validate :ieee_address_format
   validate :slug_format
   validate :reserved_key
+  validate :key_not_retired
+  validate :slug_not_retired
 
   before_validation :normalize_slug
   before_validation :normalize_label_name
@@ -183,14 +186,15 @@ class Thing < ApplicationRecord
     find_by_param!(param)
   end
 
+  # Live things win over retired identifiers so a reused key can never shadow its owner.
   def self.find_by_param!(param)
     value = param.to_s
     if value.match?(KEY_REGEX)
-      thing = find_by(key: value)
+      thing = find_by(key: value) || ThingAlias.thing_for_key(value)
       return thing if thing
     end
 
-    find_by(slug: value) || find(value)
+    find_by(slug: value) || ThingAlias.thing_for_slug(value) || find(value)
   end
 
   private
@@ -227,6 +231,22 @@ class Thing < ApplicationRecord
     errors.add(:key, "is reserved")
   end
 
+  def key_not_retired
+    value = key.to_s
+    return if value.blank?
+    return unless ThingAlias.where(key: value).where.not(thing_id: id).exists?
+
+    errors.add(:key, "belongs to a merged thing")
+  end
+
+  def slug_not_retired
+    value = slug.to_s
+    return if value.blank?
+    return unless ThingAlias.where(slug: value).where.not(thing_id: id).exists?
+
+    errors.add(:slug, "belongs to a merged thing")
+  end
+
   def assign_key
     return if key.present?
 
@@ -239,6 +259,7 @@ class Thing < ApplicationRecord
                   (KEY_LENGTH - 1).times.map { KEY_ALPHABET[SecureRandom.random_number(KEY_ALPHABET.size)] }.join
       next if RESERVED_KEYS.include?(candidate)
       next if self.class.exists?(key: candidate)
+      next if ThingAlias.exists?(key: candidate)
 
       return candidate
     end
