@@ -41,14 +41,24 @@ module PrusaConnect
       @last_request_at = nil
     end
 
+    PrinterRecords = Data.define(:records, :errors)
+
     def printer_records
-      list_printers.flat_map do |summary|
+      records = []
+      errors = []
+
+      list_printers.each do |summary|
         uuid = summary["uuid"] || summary["id"]
-        next [] if uuid.blank?
+        next if uuid.blank?
 
         detail = get("/printers/#{uuid}")
-        [ PrinterRecord.from_payload(detail) ]
+        records << PrinterRecord.from_payload(detail)
+      rescue Error => error
+        label = summary["name"].presence || uuid
+        errors << "#{label}: #{error.message}"
       end
+
+      PrinterRecords.new(records: records, errors: errors)
     end
 
     def printer_count
@@ -59,11 +69,18 @@ module PrusaConnect
     def get(path, query = {})
       uri = uri_for(path, query)
       attempt = 0
+      auth_retried = false
 
       loop do
         attempt += 1
         pace_requests!
         status, body, response_headers = perform(uri)
+
+        if status.in?([ 401, 403 ]) && !auth_retried
+          auth_retried = true
+          @access_token_service.force_refresh!(account)
+          next
+        end
 
         if status == RATE_LIMIT_STATUS && attempt < MAX_ATTEMPTS
           @sleeper.call(retry_after(response_headers, attempt))

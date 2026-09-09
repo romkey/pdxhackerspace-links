@@ -9,6 +9,10 @@ module PrusaConnect
       new(account: account, transport: transport).ensure!
     end
 
+    def self.force_refresh!(account, transport: nil)
+      new(account: account, transport: transport).force_refresh!
+    end
+
     def initialize(account:, transport: nil)
       @account = account
       @transport = transport
@@ -21,6 +25,13 @@ module PrusaConnect
         account.reload
         return account.access_token if account.access_token_valid?
 
+        refresh!
+      end
+    end
+
+    def force_refresh!
+      account.with_lock do
+        account.reload
         refresh!
       end
     end

@@ -54,7 +54,9 @@ module PrusaConnect
     end
 
     def call
-      seen = client.printer_records.filter_map { |record| upsert(record) }
+      response = client.printer_records
+      @errors.concat(response.errors)
+      seen = response.records.filter_map { |record| upsert(record) }
       archive_missing(seen)
 
       build_result.tap { |result| record_sync(result) }

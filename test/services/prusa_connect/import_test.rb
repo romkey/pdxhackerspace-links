@@ -7,8 +7,14 @@ class PrusaConnect::ImportTest < ActiveSupport::TestCase
   end
 
   class StubClient
-    def initialize(records) = @records = records
-    def printer_records = @records
+    def initialize(records, errors: [])
+      @records = records
+      @errors = errors
+    end
+
+    def printer_records
+      PrusaConnect::Client::PrinterRecords.new(records: @records, errors: @errors)
+    end
   end
 
   class FailingClient
@@ -33,10 +39,10 @@ class PrusaConnect::ImportTest < ActiveSupport::TestCase
     }.merge(overrides))
   end
 
-  def import(records: [ printer_record ], account: @account)
+  def import(records: [ printer_record ], errors: [], account: @account)
     PrusaConnect::Import.call(
       prusa_connect_account: account,
-      client: records.is_a?(Array) ? StubClient.new(records) : records
+      client: records.is_a?(Array) ? StubClient.new(records, errors: errors) : records
     )
   end
 
@@ -95,6 +101,15 @@ class PrusaConnect::ImportTest < ActiveSupport::TestCase
     assert result.success?
     assert_equal 1, result.devices_archived
     assert_predicate printer.reload, :archived?
+  end
+
+  test "records a partial result when some printer fetches fail" do
+    result = import(records: [ printer_record ], errors: [ "Loft MINI: Timed out" ])
+
+    assert_not result.success?
+    assert_equal "partial", result.status
+    assert_equal 1, result.devices_created
+    assert_match "Loft MINI", result.summary
   end
 
   test "records a partial result when some printers fail validation" do

@@ -33,6 +33,21 @@ class PrusaConnect::AccessTokenTest < ActiveSupport::TestCase
     assert account.access_token_expires_at > Time.current
   end
 
+  test "force refresh exchanges the refresh token even when the access token is still valid" do
+    account = prusa_connect_accounts(:main)
+    account.update!(access_token: "still-valid", access_token_expires_at: 1.hour.from_now)
+
+    transport = prusa_connect_token_transport(
+      "/o/token/" => [
+        200,
+        { access_token: "fresh-access", refresh_token: "rotated-refresh", expires_in: 3600 }
+      ]
+    )
+
+    assert_equal "fresh-access", PrusaConnect::AccessToken.force_refresh!(account, transport: transport)
+    assert_equal "rotated-refresh", account.reload.refresh_token
+  end
+
   test "surfaces invalid_grant as an actionable auth error" do
     account = prusa_connect_accounts(:main)
     account.update!(access_token: nil, access_token_expires_at: nil)
