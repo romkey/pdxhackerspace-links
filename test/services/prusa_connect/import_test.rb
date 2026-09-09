@@ -7,13 +7,18 @@ class PrusaConnect::ImportTest < ActiveSupport::TestCase
   end
 
   class StubClient
-    def initialize(records, errors: [])
+    def initialize(records, errors: [], listed_external_ids: nil)
       @records = records
       @errors = errors
+      @listed_external_ids = listed_external_ids || @records.map(&:external_id)
     end
 
     def printer_records
-      PrusaConnect::Client::PrinterRecords.new(records: @records, errors: @errors)
+      PrusaConnect::Client::PrinterRecords.new(
+        records: @records,
+        errors: @errors,
+        listed_external_ids: @listed_external_ids
+      )
     end
   end
 
@@ -39,10 +44,14 @@ class PrusaConnect::ImportTest < ActiveSupport::TestCase
     }.merge(overrides))
   end
 
-  def import(records: [ printer_record ], errors: [], account: @account)
+  def import(records: [ printer_record ], errors: [], listed_external_ids: nil, account: @account)
     PrusaConnect::Import.call(
       prusa_connect_account: account,
-      client: records.is_a?(Array) ? StubClient.new(records, errors: errors) : records
+      client: if records.is_a?(Array)
+                StubClient.new(records, errors: errors, listed_external_ids: listed_external_ids)
+              else
+                records
+              end
     )
   end
 
@@ -104,12 +113,38 @@ class PrusaConnect::ImportTest < ActiveSupport::TestCase
   end
 
   test "records a partial result when some printer fetches fail" do
-    result = import(records: [ printer_record ], errors: [ "Loft MINI: Timed out" ])
+    result = import(
+      records: [ printer_record ],
+      errors: [ "Loft MINI: Timed out" ],
+      listed_external_ids: [
+        "752dc9b9-b5f9-4a59-b743-94efc18b60cb",
+        "e224bf1f-c577-43da-a160-a364bd13b007"
+      ]
+    )
 
     assert_not result.success?
     assert_equal "partial", result.status
     assert_equal 1, result.devices_created
     assert_match "Loft MINI", result.summary
+  end
+
+  test "does not archive listed printers when detail fetches fail" do
+    import
+    printer = @account.prusa_connect_printers.first
+
+    result = import(
+      records: [],
+      errors: [ "Rack MK4: Timed out", "Loft MINI: Timed out" ],
+      listed_external_ids: [
+        "752dc9b9-b5f9-4a59-b743-94efc18b60cb",
+        "e224bf1f-c577-43da-a160-a364bd13b007"
+      ]
+    )
+
+    assert_not result.success?
+    assert_equal "failed", result.status
+    assert_equal 0, result.devices_archived
+    assert_not_predicate printer.reload, :archived?
   end
 
   test "records a partial result when some printers fail validation" do

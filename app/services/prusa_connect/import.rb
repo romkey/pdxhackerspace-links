@@ -56,8 +56,8 @@ module PrusaConnect
     def call
       response = client.printer_records
       @errors.concat(response.errors)
-      seen = response.records.filter_map { |record| upsert(record) }
-      archive_missing(seen)
+      response.records.each { |record| upsert(record) }
+      archive_missing(response.listed_external_ids)
 
       build_result.tap { |result| record_sync(result) }
     rescue Client::Error => error
@@ -103,9 +103,9 @@ module PrusaConnect
       end
     end
 
-    def archive_missing(seen_ids)
+    def archive_missing(listed_external_ids)
       scope = prusa_connect_account.prusa_connect_printers.active
-      scope = scope.where.not(id: seen_ids) if seen_ids.any?
+      scope = scope.where.not(external_id: listed_external_ids) if listed_external_ids.any?
 
       @devices_archived += scope.update_all(archived_at: Time.current, updated_at: Time.current)
     end

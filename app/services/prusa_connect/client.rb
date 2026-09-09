@@ -41,15 +41,18 @@ module PrusaConnect
       @last_request_at = nil
     end
 
-    PrinterRecords = Data.define(:records, :errors)
+    PrinterRecords = Data.define(:records, :errors, :listed_external_ids)
 
     def printer_records
       records = []
       errors = []
+      listed_external_ids = []
 
       list_printers.each do |summary|
         uuid = summary["uuid"] || summary["id"]
         next if uuid.blank?
+
+        listed_external_ids << uuid
 
         detail = get("/printers/#{uuid}")
         records << PrinterRecord.from_payload(detail)
@@ -58,7 +61,7 @@ module PrusaConnect
         errors << "#{label}: #{error.message}"
       end
 
-      PrinterRecords.new(records: records, errors: errors)
+      PrinterRecords.new(records: records, errors: errors, listed_external_ids: listed_external_ids)
     end
 
     def printer_count
