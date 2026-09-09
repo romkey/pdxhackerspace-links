@@ -1,0 +1,14 @@
+main:
+  name: Hackerspace Prusa
+  refresh_token: initial-refresh-token
+  access_token: cached-access-token
+  access_token_expires_at: <%= 1.hour.from_now.to_fs(:db) %>
+  auto_create_things: true
+  enabled: true
+  description: Shared Prusa Connect account
+
+disabled:
+  name: Disabled account
+  refresh_token: disabled-refresh-token
+  auto_create_things: true
+  enabled: false

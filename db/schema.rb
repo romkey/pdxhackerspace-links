@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_08_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_08_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -60,6 +60,52 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_08_000001) do
     t.index ["enabled"], name: "index_printers_on_enabled"
     t.index ["name"], name: "index_printers_on_name"
     t.index ["printer_type"], name: "index_printers_on_printer_type"
+  end
+
+  create_table "prusa_connect_accounts", force: :cascade do |t|
+    t.text "access_token"
+    t.datetime "access_token_expires_at"
+    t.boolean "auto_create_things", default: true, null: false
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.boolean "enabled", default: true, null: false
+    t.text "last_sync_message"
+    t.string "last_sync_status"
+    t.datetime "last_synced_at"
+    t.string "name", null: false
+    t.text "refresh_token"
+    t.datetime "updated_at", null: false
+    t.index ["enabled"], name: "index_prusa_connect_accounts_on_enabled"
+    t.index ["name"], name: "index_prusa_connect_accounts_on_name", unique: true
+  end
+
+  create_table "prusa_connect_printers", force: :cascade do |t|
+    t.jsonb "applied_attributes", default: {}, null: false
+    t.datetime "archived_at"
+    t.datetime "created_at", null: false
+    t.string "external_id", null: false
+    t.string "firmware"
+    t.datetime "first_seen_at", null: false
+    t.string "hostname"
+    t.string "ieee_address"
+    t.boolean "ignored", default: false, null: false
+    t.datetime "last_seen_at", null: false
+    t.string "location"
+    t.string "name"
+    t.jsonb "payload", default: {}, null: false
+    t.string "printer_model"
+    t.string "printer_type_name"
+    t.bigint "prusa_connect_account_id", null: false
+    t.string "serial_number"
+    t.string "state"
+    t.string "team_name"
+    t.bigint "thing_id"
+    t.datetime "updated_at", null: false
+    t.index ["archived_at"], name: "index_prusa_connect_printers_on_archived_at"
+    t.index ["ieee_address"], name: "index_prusa_connect_printers_on_ieee_address"
+    t.index ["prusa_connect_account_id", "external_id"], name: "index_pc_printers_on_account_and_external_id", unique: true
+    t.index ["prusa_connect_account_id"], name: "index_prusa_connect_printers_on_prusa_connect_account_id"
+    t.index ["thing_id"], name: "index_prusa_connect_printers_on_thing_id"
   end
 
   create_table "site_settings", force: :cascade do |t|
@@ -251,6 +297,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_08_000001) do
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "prusa_connect_printers", "prusa_connect_accounts"
+  add_foreign_key "prusa_connect_printers", "things"
   add_foreign_key "thing_links", "things"
   add_foreign_key "thing_relationships", "things", column: "related_thing_id", on_delete: :cascade
   add_foreign_key "thing_relationships", "things", on_delete: :cascade

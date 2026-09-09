@@ -15,6 +15,7 @@ class ThingsController < ApplicationController
   before_action :load_printers, only: %i[index show label_preview bulk_label_preview], if: :can_manage_things?
   before_action :load_unifi_devices, only: :show, if: :can_manage_things?
   before_action :load_zigbee2mqtt_devices, only: :show, if: :can_manage_things?
+  before_action :load_prusa_connect_printers, only: :show, if: :can_manage_things?
 
   def index
     @search_query = params[:q].to_s.strip.presence
@@ -383,6 +384,10 @@ class ThingsController < ApplicationController
 
   def load_zigbee2mqtt_devices
     @zigbee2mqtt_devices = @thing&.zigbee2mqtt_devices&.includes(:zigbee2mqtt_bridge)&.ordered
+  end
+
+  def load_prusa_connect_printers
+    @prusa_connect_printers = @thing&.prusa_connect_printers&.includes(:prusa_connect_account)&.ordered
   end
 
   def label_preview_filename(printer, extension)

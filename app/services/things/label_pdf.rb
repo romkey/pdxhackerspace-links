@@ -108,9 +108,10 @@ module Things
     end
 
     def cleanup!
-      return unless @generated_path
+      return unless @generated_file
 
-      File.delete(@generated_path) if File.exist?(@generated_path)
+      @generated_file.close!
+      @generated_file = nil
       @generated_path = nil
     end
 
@@ -172,10 +173,10 @@ module Things
     end
 
     def build_pdf
-      file = Tempfile.new([ "thing-label", ".pdf" ])
-      file.binmode
+      @generated_file = Tempfile.new([ "thing-label", ".pdf" ])
+      @generated_file.binmode
 
-      Prawn::Document.generate(file.path, margin: 0, page_size: [ page_width, page_height ]) do |pdf|
+      Prawn::Document.generate(@generated_file.path, margin: 0, page_size: [ page_width, page_height ]) do |pdf|
         if letter_page?
           if compact?
             render_compact_label(pdf, bounds: default_avery_bounds)
@@ -203,7 +204,7 @@ module Things
         end
       end
 
-      file.path
+      @generated_file.path
     end
 
     def page_layout

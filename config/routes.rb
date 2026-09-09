@@ -51,6 +51,13 @@ Rails.application.routes.draw do
       end
     end
     resources :zigbee2mqtt_devices, only: :update
+    resources :prusa_connect_accounts do
+      member do
+        post :test_connection
+        post :import
+      end
+    end
+    resources :prusa_connect_printers, only: :update
   end
 
   get "login", to: "sessions#new"

@@ -136,6 +136,30 @@ class ActiveSupport::TestCase
     end
   end
 
+  # Builds a transport for PrusaConnect::Client that answers from a canned map of
+  # "/path?query" (or just "/path") to [status, body]. Bodies are JSON-encoded
+  # unless already a string. Unlisted paths fail the test rather than hang.
+  def prusa_connect_transport(responses)
+    lambda do |uri, _headers|
+      status, body = responses[uri.request_uri] || responses[uri.path]
+      raise "Unexpected Prusa Connect request: #{uri.request_uri}" if status.nil?
+
+      encoded = body.is_a?(String) ? body : body.to_json
+      [ status, encoded, {} ]
+    end
+  end
+
+  # Builds a transport for PrusaConnect::AccessToken token exchange requests.
+  def prusa_connect_token_transport(responses)
+    lambda do |uri, _method, _headers, _body|
+      status, body = responses[uri.request_uri] || responses[uri.path]
+      raise "Unexpected Prusa account request: #{uri.request_uri}" if status.nil?
+
+      encoded = body.is_a?(String) ? body : body.to_json
+      [ status, encoded ]
+    end
+  end
+
   def with_fake_cups_client(server: "cups.example.com:631", fail_print: false, &block)
     runner = lambda do |*_args|
       case _args[1]

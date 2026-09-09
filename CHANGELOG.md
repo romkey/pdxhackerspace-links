@@ -10,7 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 - **Serial number** field on things, searchable from the Things index alongside name, model, and addresses
 - Imports read a serial number out of the device payload when the console reports one, and show it on the UniFi and Zigbee2MQTT cards on the thing page
-- 
+- **Prusa Connect** integration imports cloud printers from a Prusa account as things
+
 ### Fixed
 
 - Printing a label for a thing whose name, label name, owner, or link title contains emoji (or any other character the label fonts can't print) no longer fails with a 500 error. Those characters are dropped from the printed text instead — a label name of `🍎RMT S2 Big` prints as `RMT S2 Big`, and a label name made up entirely of emoji falls back to the thing's regular name

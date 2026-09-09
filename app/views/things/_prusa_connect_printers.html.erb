@@ -1,0 +1,43 @@
+<div class="h-section-label mb-2">Prusa Connect</div>
+<div class="vstack gap-3 mb-4">
+  <% prusa_connect_printers.each do |printer| %>
+    <div class="sidebar-card">
+      <div class="d-flex justify-content-between align-items-start gap-2">
+        <div class="fw-medium text-13"><%= printer.display_name %></div>
+        <% if printer.archived? %>
+          <span class="badge text-bg-warning-subtle text-11 fw-normal">Not seen</span>
+        <% elsif printer.state.present? %>
+          <span class="badge text-bg-secondary-subtle text-11 fw-normal"><%= printer.state_label %></span>
+        <% end %>
+      </div>
+      <dl class="row text-12 mb-0 mt-2">
+        <dt class="col-5 text-secondary">Account</dt>
+        <dd class="col-7"><%= link_to printer.prusa_connect_account.name, settings_prusa_connect_account_path(printer.prusa_connect_account) %></dd>
+        <% if printer.printer_type_name.present? || printer.printer_model.present? %>
+          <dt class="col-5 text-secondary">Model</dt>
+          <dd class="col-7"><%= printer.printer_type_name.presence || printer.printer_model %></dd>
+        <% end %>
+        <% if printer.serial_number.present? %>
+          <dt class="col-5 text-secondary">Serial</dt>
+          <dd class="col-7"><code class="text-12"><%= printer.serial_number %></code></dd>
+        <% end %>
+        <% if printer.firmware.present? %>
+          <dt class="col-5 text-secondary">Firmware</dt>
+          <dd class="col-7"><%= printer.firmware %></dd>
+        <% end %>
+        <% if printer.team_name.present? %>
+          <dt class="col-5 text-secondary">Team</dt>
+          <dd class="col-7"><%= printer.team_name %></dd>
+        <% end %>
+        <% if printer.location.present? %>
+          <dt class="col-5 text-secondary">Location</dt>
+          <dd class="col-7"><%= printer.location %></dd>
+        <% end %>
+        <dt class="col-5 text-secondary">Last seen</dt>
+        <dd class="col-7 text-secondary" title="<%= printer.last_seen_at.to_fs(:long) %>">
+          <%= time_ago_in_words(printer.last_seen_at) %> ago
+        </dd>
+      </dl>
+    </div>
+  <% end %>
+</div>

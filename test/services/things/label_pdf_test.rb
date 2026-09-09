@@ -485,6 +485,17 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
     label_pdf&.cleanup!
   end
 
+  test "generated pdf survives garbage collection before cleanup" do
+    label_pdf = Things::LabelPdf.new(thing: things(:router), printer: printers(:office_laser), layout: :qr_only)
+    path = label_pdf.generate
+    GC.start
+
+    assert File.exist?(path)
+    assert File.read(path, 4).start_with?("%PDF")
+  ensure
+    label_pdf&.cleanup!
+  end
+
   test "qr only layout is offered and labelled" do
     assert_includes Things::LabelPdf::LAYOUTS, :qr_only
     assert_equal "QR code only", Things::LabelPdf.layout_label(:qr_only)

@@ -6,6 +6,9 @@
     <% if zigbee2mqtt_devices.present? %>
       <%= render "zigbee2mqtt_devices", zigbee2mqtt_devices: zigbee2mqtt_devices %>
     <% end %>
+    <% if prusa_connect_printers.present? %>
+      <%= render "prusa_connect_printers", prusa_connect_printers: prusa_connect_printers %>
+    <% end %>
     <% if thing.ar_anchor.attached? %>
       <div class="h-section-label mb-2">AR Marker</div>
       <div class="mb-4">

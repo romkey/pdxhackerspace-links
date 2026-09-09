@@ -15,6 +15,12 @@ module Integrations
           label: "Zigbee2MQTT",
           settings_path: :settings_zigbee2mqtt_bridges_path,
           controller_path: "settings/zigbee2mqtt_bridges"
+        ),
+        Entry.new(
+          key: "prusa_connect",
+          label: "Prusa Connect",
+          settings_path: :settings_prusa_connect_accounts_path,
+          controller_path: "settings/prusa_connect_accounts"
         )
       ].freeze
     end
