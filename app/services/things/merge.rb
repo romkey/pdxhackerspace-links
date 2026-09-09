@@ -92,29 +92,42 @@ module Things
       end
     end
 
-    # Attachment rows are moved rather than the blobs re-attached: Active Storage
-    # does not reference count, so destroying the source would purge a shared blob.
+    # Attachment rows are moved rather than the blobs re-attached. When both things
+    # already point at the same blob (as after Duplicate), drop the source row
+    # without purging — Active Storage does not reference-count blobs.
     def move_photos
       held = ActiveStorage::Attachment.where(record: target, name: "photos").pluck(:blob_id).to_set
 
       attachments_for(source, "photos").each do |attachment|
-        next unless held.add?(attachment.blob_id)
-
-        attachment.update_columns(record_id: target.id)
+        if held.include?(attachment.blob_id)
+          delete_attachment_without_purge(attachment)
+        else
+          attachment.update_columns(record_id: target.id)
+          held.add(attachment.blob_id)
+        end
       end
     end
 
     def move_ar_anchor
-      return if target.ar_anchor.attached?
-
       attachment = attachments_for(source, "ar_anchor").first
       return unless attachment
+
+      if target.ar_anchor.attached?
+        if target.ar_anchor.blob_id == attachment.blob_id
+          delete_attachment_without_purge(attachment)
+        end
+        return
+      end
 
       attachment.update_columns(record_id: target.id)
     end
 
     def attachments_for(thing, name)
       ActiveStorage::Attachment.where(record: thing, name: name).to_a
+    end
+
+    def delete_attachment_without_purge(attachment)
+      ActiveStorage::Attachment.where(id: attachment.id).delete_all
     end
 
     # Frees the uniquely indexed values so the target can adopt any of them.

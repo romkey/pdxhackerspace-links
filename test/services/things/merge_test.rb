@@ -201,6 +201,21 @@ class Things::MergeTest < ActiveSupport::TestCase
     assert_equal 2, @target.reload.photos.count
   end
 
+  test "keeps shared photo blobs when both things reference the same blob" do
+    attach_photo(@target)
+    blob = @target.photos.first.blob
+    @source.photos.attach(blob)
+
+    assert_no_enqueued_jobs only: ActiveStorage::PurgeJob do
+      merge
+    end
+
+    @target.reload
+    assert_equal 1, @target.photos.count
+    assert_equal blob.id, @target.photos.first.blob_id
+    assert ActiveStorage::Blob.exists?(blob.id)
+  end
+
   test "moves the ar marker when the target has none" do
     attach_ar_anchor(@source)
 
@@ -217,6 +232,20 @@ class Things::MergeTest < ActiveSupport::TestCase
     merge
 
     assert_equal target_blob_id, @target.reload.ar_anchor.blob_id
+  end
+
+  test "keeps shared ar anchor blob when both things reference the same blob" do
+    attach_ar_anchor(@target)
+    blob = @target.ar_anchor.blob
+    @source.ar_anchor.attach(blob)
+    target_blob_id = @target.ar_anchor.blob_id
+
+    assert_no_enqueued_jobs only: ActiveStorage::PurgeJob do
+      merge
+    end
+
+    assert_equal target_blob_id, @target.reload.ar_anchor.blob_id
+    assert ActiveStorage::Blob.exists?(target_blob_id)
   end
 
   test "rolls back everything when the resolved attributes are invalid" do
