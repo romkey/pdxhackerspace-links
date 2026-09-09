@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_08_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_09_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -117,6 +117,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_08_000003) do
     t.string "matomo_site_id"
     t.string "matomo_url"
     t.datetime "updated_at", null: false
+  end
+
+  create_table "thing_aliases", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "key"
+    t.string "slug"
+    t.bigint "thing_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["key"], name: "index_thing_aliases_on_key", unique: true, where: "(key IS NOT NULL)"
+    t.index ["slug"], name: "index_thing_aliases_on_slug", unique: true, where: "(slug IS NOT NULL)"
+    t.index ["thing_id"], name: "index_thing_aliases_on_thing_id"
   end
 
   create_table "thing_links", force: :cascade do |t|
@@ -299,6 +310,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_08_000003) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "prusa_connect_printers", "prusa_connect_accounts"
   add_foreign_key "prusa_connect_printers", "things"
+  add_foreign_key "thing_aliases", "things", on_delete: :cascade
   add_foreign_key "thing_links", "things"
   add_foreign_key "thing_relationships", "things", column: "related_thing_id", on_delete: :cascade
   add_foreign_key "thing_relationships", "things", on_delete: :cascade

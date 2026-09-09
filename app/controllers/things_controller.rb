@@ -3,12 +3,14 @@ class ThingsController < ApplicationController
 
   skip_before_action :require_login, only: %i[show by_beacon]
   before_action :require_full_access, only: %i[
-    new create edit update destroy duplicate purge_photo purge_ar_anchor
+    new create edit update destroy duplicate merge perform_merge purge_photo purge_ar_anchor
     print label_preview update_labelled bulk_print bulk_label_preview bulk_update_labelled search
   ]
   before_action :set_thing, only: %i[
-    show edit update destroy duplicate purge_photo purge_ar_anchor print label_preview update_labelled
+    show edit update destroy duplicate merge perform_merge purge_photo purge_ar_anchor print
+    label_preview update_labelled
   ]
+  before_action :set_merge_source, only: %i[merge perform_merge]
   before_action :preload_thing_show_associations, only: :show
   before_action :set_thing_by_beacon, only: :by_beacon
   before_action :require_login_or_public_thing, only: %i[show by_beacon]
@@ -289,6 +291,30 @@ class ThingsController < ApplicationController
     redirect_to edit_thing_path(copy), notice: "Duplicated as “#{copy.name}”."
   end
 
+  def merge
+    @merge_plan = build_merge_plan if @merge_source
+  end
+
+  def perform_merge
+    unless @merge_source
+      redirect_to merge_thing_path(@thing), alert: "Choose a thing to merge in."
+      return
+    end
+
+    plan = build_merge_plan
+    absorbed_name = @merge_source.name
+    Things::Merge.call(target: @thing, source: @merge_source, **plan.resolve(merge_resolution_params(plan)))
+
+    redirect_to thing_path(@thing), notice: "Merged “#{absorbed_name}” into “#{@thing.name}”."
+  rescue ActiveRecord::RecordInvalid => error
+    flash.now[:alert] = error.record.errors.full_messages.to_sentence
+    # The rolled back transaction leaves both records dirty in memory.
+    @thing.reload
+    @merge_source.reload
+    @merge_plan = build_merge_plan
+    render :merge, status: :unprocessable_entity
+  end
+
   def purge_photo
     photo = @thing.photos.find(params[:photo_id])
     photo.purge
@@ -304,6 +330,30 @@ class ThingsController < ApplicationController
 
   def set_thing
     @thing = Thing.find_by_param!(params[:id] || params[:key])
+  end
+
+  def set_merge_source
+    param = params[:source_id].presence
+    return if param.blank?
+
+    @merge_source = Thing.find_by_param!(param)
+    return unless @merge_source.id == @thing.id
+
+    @merge_source = nil
+    redirect_to merge_thing_path(@thing), alert: "Pick a different thing to merge in."
+  rescue ActiveRecord::RecordNotFound
+    redirect_to merge_thing_path(@thing), alert: "That thing could not be found."
+  end
+
+  def build_merge_plan
+    Things::MergePlan.new(target: @thing, source: @merge_source)
+  end
+
+  def merge_resolution_params(plan)
+    resolution = params[:resolution]
+    return {} if resolution.blank?
+
+    resolution.permit(*plan.conflicts.map(&:name))
   end
 
   def preload_thing_show_associations

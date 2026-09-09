@@ -31,6 +31,9 @@
                     form: { class: "d-inline", data: { turbo_frame: "_top" } } %>
     </li>
     <li>
+      <%= link_to "Merge…", merge_thing_path(thing), class: "dropdown-item", data: { turbo_frame: "_top" } %>
+    </li>
+    <li>
       <% if thing.labelled? %>
         <%= button_to "Mark not labelled",
                       labelled_thing_path(thing),

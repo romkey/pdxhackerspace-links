@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- **Merge** in a thing's ⋯ menu, next to Edit, Print label, and Duplicate, for when the same thing was entered twice or an integration imported one that already existed. Pick the duplicate and the merge page asks about each field the two disagree on — click either value to use it, or type something else. Fields only one of them has are filled in without asking, and photos, custom links, related things, and imported devices move across. The absorbed thing is deleted, but its short URL key and slug keep resolving to the thing you merged into, so QR codes and NFC tags already printed still work
 - **Serial number** field on things, searchable from the Things index alongside name, model, and addresses
 - Imports read a serial number out of the device payload when the console reports one, and show it on the UniFi and Zigbee2MQTT cards on the thing page
 - **Prusa Connect** integration imports cloud printers from a Prusa account as things

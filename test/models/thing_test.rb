@@ -324,6 +324,45 @@ class ThingTest < ActiveSupport::TestCase
     assert_equal things(:keyboard), Thing.find_by_param!(things(:keyboard).key)
   end
 
+  test "find_by_param finds by a retired key" do
+    assert_equal things(:keyboard), Thing.find_by_param!(thing_aliases(:retired_keyboard).key)
+  end
+
+  test "find_by_param finds by a retired slug" do
+    assert_equal things(:keyboard), Thing.find_by_param!(thing_aliases(:retired_keyboard).slug)
+  end
+
+  test "find_by_param prefers a live thing over a retired key" do
+    things(:router).update_columns(key: thing_aliases(:retired_keyboard).key)
+
+    assert_equal things(:router), Thing.find_by_param!(thing_aliases(:retired_keyboard).key)
+  end
+
+  test "rejects a key retired by a merge" do
+    thing = things(:router)
+    thing.key = thing_aliases(:retired_keyboard).key
+
+    assert_not thing.valid?
+    assert_includes thing.errors[:key], "belongs to a merged thing"
+  end
+
+  test "rejects a slug retired by a merge" do
+    thing = things(:router)
+    thing.slug = thing_aliases(:retired_keyboard).slug
+
+    assert_not thing.valid?
+    assert_includes thing.errors[:slug], "belongs to a merged thing"
+  end
+
+  test "generated keys avoid keys retired by a merge" do
+    # With the random suffix pinned to "a", only one candidate key is left free.
+    stubbing(SecureRandom, :random_number, ->(_limit) { 0 }) do
+      ("b".."z").each { |letter| ThingAlias.create!(thing: things(:keyboard), key: "#{letter}aaaaaaa") }
+
+      assert_equal "aaaaaaaa", Thing.create!(name: "Freshly Keyed").key
+    end
+  end
+
   test "search matches key" do
     assert_includes Thing.search(things(:router).key), things(:router)
   end

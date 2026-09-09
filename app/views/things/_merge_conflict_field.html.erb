@@ -1,0 +1,44 @@
+<% field_id = "merge-field-#{field.name}" %>
+
+<div data-controller="merge-field">
+  <label class="form-label mb-1" for="<%= field_id %>"><%= field.label %></label>
+
+  <% if field.boolean? %>
+    <% checked = ActiveModel::Type::Boolean.new.cast(field.default_value) %>
+    <div class="d-flex flex-wrap gap-3">
+      <div class="form-check">
+        <%= radio_button_tag "resolution[#{field.name}]", "1", checked, id: "#{field_id}-on", class: "form-check-input" %>
+        <label class="form-check-label text-13" for="<%= field_id %>-on">Public</label>
+      </div>
+      <div class="form-check">
+        <%= radio_button_tag "resolution[#{field.name}]", "0", !checked, id: "#{field_id}-off", class: "form-check-input" %>
+        <label class="form-check-label text-13" for="<%= field_id %>-off">Not public</label>
+      </div>
+    </div>
+    <div class="text-11 text-secondary mt-1">
+      <%= thing.name %> is <%= field.target_value ? "public" : "not public" %> ·
+      <%= source.name %> is <%= field.source_value ? "public" : "not public" %>
+    </div>
+  <% else %>
+    <% if field.textarea? %>
+      <%= text_area_tag "resolution[#{field.name}]", field.default_value, id: field_id, rows: 3,
+                        class: "form-control", data: { merge_field_target: "input" } %>
+    <% else %>
+      <%= text_field_tag "resolution[#{field.name}]", field.default_value, id: field_id,
+                         class: "form-control", data: { merge_field_target: "input" } %>
+    <% end %>
+
+    <div class="d-flex flex-wrap gap-1 mt-1">
+      <% [ [ thing, field.target_value ], [ source, field.source_value ] ].each do |owner, value| %>
+        <button type="button"
+                class="btn btn-outline-secondary btn-sm text-start"
+                title="<%= value %>"
+                data-action="merge-field#use"
+                data-merge-field-value-param="<%= value %>">
+          <span class="text-11 text-secondary"><%= owner.name %>:</span>
+          <span class="text-13"><%= truncate(value.to_s, length: 60) %></span>
+        </button>
+      <% end %>
+    </div>
+  <% end %>
+</div>
