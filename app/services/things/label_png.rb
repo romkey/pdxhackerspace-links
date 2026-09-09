@@ -31,9 +31,8 @@ module Things
     end
 
     def cleanup!
-      return unless @generated_path
-
-      File.delete(@generated_path) if File.exist?(@generated_path)
+      @png_file&.close!
+      @png_file = nil
       @generated_path = nil
       @label_pdf.cleanup!
     end
@@ -48,9 +47,9 @@ module Things
 
     def build_png
       pdf_path = label_pdf.generate
-      output = Tempfile.new([ "thing-label", ".png" ])
-      output.close
-      base_path = output.path.sub(/\.png\z/, "")
+      @png_file = Tempfile.new([ "thing-label", ".png" ])
+      @png_file.close
+      base_path = @png_file.path.sub(/\.png\z/, "")
 
       _stdout, stderr, status = Open3.capture3(
         "pdftoppm", "-png", "-singlefile",
@@ -64,8 +63,9 @@ module Things
       end
 
       generated = "#{base_path}.png"
-      FileUtils.mv(generated, output.path) unless File.exist?(output.path)
-      output.path
+      FileUtils.mv(generated, @png_file.path) unless File.exist?(@png_file.path)
+      @generated_path = @png_file.path
+      @png_file.path
     end
   end
 end
