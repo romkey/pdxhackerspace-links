@@ -1,0 +1,91 @@
+<% content_for :title, title %>
+
+<%= settings_frame do %>
+  <div class="mb-3">
+    <div class="text-12 text-secondary mb-1">
+      <%= link_to "Prusa Connect", settings_prusa_connect_accounts_path, class: "text-secondary text-decoration-none" %>
+      <span class="mx-1">/</span>
+      <span class="text-body"><%= title %></span>
+    </div>
+    <h1 class="h-page-title mb-0"><%= title %></h1>
+  </div>
+
+  <%= form_with model: prusa_connect_account,
+                url: prusa_connect_account.persisted? ? settings_prusa_connect_account_path(prusa_connect_account) : settings_prusa_connect_accounts_path,
+                class: "vstack gap-4" do |form| %>
+    <% if prusa_connect_account.errors.any? %>
+      <div class="alert alert-danger text-13">
+        <%= prusa_connect_account.errors.full_messages.to_sentence %>
+      </div>
+    <% end %>
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <%= form.label :name, "Display name", class: "form-label" %>
+        <%= form.text_field :name, class: "form-control", required: true, placeholder: "Hackerspace Prusa account" %>
+      </div>
+      <div class="col-12">
+        <%= form.label :description, class: "form-label" %>
+        <%= form.text_area :description, class: "form-control", rows: 2,
+                           placeholder: "Which Prusa account this is, who owns it, what printers it covers." %>
+      </div>
+    </div>
+
+    <div>
+      <div class="h-section-label mb-2">Authentication</div>
+      <p class="text-secondary text-13 mb-3">
+        Prusa Connect has no API keys. Sign in at
+        <%= link_to "connect.prusa3d.com", "https://connect.prusa3d.com", target: "_blank", rel: "noopener" %>,
+        open your browser developer tools, and copy the value of
+        <code class="text-12">auth.refresh_token</code> from local storage. Paste it here once — the app rotates it
+        automatically on each import.
+      </p>
+      <div class="row g-3">
+        <div class="col-12">
+          <%= form.label :refresh_token, "Refresh token", class: "form-label" %>
+          <%= form.password_field :refresh_token, class: "form-control font-monospace text-12",
+                                  autocomplete: "off",
+                                  required: !prusa_connect_account.persisted?,
+                                  placeholder: prusa_connect_account.persisted? ? "Leave blank to keep the current token" : "" %>
+          <div class="form-text text-12">
+            Stored encrypted. The saved token is never shown again. If imports start failing with an auth error,
+            paste a fresh token from your browser — the old one may have expired or been rotated elsewhere.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="h-section-label mb-2">Things</div>
+      <div class="form-check">
+        <%= form.check_box :auto_create_things, class: "form-check-input" %>
+        <%= form.label :auto_create_things, "Create a thing for each new printer", class: "form-check-label" %>
+      </div>
+      <div class="form-text text-12">
+        Printers always match an existing thing by IEEE address first. Names, models, serial numbers, and hostnames
+        stay in sync until you edit them by hand, after which the import leaves them alone.
+      </div>
+    </div>
+
+    <div>
+      <div class="h-section-label mb-2">Status</div>
+      <div class="form-check">
+        <%= form.check_box :enabled, class: "form-check-input" %>
+        <%= form.label :enabled, "Enabled", class: "form-check-label" %>
+      </div>
+      <div class="form-text text-12">Disabled accounts are skipped by scheduled imports.</div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <%= form.submit class: "btn btn-primary btn-sm" %>
+      <%= link_to "Cancel",
+                  prusa_connect_account.persisted? ? settings_prusa_connect_account_path(prusa_connect_account) : settings_prusa_connect_accounts_path,
+                  class: "btn btn-outline-secondary btn-sm" %>
+      <% if prusa_connect_account.persisted? %>
+        <%= button_to "Delete", settings_prusa_connect_account_path(prusa_connect_account), method: :delete,
+                      class: "btn btn-outline-danger btn-sm",
+                      form: { data: { turbo_confirm: "Delete #{prusa_connect_account.name}? Imported things are kept." } } %>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

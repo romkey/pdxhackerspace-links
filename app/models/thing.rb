@@ -16,6 +16,7 @@ class Thing < ApplicationRecord
   has_many :related_things, through: :thing_relationships, source: :related_thing
   has_many :unifi_devices, dependent: :nullify
   has_many :zigbee2mqtt_devices, dependent: :nullify
+  has_many :prusa_connect_printers, dependent: :nullify
   has_many_attached :photos do |attachable|
     attachable.variant :hero, resize_to_limit: [ 1200, 1200 ], preprocessed: true
     attachable.variant :thumb, resize_to_limit: [ 400, 400 ], preprocessed: true
@@ -151,7 +152,7 @@ class Thing < ApplicationRecord
   end
 
   def integration_managed?
-    unifi_devices.any? || zigbee2mqtt_devices.any?
+    unifi_devices.any? || zigbee2mqtt_devices.any? || prusa_connect_printers.any?
   end
 
   def integration_label
@@ -272,6 +273,7 @@ class Thing < ApplicationRecord
   def ignore_integration_devices
     unifi_devices.update_all(ignored: true, thing_id: nil, updated_at: Time.current)
     zigbee2mqtt_devices.update_all(ignored: true, thing_id: nil, updated_at: Time.current)
+    prusa_connect_printers.update_all(ignored: true, thing_id: nil, updated_at: Time.current)
   end
 
   def ip_address_format

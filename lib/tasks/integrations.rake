@@ -3,8 +3,9 @@ namespace :integrations do
   task import: :environment do
     unifi_controllers = UnifiController.enabled.ordered
     zigbee_bridges = Zigbee2mqttBridge.enabled.ordered
+    prusa_accounts = PrusaConnectAccount.enabled.ordered
 
-    if unifi_controllers.empty? && zigbee_bridges.empty?
+    if unifi_controllers.empty? && zigbee_bridges.empty? && prusa_accounts.empty?
       puts "No enabled integrations configured."
       next
     end
@@ -17,6 +18,11 @@ namespace :integrations do
     zigbee_bridges.each do |bridge|
       result = Zigbee2mqtt::Import.call(zigbee2mqtt_bridge: bridge)
       puts "Zigbee2MQTT #{bridge.name}: #{result.status} — #{result.summary}"
+    end
+
+    prusa_accounts.each do |account|
+      result = PrusaConnect::Import.call(prusa_connect_account: account)
+      puts "Prusa Connect #{account.name}: #{result.status} — #{result.summary}"
     end
   end
 end

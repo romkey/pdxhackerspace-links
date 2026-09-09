@@ -1,0 +1,134 @@
+<% content_for :title, @prusa_connect_account.name %>
+
+<%= settings_frame do %>
+  <div class="mb-3">
+    <div class="text-12 text-secondary mb-1">
+      <%= link_to "Prusa Connect", settings_prusa_connect_accounts_path, class: "text-secondary text-decoration-none" %>
+      <span class="mx-1">/</span>
+      <span class="text-body"><%= @prusa_connect_account.name %></span>
+    </div>
+    <div class="d-flex align-items-end justify-content-between flex-wrap gap-2">
+      <div>
+        <h1 class="h-page-title mb-0"><%= @prusa_connect_account.name %></h1>
+        <div class="text-13 text-secondary mt-1">
+          Prusa Connect cloud account
+          <% unless @prusa_connect_account.enabled? %>
+            · <span class="badge text-bg-secondary-subtle text-12 fw-normal">Disabled</span>
+          <% end %>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <%= button_to "Test connection", test_connection_settings_prusa_connect_account_path(@prusa_connect_account),
+                      class: "btn btn-outline-secondary btn-sm" %>
+        <%= button_to "Import now", import_settings_prusa_connect_account_path(@prusa_connect_account),
+                      class: "btn btn-primary btn-sm", disabled: !@prusa_connect_account.enabled? %>
+        <%= link_to "Edit", edit_settings_prusa_connect_account_path(@prusa_connect_account),
+                    class: "btn btn-outline-secondary btn-sm" %>
+      </div>
+    </div>
+  </div>
+
+  <% if @prusa_connect_account.last_sync_message.present? %>
+    <div class="status-panel <%= @prusa_connect_account.last_sync_ok? ? "status-clear" : "status-attention" %> mb-3 text-13">
+      <%= @prusa_connect_account.last_sync_message %>
+    </div>
+  <% end %>
+
+  <div class="row g-4 mb-4">
+    <div class="col-md-6">
+      <div class="h-section-label mb-2">Account</div>
+      <dl class="row text-13 mb-0">
+        <dt class="col-sm-4 text-secondary">Refresh token</dt>
+        <dd class="col-sm-8">Saved (encrypted, not shown)</dd>
+        <dt class="col-sm-4 text-secondary">New things</dt>
+        <dd class="col-sm-8"><%= @prusa_connect_account.auto_create_things? ? "Created automatically" : "Not created" %></dd>
+      </dl>
+      <% if @prusa_connect_account.description.present? %>
+        <div class="h-section-label mb-2 mt-3">Notes</div>
+        <div class="text-13 text-secondary"><%= simple_format(@prusa_connect_account.description) %></div>
+      <% end %>
+    </div>
+    <div class="col-md-6">
+      <div class="h-section-label mb-2">System</div>
+      <dl class="row text-12 text-secondary mb-0">
+        <dt class="col-sm-4">Last import</dt>
+        <dd class="col-sm-8">
+          <%= @prusa_connect_account.last_synced_at ? "#{time_ago_in_words(@prusa_connect_account.last_synced_at)} ago" : "Never" %>
+        </dd>
+        <dt class="col-sm-4">Printers</dt>
+        <dd class="col-sm-8"><%= @prusa_connect_account.prusa_connect_printers.active.count %> active, <%= @prusa_connect_account.prusa_connect_printers.archived.count %> archived</dd>
+        <dt class="col-sm-4">Added</dt>
+        <dd class="col-sm-8"><%= @prusa_connect_account.created_at.to_fs(:long) %></dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="d-flex align-items-end justify-content-between mb-2">
+    <div class="h-section-label mb-0">Printers</div>
+    <div class="text-12">
+      <% if show_archived? %>
+        <%= link_to "Hide archived", settings_prusa_connect_account_path(@prusa_connect_account), class: "text-secondary" %>
+      <% else %>
+        <%= link_to "Show archived", settings_prusa_connect_account_path(@prusa_connect_account, archived: "1"), class: "text-secondary" %>
+      <% end %>
+    </div>
+  </div>
+
+  <% if @prusa_connect_printers.any? %>
+    <div class="table-responsive">
+      <table class="table table-compact align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Printer</th>
+            <th>Model</th>
+            <th>Team</th>
+            <th>Address</th>
+            <th>Thing</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @prusa_connect_printers.each do |printer| %>
+            <tr class="<%= "opacity-50" if printer.archived? || printer.ignored? %>">
+              <td class="fw-medium">
+                <%= printer.display_name %>
+                <% if printer.archived? %>
+                  <span class="badge text-bg-secondary-subtle text-11 fw-normal">Archived</span>
+                <% end %>
+                <% if printer.ignored? %>
+                  <span class="badge text-bg-secondary-subtle text-11 fw-normal">Ignored</span>
+                <% end %>
+              </td>
+              <td class="text-secondary"><%= printer.printer_type_name.presence || printer.printer_model.presence || "—" %></td>
+              <td class="text-secondary text-12"><%= printer.team_name.presence || "—" %></td>
+              <td class="text-secondary text-12">
+                <% if printer.hostname.present? %>
+                  <code class="text-12"><%= printer.hostname %></code><br>
+                <% end %>
+                <code class="text-12"><%= Integrations::HardwareAddress.display(printer.ieee_address).presence || "—" %></code>
+              </td>
+              <td>
+                <% if printer.thing %>
+                  <%= link_to printer.thing.name, thing_path(printer.thing), class: "text-13" %>
+                <% else %>
+                  <span class="text-secondary text-13">—</span>
+                <% end %>
+              </td>
+              <td class="text-end">
+                <%= button_to printer.ignored? ? "Unignore" : "Ignore",
+                              settings_prusa_connect_printer_path(printer, ignored: printer.ignored? ? "0" : "1"),
+                              method: :patch,
+                              class: "btn btn-outline-secondary btn-sm",
+                              form: { data: { turbo_confirm: printer.ignored? ? nil : "Ignore #{printer.display_name} and unlink its thing?" } } %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-secondary text-13 mb-0">
+      No printers imported yet. Test the connection, then run an import.
+    </p>
+  <% end %>
+<% end %>

@@ -1,0 +1,33 @@
+mk4:
+  prusa_connect_account: main
+  thing: router
+  external_id: 752dc9b9-b5f9-4a59-b743-94efc18b60cb
+  name: Rack MK4
+  printer_model: MK4S
+  printer_type_name: Original Prusa MK4S
+  serial_number: CZPX12345678
+  firmware: 6.0.0+14778
+  ieee_address: 94:2a:6f:26:c6:ca
+  hostname: mk4.local
+  team_name: Hackerspace
+  state: IDLE
+  applied_attributes:
+    name: Rack MK4
+    ieee_address: 94:2a:6f:26:c6:ca
+    model: Original Prusa MK4S
+    serial_number: CZPX12345678
+  first_seen_at: <%= 3.days.ago.to_fs(:db) %>
+  last_seen_at: <%= 1.hour.ago.to_fs(:db) %>
+
+retired_mini:
+  prusa_connect_account: main
+  external_id: e224bf1f-c577-43da-a160-a364bd13b007
+  name: Loft MINI
+  printer_model: MINI
+  printer_type_name: Original Prusa MINI+
+  serial_number: CZPX87654321
+  ieee_address: d0:21:f9:8b:6a:ed
+  state: OFFLINE
+  first_seen_at: <%= 30.days.ago.to_fs(:db) %>
+  last_seen_at: <%= 10.days.ago.to_fs(:db) %>
+  archived_at: <%= 9.days.ago.to_fs(:db) %>

@@ -215,7 +215,7 @@ Release versions are tagged automatically from `APP_VERSION`. Signed-in users ar
 app/
   controllers/   # HTTP layer (auth, things, settings)
   models/        # User, Thing, ThingLink, SiteSetting, Printer, UnifiController, UnifiDevice
-  services/      # CUPS print client, UniFi integration API clients and import
+  services/      # CUPS print client, UniFi and Prusa Connect integration clients and import
   views/         # Bootstrap 5.3 templates
   jobs/          # ActiveJob → Sidekiq
 config/
@@ -257,7 +257,7 @@ Create the key in the UniFi console under **Settings → Control Plane → Integ
 
 Consoles ship a self-signed certificate, so **Verify the TLS certificate** is off by default. Turn it on once the console has a certificate from a trusted authority.
 
-**Test connection** reads the version endpoint of each enabled application. **Import now** queues a Sidekiq job; reload the page for the result. To import on a schedule, run `bin/rails integrations:import` from cron — it walks every enabled UniFi controller and Zigbee2MQTT bridge. `bin/rails unifi:import` still imports UniFi only.
+**Test connection** reads the version endpoint of each enabled application. **Import now** queues a Sidekiq job; reload the page for the result. To import on a schedule, run `bin/rails integrations:import` from cron — it walks every enabled UniFi controller, Zigbee2MQTT bridge, and Prusa Connect account. `bin/rails unifi:import` still imports UniFi only.
 
 How devices become things:
 
@@ -276,6 +276,31 @@ Model, serial, firmware, site, and last-seen details stay on the device record a
 For recency filtering, enable `advanced.last_seen` in your Zigbee2MQTT configuration and retain device state messages so Links can read `last_seen` during import. Each bridge can skip disabled devices, limit imports to devices seen within N days, and choose whether to import devices whose `last_seen` is unknown.
 
 Imported things receive manufacturer, model, IEEE address, a serial number when the device reports one (most Zigbee devices do not), and an auto-filled manufacturer link to the Zigbee2MQTT device page when the model is known.
+
+#### Prusa Connect import
+
+**Settings → Integrations → Prusa Connect** imports printers from a Prusa Connect cloud account as things. Prusa does not publish a client API for Connect, so this integration uses the same OAuth refresh-token flow the Connect web app uses. Links only issues read-only `GET` requests during import.
+
+To set up an account:
+
+1. Sign in at [connect.prusa3d.com](https://connect.prusa3d.com).
+2. Open your browser developer tools and read `auth.refresh_token` from local storage.
+3. Paste the token into **Settings → Integrations → Prusa Connect → Add account**.
+
+The refresh token is stored encrypted and is never shown again. Links rotates it automatically on each import — if imports start failing with an auth error, paste a fresh token from your browser.
+
+**Test connection** lists how many printers the account can see. **Import now** queues a Sidekiq job; reload the page for the result.
+
+How printers become things:
+
+- A printer is matched to an existing thing by IEEE address first, so a printer already discovered by UniFi maps to the same thing and gets enriched with model, serial, and firmware. Otherwise a new thing is created, unless the account has **Create a thing for each new printer** turned off.
+- Name, hostname, IEEE address, model, serial number, and manufacturer stay in sync until you edit them by hand.
+- Printers that disappear from the account are archived, not deleted, and their things are kept.
+- **Ignore** on a printer unlinks its thing and stops future imports from recreating one. Deleting a Prusa Connect-managed thing does the same.
+
+Model, serial, firmware, team, location, and last-seen details stay on the printer record and are shown in a Prusa Connect card on the thing page for signed-in users.
+
+This integration may break if Prusa changes their cloud service without notice.
 
 ### Printing
 
