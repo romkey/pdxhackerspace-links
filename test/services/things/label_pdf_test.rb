@@ -389,6 +389,18 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
     assert_in_delta 12, pdf.cable_tag_gap_mm, 0.01
   end
 
+  test "landscape label embeds qr but not thing photos" do
+    thing = attach_photo(things(:router))
+    label_pdf = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer))
+    path = label_pdf.generate
+    content = File.binread(path)
+    image_count = content.scan("/Subtype /Image").size
+
+    assert_equal 1, image_count, "expected only the QR code image, not gallery photos"
+  ensure
+    label_pdf&.cleanup!
+  end
+
   test "landscape label embeds qr and ar marker images" do
     thing = attach_ar_anchor(things(:router))
     label_pdf = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer))
