@@ -402,16 +402,16 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
   end
 
   test "landscape label embeds ar marker but not gallery photos when both are attached" do
-    thing = attach_photo(things(:router))
+    thing = things(:router)
+    thing.photos.purge
+    thing.ar_anchor.purge
     attach_ar_anchor(thing)
-    label_pdf = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer))
-    path = label_pdf.generate
-    content = File.binread(path)
-    image_count = content.scan("/Subtype /Image").size
+    ar_only_count = label_pdf_image_count(thing)
 
-    assert_equal 2, image_count, "expected QR code and AR marker only, not gallery photos"
-  ensure
-    label_pdf&.cleanup!
+    attach_photo(thing)
+    both_count = label_pdf_image_count(thing.reload)
+
+    assert_equal ar_only_count, both_count, "gallery photos must not add images to the label PDF"
   end
 
   test "landscape label embeds qr and ar marker images" do
@@ -566,6 +566,14 @@ class Things::LabelPdfTest < ActiveSupport::TestCase
     raise "pdftotext failed: #{stderr}" unless status.success?
 
     stdout
+  end
+
+  def label_pdf_image_count(thing)
+    label_pdf = Things::LabelPdf.new(thing: thing, printer: printers(:label_printer))
+    path = label_pdf.generate
+    File.binread(path).scan("/Subtype /Image").size
+  ensure
+    label_pdf&.cleanup!
   end
 
   def rasterize_label_pdf(path)
