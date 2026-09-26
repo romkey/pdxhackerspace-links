@@ -30,6 +30,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - The README build badge tracks the `Release` workflow, which actually builds and pushes images; it previously pointed at `Staging`, which had never run and so showed "no status"
 - README workflow badges use GitHub's own badge images rather than shields.io, whose Actions status endpoint intermittently times out and left the lint badge rendering as a broken image
 
+## [0.12.3] - 2026-09-26
+
+### Fixed
+
+- Label PDF regression test for gallery photos vs AR marker no longer assumes a fixed number of embedded images (Prawn may emit multiple image objects for QR and AR on strip labels)
+
 ## [0.12.2] - 2026-09-26
 
 ### Fixed
