@@ -291,11 +291,22 @@ module Things
       strip_roll_width_mm
     end
 
+    # Gallery photos (thing.photos) are never printed on labels — only the AR marker attachment.
     def ar_marker_attached?
-      return false unless thing.respond_to?(:ar_anchor) && thing.ar_anchor.attached?
+      ar_marker_attachment_for_label.present?
+    end
 
-      blob = thing.ar_anchor.blob
-      blob.service.exist?(blob.key)
+    def ar_marker_attachment_for_label
+      return unless thing.is_a?(Thing)
+      return unless thing.ar_anchor.attached?
+
+      attachment = thing.ar_anchor_attachment
+      return unless attachment&.name == "ar_anchor"
+
+      blob = attachment.blob
+      return unless blob.service.exist?(blob.key)
+
+      attachment
     end
 
     def strip_roll_width_mm
@@ -575,7 +586,10 @@ module Things
     end
 
     def draw_ar_marker(pdf, x:, y:, size:)
-      thing.ar_anchor.blob.open do |file|
+      attachment = ar_marker_attachment_for_label
+      return unless attachment
+
+      attachment.blob.open do |file|
         pdf.image file.path, at: [ x, y + size ], width: size, height: size
       end
     rescue ActiveStorage::FileNotFoundError => error
