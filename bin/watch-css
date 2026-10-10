@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // Rebuilds CSS whenever an SCSS file under app/assets/stylesheets changes.
-// Uses Node's built-in recursive fs.watch so we don't need nodemon/chokidar.
+// Uses chokidar (v4+ has no braces dependency) rather than raw fs.watch, which
+// on Linux tracks inodes and can lose files that editors save atomically.
+// Set CHOKIDAR_USEPOLLING=1 if file events don't reach the container.
 const { spawn } = require("node:child_process");
-const { watch } = require("node:fs");
 const path = require("node:path");
 
 const dir = path.join(__dirname, "..", "app", "assets", "stylesheets");
@@ -26,10 +27,20 @@ function build() {
   });
 }
 
-build();
-watch(dir, { recursive: true }, (_event, filename) => {
-  if (!filename || !filename.endsWith(".scss")) return;
+function scheduleBuild() {
   clearTimeout(timer);
   timer = setTimeout(build, 100);
-});
-console.log(`Watching ${path.relative(process.cwd(), dir)} for SCSS changes...`);
+}
+
+(async () => {
+  const { watch } = await import("chokidar");
+
+  build();
+  watch(dir, {
+    ignoreInitial: true,
+    ignored: (file, stats) => stats?.isFile() && !file.endsWith(".scss"),
+  }).on("all", (_event, file) => {
+    if (file.endsWith(".scss")) scheduleBuild();
+  });
+  console.log(`Watching ${path.relative(process.cwd(), dir)} for SCSS changes...`);
+})();
