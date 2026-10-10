@@ -318,6 +318,62 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "button", text: /Print label/
   end
 
+  test "label preview back link reopens the print dialog on the thing page" do
+    thing = things(:router)
+    printer = printers(:label_printer)
+
+    get label_preview_thing_path(thing, printer_id: printer.id, layout: :qr_only)
+
+    back = css_select("a.btn").find { |link| link.text == "Back" }
+    uri = URI.parse(back["href"])
+    query = Rack::Utils.parse_query(uri.query)
+    assert_equal thing_path(thing), uri.path
+    assert_equal thing.id.to_s, query["print_label"]
+    assert_equal printer.id.to_s, query["print_printer_id"]
+    assert_equal "qr_only", query["print_layout"]
+    assert_equal "0", query["print_mark_labelled"]
+  end
+
+  test "label preview back link returns to the page the dialog was opened from" do
+    thing = things(:router)
+
+    get label_preview_thing_path(thing, printer_id: printers(:label_printer).id,
+                                        mark_labelled: "1", return_to: "/things?q=router")
+
+    back = css_select("a.btn").find { |link| link.text == "Back" }
+    uri = URI.parse(back["href"])
+    query = Rack::Utils.parse_query(uri.query)
+    assert_equal "/things", uri.path
+    assert_equal "router", query["q"]
+    assert_equal thing.id.to_s, query["print_label"]
+    assert_equal "1", query["print_mark_labelled"]
+  end
+
+  test "label preview back link keeps filter params from the index" do
+    thing = things(:router)
+
+    get label_preview_thing_path(thing, printer_id: printers(:label_printer).id,
+                                        return_to: "/things?filter[links]=1&filter[integration][]=unifi")
+
+    back = css_select("a.btn").find { |link| link.text == "Back" }
+    path, query = back["href"].split("?", 2)
+    query = Rack::Utils.parse_nested_query(query)
+    assert_equal "/things", path
+    assert_equal({ "links" => "1", "integration" => [ "unifi" ] }, query["filter"])
+    assert_equal thing.id.to_s, query["print_label"]
+  end
+
+  test "label preview ignores off-site return paths" do
+    thing = things(:router)
+
+    [ "https://evil.example/", "//evil.example/", "/\\evil.example" ].each do |return_to|
+      get label_preview_thing_path(thing, printer_id: printers(:label_printer).id, return_to: return_to)
+
+      back = css_select("a.btn").find { |link| link.text == "Back" }
+      assert_equal thing_path(thing), URI.parse(back["href"]).path, return_to
+    end
+  end
+
   test "label preview renders when the label name contains emoji" do
     thing = things(:router)
     thing.update!(label_name: "🍎RMT S2 Big")
@@ -754,6 +810,16 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".bulk-label-preview-row", count: 2
     assert_select "iframe[title=?]", "Label preview for #{things(:keyboard).name}"
     assert_select "iframe[title=?]", "Label preview for #{things(:router).name}"
+  end
+
+  test "bulk label preview back link returns to the filtered index" do
+    get bulk_label_preview_things_path, params: {
+      thing_ids: [ things(:keyboard).id, things(:router).id ],
+      printer_id: printers(:label_printer).id,
+      return_to: "/things?q=r"
+    }
+
+    assert_select "a.btn[href=?]", "/things?q=r", text: "Back"
   end
 
   test "bulk label preview skips things without network lines for cable tags" do
