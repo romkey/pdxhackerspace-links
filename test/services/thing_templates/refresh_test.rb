@@ -72,6 +72,14 @@ module ThingTemplates
       assert_equal "https://slack.example.com/lamp", @thing.reload.link_for("slack").url
     end
 
+    test "updates a visibility the thing still has from the template" do
+      @template.update!(public_access: true)
+
+      Refresh.call(template: @template)
+
+      assert @thing.reload.public_access?
+    end
+
     test "follows the template through several versions" do
       @template.update!(model: "L2")
       travel 1.hour

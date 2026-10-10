@@ -51,10 +51,11 @@ module ThingTemplates
     def values_since(timeline, since)
       return [] if timeline.blank?
 
-      timeline.each_with_index.filter_map do |(_at, value), index|
+      # select then map, since filter_map would drop a false value.
+      timeline.each_index.select do |index|
         replaced_at = timeline[index + 1]&.first
-        value if replaced_at.nil? || since.nil? || replaced_at > since
-      end.uniq
+        replaced_at.nil? || since.nil? || replaced_at > since
+      end.map { |index| timeline[index].last }.uniq
     end
   end
 end
