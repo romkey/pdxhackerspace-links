@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-10-10
+
 ### Added
 
 - **Apply template…** on a thing's page (or from its row's ⋯ menu on the Things index) fills an existing thing from a template. Pick a template to preview what it will fill in, then apply. Only blank fields and blank link URLs or notes are filled — anything already set is kept, and the visibility setting is never changed. The template's custom links are added, or fill in the blanks of an existing custom link with the same title
