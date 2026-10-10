@@ -28,7 +28,7 @@ concurrency:
 jobs:
   prepare:
     if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: write
     outputs:
@@ -79,7 +79,7 @@ jobs:
   test:
     needs: prepare
     if: ${{ !cancelled() && (needs.prepare.result == 'success' || needs.prepare.result == 'skipped') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     services:
       postgres:
         image: postgres:16
@@ -143,7 +143,7 @@ jobs:
   merge:
     needs: [prepare, test]
     if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: write
       pull-requests: write
@@ -184,7 +184,7 @@ jobs:
   build:
     needs: [test, merge]
     if: ${{ !cancelled() && needs.test.result == 'success' && (needs.merge.result == 'success' || needs.merge.result == 'skipped') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
       packages: write

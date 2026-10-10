@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   scan_ruby:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - uses: ruby/setup-ruby@v1
@@ -22,7 +22,7 @@ jobs:
       - run: bin/bundler-audit
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     services:
       postgres:
         image: postgres:16
