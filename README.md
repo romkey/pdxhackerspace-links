@@ -155,6 +155,8 @@ docker compose -f docker-compose.lint.yml run --rm rubocop
 
 The canonical version lives in `VERSION`. Docker release builds set `APP_VERSION` from the git tag (e.g. `v0.11.7`); the footer shows the semver without the leading `v` and links to the matching GitHub release. Server compose does not override `APP_VERSION`, so the value baked into the image at build time is what the app displays.
 
+To cut a release, open **Actions → Release → Run workflow** on GitHub and choose the bump (patch is the default). The workflow moves everything under `## [Unreleased]` in `CHANGELOG.md` into a new dated section, so write changelog entries there as you go. It needs **Settings → Actions → General → Allow GitHub Actions to create and approve pull requests** turned on to open the release PR.
+
 ## Deployment
 
 ### Branch model
@@ -173,7 +175,7 @@ Open PRs into `staging`, not `main`. See `.cursor/rules/deployment-rules.mdc` fo
 | `ci.yml` | Push/PR to `main` or `staging` | Brakeman, bundler-audit, tests |
 | `lint.yml` | Push/PR to `main` or `staging` | RuboCop |
 | `staging.yml` | Push to `staging` | Tests, then push `ghcr.io/<repo>:staging` |
-| `release.yml` | Push tag `v*` | Tests, then push versioned + `:latest` images |
+| `release.yml` | **Run workflow** in the Actions tab (pick patch, minor, or major; default patch), or push tag `v*` | Bumps `VERSION`, dates the CHANGELOG, tests and lints, opens and merges the release PR, tags and publishes a GitHub release, then pushes versioned + `:latest` images |
 
 Production server (external PostgreSQL):
 

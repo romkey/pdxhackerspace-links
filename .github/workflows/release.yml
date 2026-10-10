@@ -1,19 +1,84 @@
 name: Release
 
+# Run from the Actions tab ("Run workflow") to cut a release: bumps VERSION,
+# moves the CHANGELOG's Unreleased section under the new version, tests the
+# release branch, opens a PR into main and merges it, then tags, publishes a
+# GitHub release, and pushes the Docker images.
+#
+# Pushing a v* tag by hand still tests and builds that tag.
+
 on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version bump
+        type: choice
+        options: [patch, minor, major]
+        default: patch
   push:
     tags: ["v*"]
 
 permissions:
   contents: read
-  packages: write
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release
   cancel-in-progress: false
 
 jobs:
+  prepare:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.bump.outputs.version }}
+      branch: ${{ steps.bump.outputs.branch }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+
+      - name: Bump version
+        id: bump
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          current=$(tr -d '[:space:]' < VERSION)
+          IFS=. read -r major minor patch <<< "$current"
+          case "$BUMP" in
+            major) major=$((major + 1)); minor=0; patch=0 ;;
+            minor) minor=$((minor + 1)); patch=0 ;;
+            patch) patch=$((patch + 1)) ;;
+          esac
+          version="$major.$minor.$patch"
+
+          if git ls-remote --exit-code --tags origin "refs/tags/v$version" > /dev/null; then
+            echo "::error::Tag v$version already exists"
+            exit 1
+          fi
+
+          echo "$version" > VERSION
+          sed -i "0,/^## \[Unreleased\]$/s//## [Unreleased]\n\n## [$version] - $(date -u +%F)/" CHANGELOG.md
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "branch=release/v$version" >> "$GITHUB_OUTPUT"
+          echo "Bumping $current -> $version ($BUMP)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Push release branch
+        env:
+          VERSION: ${{ steps.bump.outputs.version }}
+          BRANCH: ${{ steps.bump.outputs.branch }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$BRANCH"
+          git commit -am "Release v$VERSION."
+          git push --force origin "$BRANCH"
+
   test:
+    needs: prepare
+    if: ${{ !cancelled() && (needs.prepare.result == 'success' || needs.prepare.result == 'skipped') }}
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -40,6 +105,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.branch || github.ref }}
 
       - uses: ruby/setup-ruby@v1
         with:
@@ -57,6 +124,10 @@ jobs:
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install -y libvips42 poppler-utils
 
+      - run: bin/brakeman --no-pager
+      - run: bin/bundler-audit
+      - run: bin/rubocop -f github
+
       - name: Run tests
         env:
           RAILS_ENV: test
@@ -69,11 +140,60 @@ jobs:
           LOCAL_AUTH_PASSWORD: secret
         run: bin/rails db:test:prepare test
 
-  build:
-    needs: test
+  merge:
+    needs: [prepare, test]
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      tag: v${{ needs.prepare.outputs.version }}
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      VERSION: ${{ needs.prepare.outputs.version }}
+      BRANCH: ${{ needs.prepare.outputs.branch }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.branch }}
+
+      - name: Open and merge release PR
+        run: |
+          pr=$(gh pr list --head "$BRANCH" --base main --state open --json url --jq '.[0].url')
+          if [ -z "$pr" ]; then
+            pr=$(gh pr create --base main --head "$BRANCH" \
+              --title "Release v$VERSION" \
+              --body "Bumps VERSION to $VERSION (${{ inputs.bump }}) and dates the CHANGELOG. Opened by the Release workflow, which already ran the test suite on this branch.")
+          fi
+          echo "PR: $pr" >> "$GITHUB_STEP_SUMMARY"
+          gh pr merge "$pr" --merge --delete-branch
+
+      - name: Tag and publish GitHub release
+        run: |
+          git fetch origin main
+          sha=$(git rev-parse origin/main)
+          notes=$(awk -v v="$VERSION" '
+            $0 ~ "^## \\[" v "\\]" { found = 1; next }
+            found && /^## \[/ { exit }
+            found { print }
+          ' CHANGELOG.md)
+          gh release create "v$VERSION" --target "$sha" --title "v$VERSION" --notes "$notes"
+
+  build:
+    needs: [test, merge]
+    if: ${{ !cancelled() && needs.test.result == 'success' && (needs.merge.result == 'success' || needs.merge.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      TAG: ${{ needs.merge.outputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ env.TAG }}
 
       - uses: docker/setup-buildx-action@v4
 
@@ -90,8 +210,8 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern=v{{version}}
+            type=semver,pattern={{version}},value=${{ env.TAG }}
+            type=semver,pattern=v{{version}},value=${{ env.TAG }}
             type=raw,value=latest
 
       - name: Build and push
@@ -106,5 +226,5 @@ jobs:
             type=registry,ref=ghcr.io/${{ github.repository }}:latest
           cache-to: type=gha,mode=max
           build-args: |
-            APP_VERSION=${{ github.ref_name }}
+            APP_VERSION=${{ env.TAG }}
             GITHUB_REPO_URL=https://github.com/${{ github.repository }}
