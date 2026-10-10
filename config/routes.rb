@@ -26,6 +26,8 @@ Rails.application.routes.draw do
     end
 
     resources :templates, only: %i[new create], controller: "thing_templates"
+    resource :template_application, only: %i[new create], path: "apply_template",
+                                    controller: "thing_template_applications"
   end
 
   namespace :settings do

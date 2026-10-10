@@ -84,4 +84,81 @@ class ThingTemplateTest < ActiveSupport::TestCase
     assert_equal "https://example.com/pi-datasheet", thing.custom_links.first.url
     assert_match Thing::KEY_REGEX, thing.key
   end
+
+  test "apply_to fills only blank fields" do
+    router = things(:router)
+    template = thing_templates(:pi)
+
+    filled = template.apply_to(router)
+
+    assert_equal "Main network router", router.description
+    assert_equal "romkey", router.owner
+    assert_equal "Raspberry Pi Ltd", router.manufacturer
+    assert_equal "Pi 4 Model B", router.model
+    assert_equal template.manufacturer_url, router.manufacturer_url
+    assert_not router.public_access
+    assert_includes filled, "Manufacturer"
+    assert_includes filled, "Manufacturer link"
+    assert_not_includes filled, "Description"
+    assert_not_includes filled, "Owner"
+    assert_not_includes filled, "Public"
+  end
+
+  test "apply_to fills blank parts of standard links and keeps existing values" do
+    router = things(:router)
+    thing_templates(:pi).apply_to(router)
+    router.save!
+
+    wiki = router.links.reload.find_by!(link_type: "wiki")
+    assert_equal "https://wiki.example.com/router", wiki.url
+    assert_equal "Front rack label", wiki.note
+  end
+
+  test "apply_to merges in custom links" do
+    router = things(:router)
+
+    filled = thing_templates(:pi).apply_to(router)
+    router.save!
+
+    assert_includes filled, "Datasheet"
+    titles = router.links.reload.custom.order(:position).pluck(:title)
+    assert_equal %w[Manual Datasheet], titles
+    assert_equal "https://example.com/pi-datasheet", router.links.find_by!(title: "Datasheet").url
+  end
+
+  test "apply_to fills a matching custom link instead of duplicating it" do
+    router = things(:router)
+    template = ThingTemplate.new(name: "Manual note", links: [
+      { "link_type" => "custom", "title" => "manual", "url" => "https://example.com/other", "note" => "Chapter 3" }
+    ])
+
+    filled = template.apply_to(router)
+    router.save!
+
+    manual = router.links.reload.custom.sole
+    assert_equal "https://example.com/router-manual", manual.url
+    assert_equal "Chapter 3", manual.note
+    assert_equal [ "manual" ], filled
+  end
+
+  test "apply_to adds standard links the thing lacks" do
+    keyboard = things(:keyboard)
+    keyboard.links.find_by!(link_type: "wiki").destroy
+    keyboard.reload
+
+    thing_templates(:pi).apply_to(keyboard)
+    keyboard.save!
+
+    wiki = keyboard.links.reload.find_by!(link_type: "wiki")
+    assert_equal "https://wiki.example.com/pi", wiki.url
+    assert_equal "Setup guide", wiki.note
+  end
+
+  test "apply_to reports nothing when everything is already set" do
+    router = things(:router)
+    template = ThingTemplate.new(name: "Same", owner: "someone else")
+
+    assert_empty template.apply_to(router)
+    assert_not router.changed?
+  end
 end

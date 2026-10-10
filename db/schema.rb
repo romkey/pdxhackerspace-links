@@ -42,13 +42,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_11_000003) do
   end
 
   create_table "journal_entries", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.jsonb "details", default: {}, null: false
-    t.string "event", null: false
-    t.bigint "journalable_id", null: false
     t.string "journalable_type", null: false
-    t.string "message"
+    t.bigint "journalable_id", null: false
     t.bigint "user_id"
+    t.string "event", null: false
+    t.string "message"
+    t.jsonb "details", default: {}, null: false
+    t.datetime "created_at", null: false
     t.index ["journalable_type", "journalable_id", "created_at"], name: "index_journal_entries_on_journalable_and_created_at"
     t.index ["user_id"], name: "index_journal_entries_on_user_id"
   end
@@ -151,7 +151,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_11_000003) do
     t.string "title"
     t.datetime "updated_at", null: false
     t.string "url"
-    t.index ["thing_id", "link_type"], name: "index_thing_links_on_thing_id_and_standard_link_type", unique: true, where: "((link_type)::text = ANY ((ARRAY['wiki'::character varying, 'slack'::character varying, 'where'::character varying, 'ar'::character varying])::text[]))"
+    t.index ["thing_id", "link_type"], name: "index_thing_links_on_thing_id_and_standard_link_type", unique: true, where: "((link_type)::text = ANY (ARRAY[('wiki'::character varying)::text, ('slack'::character varying)::text, ('where'::character varying)::text, ('ar'::character varying)::text]))"
     t.index ["thing_id", "position"], name: "index_thing_links_on_thing_id_and_position"
     t.index ["thing_id"], name: "index_thing_links_on_thing_id"
   end
@@ -206,9 +206,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_11_000003) do
     t.integer "qr_scan_count", default: 0, null: false
     t.string "serial_number"
     t.string "slug"
-    t.bigint "thing_template_id"
     t.datetime "updated_at", null: false
     t.integer "visit_count", default: 0, null: false
+    t.bigint "thing_template_id"
     t.index ["ble_beacon_uuid"], name: "index_things_on_ble_beacon_uuid", unique: true, where: "(ble_beacon_uuid IS NOT NULL)"
     t.index ["ieee_address"], name: "index_things_on_ieee_address", unique: true, where: "(ieee_address IS NOT NULL)"
     t.index ["integration_source"], name: "index_things_on_integration_source"
