@@ -14,6 +14,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 - On wide screens a thing's page shows Print label, Duplicate, and Merge as buttons next to Edit instead of hiding them behind the ⋯ menu. Phones and narrow windows keep the menu
 
+### Fixed
+
+- **Back** on a label preview returns to the Print label dialog with the layout, printer, and Mark as labelled choices you made, instead of dropping you on the thing's page with the dialog closed. Previews opened from the Things index go back to the index, keeping its search and filters, rather than to the thing
+
 ## [0.13.0] - 2026-10-10
 
 ## [0.12.4] - 2026-10-10

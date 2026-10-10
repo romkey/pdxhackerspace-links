@@ -1,4 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
+import { Modal } from "bootstrap"
+
+const REOPEN_PARAMS = [ "print_label", "print_printer_id", "print_layout", "print_mark_labelled" ]
 
 export default class extends Controller {
   static targets = [
@@ -26,6 +29,40 @@ export default class extends Controller {
     this.selectedThingIds = []
     this.selectAllMatching = false
     this.filterParams = {}
+
+    this.reopenFromUrl()
+  }
+
+  // Back from a label preview lands here with print_* params naming the thing
+  // and the choices made before previewing; reopen the dialog with them.
+  reopenFromUrl() {
+    const url = new URL(window.location.href)
+    const thingId = url.searchParams.get("print_label")
+    if (!thingId) return
+
+    const saved = Object.fromEntries(REOPEN_PARAMS.map((name) => [ name, url.searchParams.get(name) ]))
+    REOPEN_PARAMS.forEach((name) => url.searchParams.delete(name))
+    window.history.replaceState(window.history.state, "", url.toString())
+
+    const trigger = this.element.querySelector(
+      `[data-action~="print-dialog#open"][data-thing-id="${CSS.escape(thingId)}"]`
+    )
+    if (!trigger || !this.modalElement()) return
+
+    this.open({ currentTarget: trigger })
+
+    const layoutRadio = this.layoutRadioTargets.find((radio) => radio.value === saved.print_layout)
+    if (layoutRadio && !layoutRadio.disabled) layoutRadio.checked = true
+    this.syncPrinterOptions()
+
+    if ([ ...this.printerSelectTarget.options ].some((option) => option.value === saved.print_printer_id)) {
+      this.printerSelectTarget.value = saved.print_printer_id
+    }
+
+    const markLabelled = this.formTarget.querySelector("input[name='mark_labelled']")
+    if (markLabelled && saved.print_mark_labelled) markLabelled.checked = saved.print_mark_labelled === "1"
+
+    Modal.getOrCreateInstance(this.modalElement()).show()
   }
 
   open(event) {
@@ -137,6 +174,7 @@ export default class extends Controller {
       this.previewPathTemplate.replace("__PRINTER__", this.selectedPrinterId()),
       window.location.origin
     )
+    url.searchParams.set("return_to", this.returnPath())
 
     const layout = this.selectedLayout()
     if (layout !== "standard") url.searchParams.set("layout", layout)
@@ -152,6 +190,7 @@ export default class extends Controller {
 
     const url = new URL(this.bulkPreviewUrlValue, window.location.origin)
     url.searchParams.set("printer_id", this.selectedPrinterId())
+    url.searchParams.set("return_to", this.returnPath())
 
     const layout = this.selectedLayout()
     if (layout !== "standard") url.searchParams.set("layout", layout)
@@ -161,6 +200,10 @@ export default class extends Controller {
     })
 
     return url.toString()
+  }
+
+  returnPath() {
+    return window.location.pathname + window.location.search
   }
 
   appendBulkSelection(append) {

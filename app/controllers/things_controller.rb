@@ -156,6 +156,7 @@ class ThingsController < ApplicationController
     things_by_id = Thing.where(id: thing_ids).index_by(&:id)
     @things = thing_ids.filter_map { |id| things_by_id[id] }
     @preview_params = bulk_label_preview_query_params
+    @back_path = label_preview_return_path || things_path
     @preview_media_format = @printer.command? ? :png : :pdf
     @label_entries = @things.map do |thing|
       label = label_renderer_for(@printer, thing: thing, layout: @layout, margins: label_margin_params)
@@ -219,6 +220,7 @@ class ThingsController < ApplicationController
     @label = label_renderer_for(@printer, layout: @layout, margins: @margin_overrides)
     @thing_qr_url = ThingTracking.thing_url(@thing, utm_source: ThingTracking::QR_CODE)
     @preview_params = label_preview_query_params
+    @back_path = label_preview_back_path
 
     respond_to do |format|
       format.html
@@ -570,6 +572,31 @@ class ThingsController < ApplicationController
       params_hash[key] = value
     end
     params_hash
+  end
+
+  # Local path of the page the print dialog was opened from, passed along by the
+  # dialog's Preview button. Anything that isn't a same-site path is ignored.
+  def label_preview_return_path
+    path = params[:return_to].to_s
+    return if path.blank? || !path.start_with?("/") || path.start_with?("//") || path.match?(/[\\\s]/)
+
+    URI.parse(path).path.present? ? path : nil
+  rescue URI::InvalidURIError
+    nil
+  end
+
+  # Back from a label preview returns to the page the print dialog was opened
+  # from and asks it to reopen the dialog with the same choices.
+  def label_preview_back_path
+    uri = URI.parse(label_preview_return_path || thing_path(@thing))
+    query = Rack::Utils.parse_nested_query(uri.query).merge(
+      "print_label" => @thing.id.to_s,
+      "print_printer_id" => @printer.id.to_s,
+      "print_layout" => @layout.to_s,
+      "print_mark_labelled" => mark_labelled_param? ? "1" : "0"
+    )
+    uri.query = query.to_query
+    uri.to_s
   end
 
   def bulk_label_preview_query_params
