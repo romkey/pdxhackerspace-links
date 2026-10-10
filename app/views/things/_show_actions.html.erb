@@ -19,6 +19,7 @@
                   class: "btn btn-outline-secondary btn-sm",
                   form: { class: "d-inline" } %>
     <%= link_to "Save as template…", new_thing_template_path(thing), class: "btn btn-outline-secondary btn-sm" %>
+    <%= link_to "Apply template…", new_thing_template_application_path(thing), class: "btn btn-outline-secondary btn-sm" %>
     <%= link_to "Merge…", merge_thing_path(thing), class: "btn btn-outline-secondary btn-sm" %>
     <%= link_to "Edit", edit_thing_path(thing), class: "btn btn-primary btn-sm" %>
   </div>
@@ -57,6 +58,7 @@
                           form: { class: "d-inline" } %>
           </li>
           <li><%= link_to "Save as template…", new_thing_template_path(thing), class: "dropdown-item" %></li>
+          <li><%= link_to "Apply template…", new_thing_template_application_path(thing), class: "dropdown-item" %></li>
           <li><%= link_to "Merge…", merge_thing_path(thing), class: "dropdown-item" %></li>
           <li><%= render "nfc_write", thing: thing, menu_item: true %></li>
         </ul>

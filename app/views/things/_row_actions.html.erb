@@ -36,6 +36,9 @@
       <%= link_to "Save as template…", new_thing_template_path(thing), class: "dropdown-item", data: { turbo_frame: "_top" } %>
     </li>
     <li>
+      <%= link_to "Apply template…", new_thing_template_application_path(thing), class: "dropdown-item", data: { turbo_frame: "_top" } %>
+    </li>
+    <li>
       <%= link_to "Merge…", merge_thing_path(thing), class: "dropdown-item", data: { turbo_frame: "_top" } %>
     </li>
     <li>
