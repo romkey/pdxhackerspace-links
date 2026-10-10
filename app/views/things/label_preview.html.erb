@@ -27,7 +27,7 @@
         </div>
       </div>
       <div class="d-flex gap-2">
-        <%= link_to "Back", thing_path(@thing), class: "btn btn-outline-secondary btn-sm" %>
+        <%= link_to "Back", @back_path, class: "btn btn-outline-secondary btn-sm" %>
         <%= button_to "Print label",
                       print_thing_path(@thing, printer_id: @printer.id),
                       params: @preview_params,

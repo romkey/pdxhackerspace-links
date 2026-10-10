@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - **Refresh things** on a template (from its settings page or its ⋯ menu in **Settings → Templates**) updates every thing made from it: blank fields and missing links are filled in from the template, and values a thing still has from an earlier version of the template are updated. Anything changed on the thing by hand is kept
 - **History** on each thing's page and each template's settings page lists its creation and every change since — fields changed, links added, changed, or removed, duplicates, merges, and refreshes — with who made them. Signed-in users only
 - **Settings → Templates** shows how many things were made from each template
+## [0.14.1] - 2026-10-10
 
 ## [0.14.0] - 2026-10-10
 
@@ -22,6 +23,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Changed
 
 - On wide screens a thing's page shows Print label, Duplicate, and Merge as buttons next to Edit instead of hiding them behind the ⋯ menu. Phones and narrow windows keep the menu
+
+### Fixed
+
+- **Back** on a label preview returns to the Print label dialog with the layout, printer, and Mark as labelled choices you made, instead of dropping you on the thing's page with the dialog closed. Previews opened from the Things index go back to the index, keeping its search and filters, rather than to the thing
 
 ## [0.13.0] - 2026-10-10
 

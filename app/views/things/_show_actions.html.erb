@@ -9,6 +9,7 @@
                        print_url: print_thing_path(thing),
                        preview_url_template: label_preview_thing_path(thing, printer_id: "__PRINTER__"),
                        thing_name: thing.name,
+                       thing_id: thing.id,
                        cable_tag_eligible: thing.cable_tag_printable?
                      ) %>
     <% end %>
@@ -43,6 +44,7 @@
                                print_url: print_thing_path(thing),
                                preview_url_template: label_preview_thing_path(thing, printer_id: "__PRINTER__"),
                                thing_name: thing.name,
+                               thing_id: thing.id,
                                cable_tag_eligible: thing.cable_tag_printable?
                              ) %>
             </li>
