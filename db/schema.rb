@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_09_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_10_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -153,6 +153,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_09_000001) do
     t.index ["related_thing_id"], name: "index_thing_relationships_on_related_thing_id"
     t.index ["thing_id", "related_thing_id"], name: "index_thing_relationships_on_thing_id_and_related_thing_id", unique: true
     t.index ["thing_id"], name: "index_thing_relationships_on_thing_id"
+  end
+
+  create_table "thing_templates", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "thing_name"
+    t.text "description"
+    t.text "notes"
+    t.string "owner"
+    t.string "manufacturer"
+    t.string "model"
+    t.string "manufacturer_url"
+    t.boolean "public_access", default: false, null: false
+    t.jsonb "links", default: [], null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index "lower((name)::text)", name: "index_thing_templates_on_lower_name", unique: true
   end
 
   create_table "things", force: :cascade do |t|

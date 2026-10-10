@@ -1,0 +1,21 @@
+pi:
+  name: Raspberry Pi 4
+  thing_name: Raspberry Pi
+  description: Single-board computer
+  owner: romkey
+  manufacturer: Raspberry Pi Ltd
+  model: Pi 4 Model B
+  manufacturer_url: https://www.raspberrypi.com/products/raspberry-pi-4-model-b/
+  public_access: true
+  links:
+    - link_type: wiki
+      url: https://wiki.example.com/pi
+      note: Setup guide
+    - link_type: custom
+      title: Datasheet
+      url: https://example.com/pi-datasheet
+
+sensor:
+  name: Door sensor
+  thing_name: Door sensor
+  manufacturer: Aqara

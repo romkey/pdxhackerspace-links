@@ -1,0 +1,12 @@
+<% rows = thing_template_content_rows(template) %>
+<div class="h-section-label mb-2">Template contents</div>
+<% if rows.any? %>
+  <dl class="row text-13 mb-0">
+    <% rows.each do |label, value| %>
+      <dt class="col-sm-4 text-secondary"><%= label %></dt>
+      <dd class="col-sm-8 text-break"><%= value %></dd>
+    <% end %>
+  </dl>
+<% else %>
+  <p class="text-secondary text-13 mb-0">Nothing to fill in yet.</p>
+<% end %>

@@ -1,0 +1,74 @@
+<% content_for :title, "Templates" %>
+
+<%= settings_frame do %>
+  <div class="d-flex align-items-end justify-content-between mb-3">
+    <div>
+      <h1 class="h-page-title mb-0">Templates</h1>
+      <div class="text-13 text-secondary mt-1">
+        <span class="text-body"><%= @thing_templates.size %></span> total
+      </div>
+    </div>
+  </div>
+
+  <% if @thing_templates.any? %>
+    <div class="table-responsive">
+      <table class="table table-compact table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Fills in</th>
+            <th>Manufacturer</th>
+            <th>Model</th>
+            <th class="num">Links</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @thing_templates.each do |template| %>
+            <tr class="clickable-row" data-href="<%= edit_settings_thing_template_path(template) %>">
+              <td class="fw-medium"><%= template.name %></td>
+              <td class="text-secondary"><%= template.thing_name.presence || "—" %></td>
+              <td class="text-secondary"><%= template.manufacturer.presence || "—" %></td>
+              <td class="text-secondary"><%= template.model.presence || "—" %></td>
+              <td class="num <%= "text-secondary" if template.links.empty? %>"><%= template.links.size %></td>
+              <td class="text-end">
+                <div class="dropdown d-inline-block">
+                  <button type="button"
+                          class="btn btn-outline-secondary btn-sm"
+                          data-bs-toggle="dropdown"
+                          aria-expanded="false"
+                          aria-label="More actions">
+                    ⋯
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><%= link_to "New thing from template", new_thing_path(template: template.id), class: "dropdown-item" %></li>
+                    <li><%= link_to "Edit", edit_settings_thing_template_path(template), class: "dropdown-item" %></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                      <%= button_to "Delete",
+                                    settings_thing_template_path(template),
+                                    method: :delete,
+                                    class: "dropdown-item text-danger",
+                                    form: { class: "d-inline", data: { turbo_confirm: "Delete template “#{template.name}”?" } } %>
+                    </li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-secondary text-13 mb-0">No templates yet. Open a thing, choose <span class="text-body">Save as template…</span> from its ⋯ menu, and new things can start from it.</p>
+  <% end %>
+<% end %>
+
+<script>
+  document.querySelectorAll(".clickable-row").forEach((row) => {
+    row.addEventListener("click", (event) => {
+      if (event.target.closest("a, button, .dropdown")) return;
+      window.location = row.dataset.href;
+    });
+  });
+</script>

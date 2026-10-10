@@ -27,6 +27,9 @@
 
   <section id="identity" data-thing-wizard-target="step"
            data-controller="label-name" data-label-name-fallback-value="Same as name">
+    <% if local_assigns[:thing_templates].present? %>
+      <%= render "template_picker", thing_templates: thing_templates, selected: local_assigns[:thing_template] %>
+    <% end %>
     <div class="h-section-label mb-2">Identity</div>
     <div class="row g-3">
       <div class="col-md-6">

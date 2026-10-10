@@ -1,0 +1,86 @@
+<% content_for :title, @thing_template.name_was %>
+
+<%= settings_frame do %>
+  <div class="mb-3">
+    <div class="text-12 text-secondary mb-1">
+      <%= link_to "Templates", settings_thing_templates_path, class: "text-secondary text-decoration-none" %>
+      <span class="mx-1">/</span>
+      <span class="text-body"><%= @thing_template.name_was %></span>
+    </div>
+    <h1 class="h-page-title mb-0">Edit template</h1>
+  </div>
+
+  <%= form_with model: @thing_template, url: settings_thing_template_path(@thing_template) do |form| %>
+    <% if @thing_template.errors.any? %>
+      <div class="alert alert-danger text-13">
+        <%= @thing_template.errors.full_messages.to_sentence %>
+      </div>
+    <% end %>
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <%= form.label :name, "Template name", class: "form-label" %>
+        <%= form.text_field :name, class: "form-control", required: true %>
+      </div>
+      <div class="col-md-6">
+        <%= form.label :thing_name, "Thing name", class: "form-label" %>
+        <%= form.text_field :thing_name, class: "form-control", placeholder: "Optional" %>
+        <div class="form-text text-12">Pre-filled as the new thing’s name.</div>
+      </div>
+      <div class="col-md-6">
+        <%= form.label :owner, class: "form-label" %>
+        <%= form.text_field :owner, class: "form-control", placeholder: "Optional" %>
+      </div>
+      <div class="col-md-6">
+        <%= form.label :manufacturer, class: "form-label" %>
+        <%= form.text_field :manufacturer, class: "form-control", placeholder: "Optional" %>
+      </div>
+      <div class="col-md-6">
+        <%= form.label :model, class: "form-label" %>
+        <%= form.text_field :model, class: "form-control", placeholder: "Optional" %>
+      </div>
+      <div class="col-md-6">
+        <%= form.label :manufacturer_url, "Manufacturer link", class: "form-label" %>
+        <%= form.url_field :manufacturer_url, class: "form-control", placeholder: "https://" %>
+      </div>
+      <div class="col-12">
+        <%= form.label :description, class: "form-label" %>
+        <%= form.text_area :description, class: "form-control", rows: 4 %>
+      </div>
+      <div class="col-12">
+        <%= form.label :notes, class: "form-label" %>
+        <%= form.text_area :notes, class: "form-control", rows: 3, placeholder: "Optional" %>
+      </div>
+      <div class="col-12">
+        <div class="form-check">
+          <%= form.check_box :public_access, class: "form-check-input" %>
+          <%= form.label :public_access, "Public", class: "form-check-label" %>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <div class="h-section-label mb-2">Links</div>
+      <% if @thing_template.links.any? %>
+        <dl class="row text-13 mb-1">
+          <% @thing_template.standard_links.each do |data| %>
+            <dt class="col-sm-3 text-secondary"><%= ThingLink::STANDARD_TYPES[data["link_type"]] %></dt>
+            <dd class="col-sm-9 text-break"><%= thing_template_link_summary(data) %></dd>
+          <% end %>
+          <% @thing_template.custom_links.each do |data| %>
+            <dt class="col-sm-3 text-secondary"><%= data["title"] %></dt>
+            <dd class="col-sm-9 text-break"><%= thing_template_link_summary(data) %></dd>
+          <% end %>
+        </dl>
+      <% else %>
+        <p class="text-secondary text-13 mb-1">No links.</p>
+      <% end %>
+      <div class="text-12 text-secondary">To change links, update a thing and save it as a template under this name.</div>
+    </div>
+
+    <div class="d-flex gap-2 mt-4">
+      <%= form.submit "Save", class: "btn btn-primary btn-sm" %>
+      <%= link_to "Cancel", settings_thing_templates_path, class: "btn btn-outline-secondary btn-sm" %>
+    </div>
+  <% end %>
+<% end %>
