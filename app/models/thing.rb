@@ -61,6 +61,7 @@ class Thing < ApplicationRecord
   before_validation :normalize_ble_beacon_uuid
   before_validation :normalize_ieee_address
   before_validation :assign_key, on: :create
+  before_save :stamp_thing_template_link
   before_destroy :ignore_integration_devices, prepend: true
   validate :acceptable_photos
   validate :acceptable_ar_anchor
@@ -268,6 +269,14 @@ class Thing < ApplicationRecord
     return unless ThingAlias.where(slug: value).where.not(thing_id: id).exists?
 
     errors.add(:slug, "belongs to a merged thing")
+  end
+
+  # Duplicates and merges carry over the original's time along with its template.
+  def stamp_thing_template_link
+    return unless thing_template_id_changed?
+    return if thing_template_linked_at_changed?
+
+    self.thing_template_linked_at = thing_template_id && Time.current
   end
 
   def assign_key

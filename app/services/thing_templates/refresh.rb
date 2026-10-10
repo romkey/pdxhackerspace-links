@@ -48,7 +48,7 @@ module ThingTemplates
         wanted = template[template_field]
         next if thing_field == "name" && wanted.blank?
 
-        previous = history.field_values(template_field, since: thing.created_at)
+        previous = history.field_values(template_field, since: linked_at(thing))
         thing[thing_field] = wanted if replace?(thing[thing_field], wanted, previous)
       end
     end
@@ -64,11 +64,15 @@ module ThingTemplates
           %w[url note].each do |attribute|
             next if attribute == "url" && link.link_custom? && data["url"].blank?
 
-            previous = history.link_values(key, attribute, since: thing.created_at)
+            previous = history.link_values(key, attribute, since: linked_at(thing))
             link[attribute] = data[attribute] if replace?(link[attribute], data[attribute], previous)
           end
         end
       end
+    end
+
+    def linked_at(thing)
+      thing.thing_template_linked_at || thing.created_at
     end
 
     def matching_link(thing, data)

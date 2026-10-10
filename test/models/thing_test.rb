@@ -504,4 +504,24 @@ class ThingTest < ActiveSupport::TestCase
       keyboard.destroy!
     end
   end
+
+  test "linking a template records when, and unlinking clears it" do
+    thing = things(:router)
+    freeze_time do
+      thing.update!(thing_template: thing_templates(:pi))
+
+      assert_equal Time.current, thing.thing_template_linked_at
+    end
+
+    thing.update!(thing_template: nil)
+
+    assert_nil thing.thing_template_linked_at
+  end
+
+  test "an explicitly given template link time is kept" do
+    linked_at = 3.days.ago.change(usec: 0)
+    thing = Thing.create!(name: "Copy", thing_template: thing_templates(:pi), thing_template_linked_at: linked_at)
+
+    assert_equal linked_at, thing.thing_template_linked_at
+  end
 end

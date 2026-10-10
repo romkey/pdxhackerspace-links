@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_11_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_11_000004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -209,6 +209,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_11_000003) do
     t.datetime "updated_at", null: false
     t.integer "visit_count", default: 0, null: false
     t.bigint "thing_template_id"
+    t.datetime "thing_template_linked_at"
     t.index ["ble_beacon_uuid"], name: "index_things_on_ble_beacon_uuid", unique: true, where: "(ble_beacon_uuid IS NOT NULL)"
     t.index ["ieee_address"], name: "index_things_on_ieee_address", unique: true, where: "(ieee_address IS NOT NULL)"
     t.index ["integration_source"], name: "index_things_on_integration_source"

@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Refresh** no longer misjudges duplicated or merged things. A duplicate, or a merged thing that took on another thing's template, now follows the template's history from when the original was linked to it rather than from its own creation date. Refresh now updates the values a duplicate copied from an older version of the template, and no longer overwrites a merged thing's own value just because the template once had the same value
+
 ## [0.15.0] - 2026-10-10
 
 ### Added
