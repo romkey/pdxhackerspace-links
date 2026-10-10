@@ -8,7 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
-- **Templates** for things you add again and again. Choose **Save as template…** from a thing's ⋯ menu (on its page or its row on the Things index), give the template a name, and it appears as a button at the top of the first step when creating a thing. Clicking one fills in the name, description, notes, owner, manufacturer, model, manufacturer link, visibility, and the Wiki, Slack, AR, and custom links, ready to edit before saving. Fields that differ between instances — label name, slug, serial number, network and radio details, photos, AR marker, the Where link, and related things — are left out. Saving under an existing template's name replaces it. **Settings → Templates** lists templates for renaming, editing, or deleting
+- **Templates** for things you add again and again. Choose **Save as template…** on a thing's page (or from its row's ⋯ menu on the Things index), give the template a name, and it appears as a button at the top of the first step when creating a thing. Clicking one fills in the name, description, notes, owner, manufacturer, model, manufacturer link, visibility, and the Wiki, Slack, AR, and custom links, ready to edit before saving. Fields that differ between instances — label name, slug, serial number, network and radio details, photos, AR marker, the Where link, and related things — are left out. Saving under an existing template's name replaces it. **Settings → Templates** lists templates for renaming, editing, or deleting
+
+### Changed
+
+- On wide screens a thing's page shows Print label, Duplicate, and Merge as buttons next to Edit instead of hiding them behind the ⋯ menu. Phones and narrow windows keep the menu
 
 ## [0.13.0] - 2026-10-10
 

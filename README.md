@@ -244,7 +244,7 @@ After enabling photo variants on an existing install, run `bin/rails photos:back
 
 ### Templates
 
-**Save as template…** in a thing’s ⋯ menu stores the fields that stay the same from one instance of a thing to the next — name, description, notes, owner, manufacturer, model, manufacturer link, visibility, and the Wiki, Slack, AR, and custom links. Label name, slug, serial number, network and radio details, photos, the AR marker, the Where link, and related things are never saved. Templates show as buttons at the top of the first step of **New thing**; clicking one pre-fills the form. Saving under an existing template’s name replaces it, and **Settings → Templates** edits or deletes them. Templates live in `thing_templates`, with links kept as a JSON array.
+**Save as template…** on a thing’s page (or in its row’s ⋯ menu on the Things index) stores the fields that stay the same from one instance of a thing to the next — name, description, notes, owner, manufacturer, model, manufacturer link, visibility, and the Wiki, Slack, AR, and custom links. Label name, slug, serial number, network and radio details, photos, the AR marker, the Where link, and related things are never saved. Templates show as buttons at the top of the first step of **New thing**; clicking one pre-fills the form. Saving under an existing template’s name replaces it, and **Settings → Templates** edits or deletes them. Templates live in `thing_templates`, with links kept as a JSON array.
 
 ### Merging duplicates
 
