@@ -1,0 +1,35 @@
+#!/usr/bin/env node
+// Rebuilds CSS whenever an SCSS file under app/assets/stylesheets changes.
+// Uses Node's built-in recursive fs.watch so we don't need nodemon/chokidar.
+const { spawn } = require("node:child_process");
+const { watch } = require("node:fs");
+const path = require("node:path");
+
+const dir = path.join(__dirname, "..", "app", "assets", "stylesheets");
+let running = false;
+let pending = false;
+let timer = null;
+
+function build() {
+  if (running) {
+    pending = true;
+    return;
+  }
+  running = true;
+  const child = spawn("yarn", ["build:css"], { stdio: "inherit" });
+  child.on("exit", () => {
+    running = false;
+    if (pending) {
+      pending = false;
+      build();
+    }
+  });
+}
+
+build();
+watch(dir, { recursive: true }, (_event, filename) => {
+  if (!filename || !filename.endsWith(".scss")) return;
+  clearTimeout(timer);
+  timer = setTimeout(build, 100);
+});
+console.log(`Watching ${path.relative(process.cwd(), dir)} for SCSS changes...`);
