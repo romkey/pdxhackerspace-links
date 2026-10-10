@@ -49,7 +49,14 @@ export default class extends Controller {
 
     const field = event.target
     if (field.tagName !== "INPUT") return
-    if (["button", "submit", "search", "file"].includes(field.type)) return
+    if (["button", "submit", "file"].includes(field.type)) return
+
+    // Search fields drive their own pickers; Enter there must neither submit
+    // nor advance.
+    if (field.type === "search") {
+      event.preventDefault()
+      return
+    }
 
     this.next(event)
   }
