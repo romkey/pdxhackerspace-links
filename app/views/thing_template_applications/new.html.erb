@@ -1,0 +1,66 @@
+<% content_for :title, "Apply template" %>
+
+<div class="container-fluid py-4">
+  <div class="mb-3">
+    <div class="text-12 text-secondary mb-1">
+      <%= link_to "Things", things_path, class: "text-secondary text-decoration-none" %>
+      <span class="mx-1">/</span>
+      <%= link_to @thing.name, thing_path(@thing), class: "text-secondary text-decoration-none" %>
+      <span class="mx-1">/</span>
+      <span class="text-body">Apply template</span>
+    </div>
+    <h1 class="h-page-title mb-0">Apply template</h1>
+    <div class="text-13 text-secondary mt-1">Fills in anything blank on this thing and adds the template’s links. Fields that already have a value are kept.</div>
+  </div>
+
+  <% if @thing_templates.any? %>
+    <div class="mb-4">
+      <div class="h-section-label mb-2">Template</div>
+      <div class="d-flex flex-wrap gap-2">
+        <% @thing_templates.each do |template| %>
+          <%= link_to template.name,
+                      new_thing_template_application_path(@thing, template: template.id),
+                      class: class_names("btn btn-outline-secondary btn-sm", active: template == @thing_template),
+                      aria: { current: (template == @thing_template ? "true" : nil) } %>
+        <% end %>
+      </div>
+    </div>
+  <% else %>
+    <p class="text-secondary text-13">No templates yet. Use “Save as template…” on a thing to make one.</p>
+  <% end %>
+
+  <% if @thing_template %>
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="h-section-label mb-2">Will fill in</div>
+        <% if @filled.any? %>
+          <ul class="text-13 mb-3">
+            <% @filled.each do |label| %>
+              <li><%= label %></li>
+            <% end %>
+          </ul>
+        <% else %>
+          <p class="text-secondary text-13 mb-3">Nothing — this thing already has everything the template provides.</p>
+        <% end %>
+
+        <div class="d-flex gap-2">
+          <% if @filled.any? %>
+            <%= button_to "Apply template",
+                          thing_template_application_path(@thing),
+                          method: :post,
+                          params: { template: @thing_template.id },
+                          class: "btn btn-primary btn-sm",
+                          form: { class: "d-inline" } %>
+          <% end %>
+          <%= link_to "Cancel", thing_path(@thing), class: "btn btn-outline-secondary btn-sm" %>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <%= render "thing_templates/contents", template: @thing_template %>
+      </div>
+    </div>
+  <% else %>
+    <%= link_to "Cancel", thing_path(@thing), class: "btn btn-outline-secondary btn-sm" %>
+  <% end %>
+</div>
