@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed
+
+- On wide screens a thing's page shows Print label, Duplicate, and Merge as buttons next to Edit instead of hiding them behind the ⋯ menu. Phones and narrow windows keep the menu
+
 ## [0.13.0] - 2026-10-10
 
 ## [0.12.4] - 2026-10-10
