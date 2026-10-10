@@ -109,6 +109,52 @@
   padding-top: 1rem;
 }
 
+.wizard-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  list-style: none;
+  padding: 0 0 0.75rem;
+  margin: 0 0 1.25rem;
+  border-bottom: 1px solid var(--bs-border-color);
+  font-size: 13px;
+
+  li + li::before {
+    content: "›";
+    margin-right: 0.5rem;
+    color: var(--bs-secondary-color);
+  }
+
+  a {
+    color: var(--bs-secondary-color);
+    text-decoration: none;
+  }
+
+  a[href] {
+    color: var(--bs-link-color);
+  }
+
+  a[href]:hover {
+    text-decoration: underline;
+  }
+
+  a.active {
+    color: var(--bs-body-color);
+    font-weight: 600;
+  }
+}
+
+.wizard-step-number {
+  font-variant-numeric: tabular-nums;
+  margin-right: 0.15rem;
+}
+
+.wizard-footer {
+  border-top: 1px solid var(--bs-border-color);
+  padding-top: 1rem;
+  margin-top: 1.5rem;
+}
+
 .thing-card {
   display: block;
   padding: 0.625rem 0.75rem;

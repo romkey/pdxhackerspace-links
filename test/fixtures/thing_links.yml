@@ -8,10 +8,10 @@ keyboard_slack:
   link_type: slack
   url: https://slack.example.com/archives/keyboard
 
-router_asset:
+router_wiki:
   thing: router
-  link_type: asset
-  url: https://assets.example.com/router
+  link_type: wiki
+  url: https://wiki.example.com/router
   note: Front rack label
 
 router_where:

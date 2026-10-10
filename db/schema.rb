@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_09_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_09_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -139,7 +139,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_09_000001) do
     t.string "title"
     t.datetime "updated_at", null: false
     t.string "url"
-    t.index ["thing_id", "link_type"], name: "index_thing_links_on_thing_id_and_standard_link_type", unique: true, where: "((link_type)::text = ANY (ARRAY[('asset'::character varying)::text, ('wiki'::character varying)::text, ('slack'::character varying)::text, ('where'::character varying)::text, ('ar'::character varying)::text]))"
+    t.index ["thing_id", "link_type"], name: "index_thing_links_on_thing_id_and_standard_link_type", unique: true, where: "((link_type)::text = ANY ((ARRAY['wiki'::character varying, 'slack'::character varying, 'where'::character varying, 'ar'::character varying])::text[]))"
     t.index ["thing_id", "position"], name: "index_thing_links_on_thing_id_and_position"
     t.index ["thing_id"], name: "index_thing_links_on_thing_id"
   end

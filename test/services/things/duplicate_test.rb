@@ -16,8 +16,8 @@ class Things::DuplicateTest < ActiveSupport::TestCase
 
     assert_equal things(:router).links_with_urls.map(&:display_title).sort,
                  copy.links_with_urls.map(&:display_title).sort
-    assert_equal thing_links(:router_asset).url,
-                 copy.links.find_by(link_type: :asset).url
+    assert_equal thing_links(:router_wiki).url,
+                 copy.links.find_by(link_type: :wiki).url
     assert_equal thing_links(:router_custom).url,
                  copy.custom_links.first.url
   end
@@ -26,13 +26,13 @@ class Things::DuplicateTest < ActiveSupport::TestCase
     copy = Things::Duplicate.call(thing: things(:keyboard))
 
     assert_equal things(:keyboard).links_with_urls.size, copy.links_with_urls.size
-    assert_nil copy.links.find_by(link_type: :asset)
+    assert_nil copy.links.find_by(link_type: :where)
   end
 
   test "copies standard link notes" do
     copy = Things::Duplicate.call(thing: things(:router))
 
-    assert_equal "Front rack label", copy.links.find_by(link_type: :asset).note
+    assert_equal "Front rack label", copy.links.find_by(link_type: :wiki).note
   end
 
   test "copies ar marker and note" do

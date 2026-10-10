@@ -29,12 +29,12 @@ class ThingTest < ActiveSupport::TestCase
   end
 
   test "links_for_display includes standard links with notes and no url" do
-    link = thing_links(:router_asset)
+    link = thing_links(:router_wiki)
     link.update!(url: "", note: "Physical tag location")
     thing = things(:router).reload
 
-    assert_includes thing.links_for_display.map(&:display_title), "Asset"
-    assert_not_includes thing.links_with_urls.map(&:display_title), "Asset"
+    assert_includes thing.links_for_display.map(&:display_title), "Wiki"
+    assert_not_includes thing.links_with_urls.map(&:display_title), "Wiki"
   end
 
   test "preserves standard links with notes but no url after save" do
@@ -402,11 +402,11 @@ class ThingTest < ActiveSupport::TestCase
   test "purges blank links after save" do
     thing = Thing.create!(name: "Test Thing", links_attributes: [
       { link_type: :wiki, url: "https://example.com/wiki" },
-      { link_type: :asset, url: "" }
+      { link_type: :slack, url: "" }
     ])
 
     assert thing.links.exists?(link_type: :wiki)
-    assert_not thing.links.exists?(link_type: :asset)
+    assert_not thing.links.exists?(link_type: :slack)
   end
 
   test "normalizes an EUI-48 address to lowercase colon form" do
