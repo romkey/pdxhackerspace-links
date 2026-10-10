@@ -1332,6 +1332,18 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     get thing_path(things(:keyboard))
 
     assert_response :success
-    assert_select "a.dropdown-item[href=?]", merge_thing_path(things(:keyboard)), text: "Merge…"
+    assert_select ".thing-show-actions-mobile a.dropdown-item[href=?]", merge_thing_path(things(:keyboard)), text: "Merge…"
+  end
+
+  test "show puts secondary actions inline on wide screens instead of in a menu" do
+    get thing_path(things(:keyboard))
+
+    assert_response :success
+    assert_select ".thing-show-actions-desktop" do
+      assert_select "[data-bs-toggle=dropdown]", count: 0
+      assert_select "a.btn[href=?]", merge_thing_path(things(:keyboard)), text: "Merge…"
+      assert_select "button.btn", text: "Duplicate"
+      assert_select "a.btn[href=?]", edit_thing_path(things(:keyboard)), text: "Edit"
+    end
   end
 end
