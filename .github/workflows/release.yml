@@ -168,12 +168,15 @@ jobs:
               --body "Bumps VERSION to $VERSION (${{ inputs.bump }}) and dates the CHANGELOG. Opened by the Release workflow, which already ran the test suite on this branch.")
           fi
           echo "PR: $pr" >> "$GITHUB_STEP_SUMMARY"
-          gh pr merge "$pr" --merge --delete-branch
+          # No --delete-branch: it also tries to switch this shallow checkout
+          # to main, which fails after the merge has gone through.
+          gh pr merge "$pr" --merge
+          echo "PR_URL=$pr" >> "$GITHUB_ENV"
+          git push origin --delete "$BRANCH"
 
       - name: Tag and publish GitHub release
         run: |
-          git fetch origin main
-          sha=$(git rev-parse origin/main)
+          sha=$(gh pr view "$PR_URL" --json mergeCommit --jq .mergeCommit.oid)
           notes=$(awk -v v="$VERSION" '
             $0 ~ "^## \\[" v "\\]" { found = 1; next }
             found && /^## \[/ { exit }
