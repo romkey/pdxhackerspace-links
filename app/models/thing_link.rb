@@ -1,6 +1,5 @@
 class ThingLink < ApplicationRecord
   STANDARD_TYPES = {
-    "asset" => "Asset",
     "wiki" => "Wiki",
     "slack" => "Slack",
     "where" => "Where",
@@ -10,7 +9,6 @@ class ThingLink < ApplicationRecord
   belongs_to :thing
 
   enum :link_type, {
-    asset: "asset",
     wiki: "wiki",
     slack: "slack",
     where: "where",

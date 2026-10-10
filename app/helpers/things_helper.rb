@@ -10,11 +10,22 @@ module ThingsHelper
     { key: :wiki, label: "Wiki" },
     { key: :slack, label: "Slack" },
     { key: :where, label: "Where" },
-    { key: :asset, label: "Asset" },
     { key: :url, label: "URL" }
   ].freeze
 
-  THINGS_FILTER_CYCLE = { nil => "yes", "yes" => "no", "no" => nil }.freeze
+  # The thing form is a wizard. Each step lists the attributes whose errors
+  # should send someone back to it after a failed save.
+  THING_FORM_STEPS = [
+    { key: "identity", label: "Identity", attributes: %i[name label_name owner slug description notes key] },
+    { key: "hardware", label: "Hardware", attributes: %i[manufacturer model serial_number manufacturer_url] },
+    { key: "network", label: "Network", attributes: %i[ip_address hostname ieee_address ble_beacon_uuid] },
+    { key: "visibility", label: "Visibility", attributes: %i[public_access] },
+    { key: "links", label: "Links", attributes: %i[links thing_relationships] },
+    { key: "photos", label: "Photos", optional: true, attributes: %i[photos] },
+    { key: "ar", label: "AR", optional: true, attributes: %i[ar_anchor ar_anchor_note] }
+  ].freeze
+
+  THINGS_FILTER_CYCLE ={ nil => "yes", "yes" => "no", "no" => nil }.freeze
   THINGS_FILTER_STATES = { nil => "any", "yes" => "has", "no" => "none" }.freeze
 
   THINGS_DEFAULT_COLUMNS = %w[name manufacturer model integration links photos].freeze
@@ -37,6 +48,24 @@ module ThingsHelper
 
   def things_index_filter_groups
     THINGS_INDEX_FILTER_GROUPS.select { |group| !group[:admin_only] || can_manage_things? }
+  end
+
+  def thing_form_steps
+    THING_FORM_STEPS
+  end
+
+  # The step to open the form on: the first one with an error, or the start.
+  def thing_form_initial_step(thing)
+    error_attributes = thing.errors.attribute_names.map { |name| name.to_s.split(".").first.to_sym }
+    index = THING_FORM_STEPS.index { |step| step[:attributes].intersect?(error_attributes) }
+    index || 0
+  end
+
+  # How far into the wizard someone may jump. Editing opens every step; a new
+  # thing only opens steps as they're reached, unless a failed save sent the
+  # whole form back.
+  def thing_form_reached_step(thing)
+    thing.persisted? || thing.errors.any? ? THING_FORM_STEPS.size - 1 : 0
   end
 
   def things_labelled_cell(thing)

@@ -46,7 +46,7 @@ class ThingLinkTest < ActiveSupport::TestCase
   end
 
   test "standard link can store optional note" do
-    link = thing_links(:router_asset)
+    link = thing_links(:router_wiki)
     assert_equal "Front rack label", link.note
     assert link.standard_note?
   end

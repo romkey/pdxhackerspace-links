@@ -1,11 +1,32 @@
-<%= form_with model: thing, class: "vstack gap-4", html: { multipart: true } do |form| %>
+<%= form_with model: thing, html: { multipart: true },
+              data: {
+                controller: "thing-wizard",
+                action: "keydown.enter->thing-wizard#enter",
+                thing_wizard_editing_value: thing.persisted?,
+                thing_wizard_index_value: thing_form_initial_step(thing),
+                thing_wizard_reached_value: thing_form_reached_step(thing)
+              } do |form| %>
   <% if thing.errors.any? %>
     <div class="alert alert-danger text-13">
       <%= thing.errors.full_messages.to_sentence %>
     </div>
   <% end %>
 
-  <div class="form-section" data-controller="label-name" data-label-name-fallback-value="Same as name">
+  <nav aria-label="Thing form steps">
+    <ol class="wizard-steps">
+      <% thing_form_steps.each_with_index do |step, index| %>
+        <li>
+          <a href="#<%= step[:key] %>" data-thing-wizard-target="crumb" data-action="thing-wizard#jump">
+            <span class="wizard-step-number"><%= index + 1 %></span>
+            <%= step[:label] %>
+          </a>
+        </li>
+      <% end %>
+    </ol>
+  </nav>
+
+  <section id="identity" data-thing-wizard-target="step"
+           data-controller="label-name" data-label-name-fallback-value="Same as name">
     <div class="h-section-label mb-2">Identity</div>
     <div class="row g-3">
       <div class="col-md-6">
@@ -29,10 +50,19 @@
         <%= form.text_field :slug, class: "form-control", placeholder: "Optional" %>
         <div class="form-text text-12">Optional short URL path, e.g. /things/front-door-keyboard</div>
       </div>
+      <div class="col-12">
+        <%= form.label :description, class: "form-label" %>
+        <%= form.text_area :description, class: "form-control", rows: 4 %>
+      </div>
+      <div class="col-12">
+        <%= form.label :notes, class: "form-label" %>
+        <%= form.text_area :notes, class: "form-control", rows: 3, placeholder: "Optional" %>
+      </div>
     </div>
-  </div>
+    <%= render "wizard_footer", form: form, thing: thing, index: 0 %>
+  </section>
 
-  <div class="form-section">
+  <section id="hardware" data-thing-wizard-target="step">
     <div class="h-section-label mb-2">Hardware</div>
     <div class="row g-3">
       <div class="col-md-6">
@@ -53,9 +83,10 @@
         <%= form.url_field :manufacturer_url, class: "form-control", placeholder: "https://" %>
       </div>
     </div>
-  </div>
+    <%= render "wizard_footer", form: form, thing: thing, index: 1 %>
+  </section>
 
-  <div class="form-section">
+  <section id="network" data-thing-wizard-target="step">
     <div class="h-section-label mb-2">Network and radios</div>
     <div class="row g-3">
       <div class="col-md-6">
@@ -77,127 +108,143 @@
         <div class="form-text text-12">Optional iBeacon UUID for lookup at /things/by_beacon/&lt;uuid&gt;</div>
       </div>
     </div>
-  </div>
+    <%= render "wizard_footer", form: form, thing: thing, index: 2 %>
+  </section>
 
-  <div class="form-section">
-    <div class="h-section-label mb-2">Description and notes</div>
-    <div class="row g-3">
-      <div class="col-12">
-        <%= form.label :description, class: "form-label" %>
-        <%= form.text_area :description, class: "form-control", rows: 4 %>
-      </div>
-      <div class="col-12">
-        <%= form.label :notes, class: "form-label" %>
-        <%= form.text_area :notes, class: "form-control", rows: 3, placeholder: "Optional" %>
-      </div>
-    </div>
-  </div>
-
-  <div class="form-section">
+  <section id="visibility" data-thing-wizard-target="step">
     <div class="h-section-label mb-2">Visibility</div>
     <div class="form-check">
       <%= form.check_box :public_access, class: "form-check-input" %>
       <%= form.label :public_access, "Public", class: "form-check-label" %>
     </div>
     <div class="form-text text-12">Anyone with the link can view this thing without signing in.</div>
-  </div>
+    <%= render "wizard_footer", form: form, thing: thing, index: 3 %>
+  </section>
 
-  <div class="form-section">
-    <div class="h-section-label mb-2">Standard links</div>
-    <p class="text-secondary text-13 mb-3">Optional links shared by every thing: Asset, Wiki, Slack, Where, and AR.</p>
-    <div class="vstack gap-2">
-      <% thing.standard_links.each do |link| %>
-        <%= form.fields_for :links, link do |link_form| %>
-          <%= link_form.hidden_field :link_type %>
-          <div class="row g-2 align-items-end">
-            <div class="col-md-7">
-              <%= link_form.label :url, link.display_title, class: "form-label" %>
-              <%= link_form.url_field :url, class: "form-control", placeholder: "https://" %>
+  <section id="links" data-thing-wizard-target="step">
+    <div class="vstack gap-4">
+      <div>
+        <div class="h-section-label mb-2">Standard links</div>
+        <p class="text-secondary text-13 mb-3">Optional links shared by every thing: Wiki, Slack, Where, and AR.</p>
+        <div class="vstack gap-2">
+          <% thing.standard_links.each do |link| %>
+            <%= form.fields_for :links, link do |link_form| %>
+              <%= link_form.hidden_field :link_type %>
+              <div class="row g-2 align-items-end">
+                <div class="col-md-7">
+                  <%= link_form.label :url, link.display_title, class: "form-label" %>
+                  <%= link_form.url_field :url, class: "form-control", placeholder: "https://" %>
+                </div>
+                <div class="col-md-5">
+                  <%= link_form.label :note, "Note", class: "form-label" %>
+                  <%= link_form.text_field :note, class: "form-control", placeholder: "Optional" %>
+                </div>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+
+      <div data-controller="nested-form">
+        <div class="h-section-label mb-2">Custom links</div>
+        <div class="vstack gap-2" data-nested-form-target="container">
+          <%= form.fields_for :links do |link_form| %>
+            <% next unless link_form.object.link_custom? %>
+
+            <%= render "custom_link_fields", form: link_form %>
+          <% end %>
+        </div>
+
+        <template data-nested-form-target="template">
+          <%= form.fields_for :links, ThingLink.new(link_type: :custom), child_index: "NEW_RECORD" do |link_form| %>
+            <%= render "custom_link_fields", form: link_form %>
+          <% end %>
+        </template>
+
+        <button type="button" class="btn btn-outline-secondary btn-sm mt-2" data-action="nested-form#add">
+          + Add custom link
+        </button>
+        <p class="text-secondary text-12 mt-2 mb-0">Leave custom link fields blank to omit them.</p>
+      </div>
+
+      <div data-controller="related-things"
+           data-related-things-search-url-value="<%= search_things_path(format: :json) %>"
+           data-related-things-exclude-id-value="<%= thing.id if thing.persisted? %>">
+        <div class="h-section-label mb-2">Related things</div>
+        <p class="text-secondary text-13 mb-3">Link this thing to others, such as a mouse and its dongle. Relationships apply to both things.</p>
+
+        <div class="vstack gap-2 mb-3" data-related-things-target="container">
+          <%= form.fields_for :thing_relationships do |relationship_form| %>
+            <%= render "related_thing_fields", form: relationship_form %>
+          <% end %>
+        </div>
+
+        <template data-related-things-target="template">
+          <%= form.fields_for :thing_relationships, ThingRelationship.new, child_index: "NEW_RECORD" do |relationship_form| %>
+            <div class="row g-2 align-items-end" data-related-things-target="item">
+              <%= relationship_form.hidden_field :related_thing_id, value: "__RELATED_ID__", data: { related_things_target: "relatedIdField" } %>
+              <div class="col-md-4">
+                <div class="form-label">Thing</div>
+                <div class="text-13 fw-medium" data-related-things-target="name">__RELATED_NAME__</div>
+              </div>
+              <div class="col-md-7">
+                <%= relationship_form.label :note, "Note", class: "form-label" %>
+                <%= relationship_form.text_field :note, class: "form-control", placeholder: "Optional" %>
+              </div>
+              <div class="col-md-1">
+                <label class="form-label d-none d-md-block">&nbsp;</label>
+                <button type="button" class="btn btn-outline-secondary btn-sm w-100" data-action="related-things#remove" title="Remove">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
             </div>
-            <div class="col-md-5">
-              <%= link_form.label :note, "Note", class: "form-label" %>
-              <%= link_form.text_field :note, class: "form-control", placeholder: "Optional" %>
-            </div>
+          <% end %>
+        </template>
+
+        <div class="position-relative">
+          <label class="form-label" for="related-things-search">Add related thing</label>
+          <input type="search"
+                 id="related-things-search"
+                 class="form-control"
+                 placeholder="Search by name…"
+                 autocomplete="off"
+                 data-related-things-target="input"
+                 data-action="input->related-things#input keydown->related-things#keydown">
+          <div class="list-group position-absolute w-100 d-none shadow-sm"
+               style="z-index: 1050; max-height: 240px; overflow-y: auto;"
+               data-related-things-target="results"></div>
+        </div>
+      </div>
+    </div>
+    <%= render "wizard_footer", form: form, thing: thing, index: 4 %>
+  </section>
+
+  <section id="photos" data-thing-wizard-target="step">
+    <div class="h-section-label mb-2">Photos <span class="text-lowercase fw-normal">(optional)</span></div>
+    <p class="text-secondary text-13 mb-3">For the thing page only — gallery photos are not printed on labels.</p>
+    <% if thing.photos.attached? %>
+      <div class="row g-2 mb-3">
+        <% thing.photos.each do |photo| %>
+          <div class="col-4 col-md-3">
+            <%= image_tag photo, class: "img-fluid rounded border border-secondary-subtle w-100" %>
+            <% if thing.persisted? %>
+              <div class="mt-1">
+                <%= link_to "Remove", photo_thing_path(thing, photo),
+                            class: "btn btn-outline-danger btn-sm w-100",
+                            data: { turbo_method: :delete, turbo_confirm: "Remove this photo?" } %>
+              </div>
+            <% end %>
           </div>
         <% end %>
-      <% end %>
-    </div>
-  </div>
+      </div>
+    <% end %>
+    <%= form.label :photos, "Add photos", class: "form-label" %>
+    <%= form.file_field :photos, multiple: true, accept: "image/jpeg,image/png,image/gif,image/webp", class: "form-control" %>
+    <%= render "wizard_footer", form: form, thing: thing, index: 5 %>
+  </section>
 
-  <div class="form-section" data-controller="nested-form">
-    <div class="h-section-label mb-2">Custom links</div>
-    <div class="vstack gap-2" data-nested-form-target="container">
-      <%= form.fields_for :links do |link_form| %>
-        <% next unless link_form.object.link_custom? %>
-
-        <%= render "custom_link_fields", form: link_form %>
-      <% end %>
-    </div>
-
-    <template data-nested-form-target="template">
-      <%= form.fields_for :links, ThingLink.new(link_type: :custom), child_index: "NEW_RECORD" do |link_form| %>
-        <%= render "custom_link_fields", form: link_form %>
-      <% end %>
-    </template>
-
-    <button type="button" class="btn btn-outline-secondary btn-sm mt-2" data-action="nested-form#add">
-      + Add custom link
-    </button>
-    <p class="text-secondary text-12 mt-2 mb-0">Leave custom link fields blank to omit them.</p>
-  </div>
-
-  <div class="form-section"
-       data-controller="related-things"
-       data-related-things-search-url-value="<%= search_things_path(format: :json) %>"
-       data-related-things-exclude-id-value="<%= thing.id if thing.persisted? %>">
-    <div class="h-section-label mb-2">Related things</div>
-    <p class="text-secondary text-13 mb-3">Link this thing to others, such as a mouse and its dongle. Relationships apply to both things.</p>
-
-    <div class="vstack gap-2 mb-3" data-related-things-target="container">
-      <%= form.fields_for :thing_relationships do |relationship_form| %>
-        <%= render "related_thing_fields", form: relationship_form %>
-      <% end %>
-    </div>
-
-    <template data-related-things-target="template">
-      <%= form.fields_for :thing_relationships, ThingRelationship.new, child_index: "NEW_RECORD" do |relationship_form| %>
-        <div class="row g-2 align-items-end" data-related-things-target="item">
-          <%= relationship_form.hidden_field :related_thing_id, value: "__RELATED_ID__", data: { related_things_target: "relatedIdField" } %>
-          <div class="col-md-4">
-            <div class="form-label">Thing</div>
-            <div class="text-13 fw-medium" data-related-things-target="name">__RELATED_NAME__</div>
-          </div>
-          <div class="col-md-7">
-            <%= relationship_form.label :note, "Note", class: "form-label" %>
-            <%= relationship_form.text_field :note, class: "form-control", placeholder: "Optional" %>
-          </div>
-          <div class="col-md-1">
-            <label class="form-label d-none d-md-block">&nbsp;</label>
-            <button type="button" class="btn btn-outline-secondary btn-sm w-100" data-action="related-things#remove" title="Remove">
-              <i class="bi bi-x-lg"></i>
-            </button>
-          </div>
-        </div>
-      <% end %>
-    </template>
-
-    <div class="position-relative">
-      <label class="form-label" for="related-things-search">Add related thing</label>
-      <input type="search"
-             id="related-things-search"
-             class="form-control"
-             placeholder="Search by name…"
-             autocomplete="off"
-             data-related-things-target="input"
-             data-action="input->related-things#input keydown->related-things#keydown">
-      <div class="list-group position-absolute w-100 d-none shadow-sm"
-           style="z-index: 1050; max-height: 240px; overflow-y: auto;"
-           data-related-things-target="results"></div>
-    </div>
-  </div>
-
-  <div class="form-section">
-    <div class="h-section-label mb-2">AR Marker</div>
+  <section id="ar" data-thing-wizard-target="step">
+    <div class="h-section-label mb-2">AR marker <span class="text-lowercase fw-normal">(optional)</span></div>
     <p class="text-secondary text-13 mb-3">Optional image marker printed at the end of labels for AR apps.</p>
     <% if thing.ar_anchor.attached? %>
       <div class="mb-3">
@@ -221,38 +268,6 @@
         <%= form.text_field :ar_anchor_note, class: "form-control", placeholder: "Optional" %>
       </div>
     </div>
-  </div>
-
-  <div class="form-section">
-    <div class="h-section-label mb-2">Photos</div>
-    <p class="text-secondary text-13 mb-3">For the thing page only — gallery photos are not printed on labels.</p>
-    <% if thing.photos.attached? %>
-      <div class="row g-2 mb-3">
-        <% thing.photos.each do |photo| %>
-          <div class="col-4 col-md-3">
-            <%= image_tag photo, class: "img-fluid rounded border border-secondary-subtle w-100" %>
-            <% if thing.persisted? %>
-              <div class="mt-1">
-                <%= link_to "Remove", photo_thing_path(thing, photo),
-                            class: "btn btn-outline-danger btn-sm w-100",
-                            data: { turbo_method: :delete, turbo_confirm: "Remove this photo?" } %>
-              </div>
-            <% end %>
-          </div>
-        <% end %>
-      </div>
-    <% end %>
-    <%= form.label :photos, "Add photos", class: "form-label" %>
-    <%= form.file_field :photos, multiple: true, accept: "image/jpeg,image/png,image/gif,image/webp", class: "form-control" %>
-  </div>
-
-  <div class="d-flex gap-2">
-    <%= form.submit class: "btn btn-primary btn-sm" %>
-    <%= link_to "Cancel", thing.persisted? ? thing_path(thing) : things_path, class: "btn btn-outline-secondary btn-sm" %>
-    <% if thing.persisted? %>
-      <%= link_to "Delete", thing_path(thing),
-                  class: "btn btn-outline-danger btn-sm",
-                  data: { turbo_method: :delete, turbo_confirm: "Delete #{thing.name}?" } %>
-    <% end %>
-  </div>
+    <%= render "wizard_footer", form: form, thing: thing, index: 6 %>
+  </section>
 <% end %>

@@ -39,7 +39,8 @@ class Things::MergePlanTest < ActiveSupport::TestCase
     @target.links.create!(link_type: :where, url: "https://geowiki.example.com/locations/desk-1")
 
     assert_includes conflict_names, "link_where_url"
-    assert_includes carried_over_names, "link_asset_url"
+    assert_includes conflict_names, "link_wiki_url"
+    assert_includes carried_over_names, "link_wiki_note"
   end
 
   test "defaults a conflict to the target's value and a gap to the source's" do
@@ -64,9 +65,9 @@ class Things::MergePlanTest < ActiveSupport::TestCase
   test "resolve groups standard link values by link type" do
     resolved = plan.resolve
 
-    assert_equal thing_links(:router_asset).url, resolved[:links]["asset"]["url"]
-    assert_equal "Front rack label", resolved[:links]["asset"]["note"]
     assert_equal thing_links(:keyboard_wiki).url, resolved[:links]["wiki"]["url"]
+    assert_equal "Front rack label", resolved[:links]["wiki"]["note"]
+    assert_equal thing_links(:router_where).url, resolved[:links]["where"]["url"]
   end
 
   test "reports what is carried over without asking" do

@@ -133,7 +133,6 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
           name: "Door Lock",
           slug: "door-lock",
           links_attributes: {
-            "0" => { link_type: "asset", url: "" },
             "1" => { link_type: "wiki", url: "" },
             "2" => { link_type: "slack", url: "" },
             "3" => { link_type: "where", url: "" },
@@ -294,7 +293,7 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     get thing_path(things(:router))
 
     assert_response :success
-    assert_select ".list-group-item", text: /Asset/
+    assert_select ".list-group-item", text: /Wiki/
     assert_select ".list-group-item", text: /Front rack label/
   end
 
@@ -848,8 +847,7 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
           name: "Printer",
           description: "Office printer",
           links_attributes: {
-            "0" => { link_type: "asset", url: "https://example.com/asset" },
-            "1" => { link_type: "wiki", url: "" },
+            "1" => { link_type: "wiki", url: "https://example.com/wiki" },
             "2" => { link_type: "slack", url: "" },
             "3" => { link_type: "where", url: "" },
             "4" => { link_type: "ar", url: "" },
@@ -871,7 +869,6 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
       thing: {
         name: "Label Printer",
         links_attributes: {
-          "0" => { link_type: "asset", url: "" },
           "1" => { link_type: "wiki", url: "" },
           "2" => { link_type: "slack", url: "" },
           "3" => { link_type: "where", url: "" },
@@ -894,7 +891,7 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
       thing: {
         name: things(:router).name,
         links_attributes: {
-          "0" => { id: thing_links(:router_asset).id, link_type: "asset", url: thing_links(:router_asset).url },
+          "0" => { id: thing_links(:router_wiki).id, link_type: "wiki", url: thing_links(:router_wiki).url },
           "1" => { id: thing_links(:router_custom).id, link_type: "custom", title: "Manual", url: "https://example.com/router-manual" },
           "2" => { link_type: "custom", title: "Firmware", url: "https://example.com/router-firmware" }
         }
@@ -935,7 +932,7 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
         notes: "Moved to rack 3",
         ble_beacon_uuid: "12345678-1234-1234-1234-123456789abc",
         links_attributes: {
-          "0" => { id: thing_links(:router_asset).id, link_type: "asset", url: thing_links(:router_asset).url }
+          "0" => { id: thing_links(:router_wiki).id, link_type: "wiki", url: thing_links(:router_wiki).url }
         }
       }
     }
@@ -959,14 +956,55 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "FCECDA123456", things(:router).reload.serial_number
   end
 
-  test "form groups fields under section headings" do
+  test "form groups fields into wizard steps" do
     get edit_thing_path(things(:router))
 
     assert_response :success
-    assert_select ".form-section .h-section-label", text: "Identity"
-    assert_select ".form-section .h-section-label", text: "Hardware"
-    assert_select ".form-section .h-section-label", text: "Network and radios"
-    assert_select "input[name=?]", "thing[serial_number]"
+    assert_select "[data-thing-wizard-target=step]", 7
+    assert_select "section#identity input[name=?]", "thing[name]"
+    assert_select "section#identity textarea[name=?]", "thing[notes]"
+    assert_select "section#hardware input[name=?]", "thing[serial_number]"
+    assert_select "section#network input[name=?]", "thing[ble_beacon_uuid]"
+    assert_select "section#visibility input[name=?]", "thing[public_access]"
+    assert_select "section#links #related-things-search"
+    assert_select "section#photos input[name=?]", "thing[photos][]"
+    assert_select "section#ar input[name=?]", "thing[ar_anchor]"
+  end
+
+  test "edit form links every step and offers save and exit on each" do
+    get edit_thing_path(things(:router))
+
+    assert_response :success
+    assert_select "[data-thing-wizard-editing-value=true]"
+    assert_select "[data-thing-wizard-reached-value=?]", "6"
+    assert_select "a[data-thing-wizard-target=crumb][href=?]", "#identity"
+    assert_select "a[data-thing-wizard-target=crumb][href=?]", "#ar"
+    assert_select "input[type=submit][value=?]", "Save and Exit", 7
+  end
+
+  test "new form offers save and exit only on the last step" do
+    get new_thing_path
+
+    assert_response :success
+    assert_select "[data-thing-wizard-editing-value=false]"
+    assert_select "[data-thing-wizard-reached-value=?]", "0"
+    assert_select "input[type=submit][value=?]", "Save and Exit", 1
+    assert_select "section#ar input[type=submit][value=?]", "Save and Exit"
+  end
+
+  test "standard links no longer include asset" do
+    get new_thing_path
+
+    assert_response :success
+    assert_select "input[type=hidden][name$='[link_type]'][value=?]", "asset", count: 0
+  end
+
+  test "create failure opens the wizard on the step with the error" do
+    post things_path, params: { thing: { name: "Bad Host", hostname: "not a hostname!" } }
+
+    assert_response :unprocessable_entity
+    assert_select "[data-thing-wizard-index-value=?]", "2"
+    assert_select "[data-thing-wizard-reached-value=?]", "6"
   end
 
   test "show page groups details and lists the serial number under hardware" do
@@ -1022,9 +1060,9 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
         name: things(:router).name,
         links_attributes: {
           "0" => {
-            id: thing_links(:router_asset).id,
-            link_type: "asset",
-            url: thing_links(:router_asset).url,
+            id: thing_links(:router_wiki).id,
+            link_type: "wiki",
+            url: thing_links(:router_wiki).url,
             note: "Updated rack note"
           }
         }
@@ -1032,7 +1070,7 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     }
 
     assert_redirected_to thing_path(things(:router))
-    assert_equal "Updated rack note", thing_links(:router_asset).reload.note
+    assert_equal "Updated rack note", thing_links(:router_wiki).reload.note
   end
 
   test "uploads ar marker with note" do

@@ -40,14 +40,14 @@ class Things::IndexFiltersTest < ActiveSupport::TestCase
     assert_equal [ things(:router).name ], query.scope.map(&:name)
   end
 
-  test "filters things with wiki link" do
-    query = Things::IndexQuery.call(filters: { wiki: "yes" })
+  test "filters things with slack link" do
+    query = Things::IndexQuery.call(filters: { slack: "yes" })
 
     assert_equal [ things(:keyboard).name ], query.scope.map(&:name)
   end
 
-  test "filters things without wiki link" do
-    query = Things::IndexQuery.call(filters: { wiki: "no" })
+  test "filters things without slack link" do
+    query = Things::IndexQuery.call(filters: { slack: "no" })
 
     assert_equal [ things(:router).name ], query.scope.map(&:name)
   end

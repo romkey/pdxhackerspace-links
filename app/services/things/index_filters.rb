@@ -2,7 +2,7 @@ module Things
   class IndexFilters < Data.define(:values, :sources)
     KEYS = %i[
       links photos ip_address hostname ieee_address ar_marker labelled
-      wiki slack where asset url
+      wiki slack where url
     ].freeze
 
     def self.parse(raw)
@@ -47,7 +47,7 @@ module Things
         apply_ar_marker_filter(scope, value)
       when :labelled
         apply_timestamp_filter(scope, :labelled_at, value)
-      when :wiki, :slack, :where, :asset
+      when :wiki, :slack, :where
         apply_link_type_filter(scope, key.to_s, value)
       when :url
         apply_link_type_filter(scope, "custom", value)

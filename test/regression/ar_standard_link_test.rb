@@ -9,9 +9,9 @@ class ArStandardLinkRegressionTest < ActionDispatch::IntegrationTest
     get edit_thing_path(things(:router))
 
     assert_response :success
-    assert_select "input[type=hidden][name=?][value=?]", "thing[links_attributes][4][link_type]", "ar"
-    assert_select "input[name=?]", "thing[links_attributes][4][url]"
-    assert_select "input[name=?]", "thing[links_attributes][4][note]"
+    assert_select "input[type=hidden][name=?][value=?]", "thing[links_attributes][3][link_type]", "ar"
+    assert_select "input[name=?]", "thing[links_attributes][3][url]"
+    assert_select "input[name=?]", "thing[links_attributes][3][note]"
   end
 
   test "show displays ar standard link with url and note" do
@@ -29,7 +29,6 @@ class ArStandardLinkRegressionTest < ActionDispatch::IntegrationTest
       thing: {
         name: "AR Thing",
         links_attributes: {
-          "0" => { link_type: "asset", url: "" },
           "1" => { link_type: "wiki", url: "" },
           "2" => { link_type: "slack", url: "" },
           "3" => { link_type: "where", url: "" },

@@ -139,10 +139,10 @@ class Things::MergeTest < ActiveSupport::TestCase
   end
 
   test "writes resolved standard links" do
-    merge(links: { "asset" => { "url" => thing_links(:router_asset).url, "note" => "Front rack label" } })
+    merge(links: { "wiki" => { "url" => thing_links(:router_wiki).url, "note" => "Front rack label" } })
 
-    link = @target.reload.links.find_by(link_type: :asset)
-    assert_equal thing_links(:router_asset).url, link.url
+    link = @target.reload.links.find_by(link_type: :wiki)
+    assert_equal thing_links(:router_wiki).url, link.url
     assert_equal "Front rack label", link.note
   end
 

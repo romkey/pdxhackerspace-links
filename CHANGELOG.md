@@ -24,6 +24,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
+- Creating or editing a thing is now a step-by-step wizard instead of one long form: **Identity** (name, label name, owner, slug, description, notes), **Hardware**, **Network**, **Visibility**, **Links** (standard links, custom links, and related things), **Photos** (optional), and **AR** (optional). When editing, the step list at the top links straight to any step (and `/things/…/edit#photos` opens on that step), and every step has **Save and Exit**. When creating, steps unlock as you reach them and **Save and Exit** is on the last step; Enter moves to the next step instead of saving a half-filled form
+- The **Asset** standard link is gone — things are the asset manager now. Existing Asset links become custom links titled "Asset", so their URLs and notes are kept, and the Asset filter on the Things index is removed
 - Thing fields are grouped instead of listed in one long run. The edit form now has **Identity**, **Hardware**, **Network and radios**, **Description and notes**, and **Visibility** sections, and the thing page shows **Identity**, **Hardware**, **Network**, and **Identifiers** groups side by side in place of the single Technical details list. Groups with nothing in them are hidden
 
 - RuboCop now runs in its own `Lint` workflow instead of as a job inside `CI`, so the README lint badge reports the linter's own status rather than the whole CI run
