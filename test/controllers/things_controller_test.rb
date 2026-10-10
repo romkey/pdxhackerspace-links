@@ -349,6 +349,20 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "1", query["print_mark_labelled"]
   end
 
+  test "label preview back link keeps filter params from the index" do
+    thing = things(:router)
+
+    get label_preview_thing_path(thing, printer_id: printers(:label_printer).id,
+                                        return_to: "/things?filter[links]=1&filter[integration][]=unifi")
+
+    back = css_select("a.btn").find { |link| link.text == "Back" }
+    path, query = back["href"].split("?", 2)
+    query = Rack::Utils.parse_nested_query(query)
+    assert_equal "/things", path
+    assert_equal({ "links" => "1", "integration" => [ "unifi" ] }, query["filter"])
+    assert_equal thing.id.to_s, query["print_label"]
+  end
+
   test "label preview ignores off-site return paths" do
     thing = things(:router)
 

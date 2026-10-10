@@ -578,25 +578,23 @@ class ThingsController < ApplicationController
   # dialog's Preview button. Anything that isn't a same-site path is ignored.
   def label_preview_return_path
     path = params[:return_to].to_s
-    return if path.blank? || !path.start_with?("/") || path.start_with?("//") || path.match?(/[\\\s]/)
+    return if !path.start_with?("/") || path.start_with?("//") || path.match?(/[\\[:space:][:cntrl:]]/)
 
-    URI.parse(path).path.present? ? path : nil
-  rescue URI::InvalidURIError
-    nil
+    path
   end
 
   # Back from a label preview returns to the page the print dialog was opened
-  # from and asks it to reopen the dialog with the same choices.
+  # from and asks it to reopen the dialog with the same choices. The path is
+  # split by hand because URI.parse rejects the brackets in filter params.
   def label_preview_back_path
-    uri = URI.parse(label_preview_return_path || thing_path(@thing))
-    query = Rack::Utils.parse_nested_query(uri.query).merge(
+    path, query = (label_preview_return_path || thing_path(@thing)).split("?", 2)
+    query = Rack::Utils.parse_nested_query(query).merge(
       "print_label" => @thing.id.to_s,
       "print_printer_id" => @printer.id.to_s,
       "print_layout" => @layout.to_s,
       "print_mark_labelled" => mark_labelled_param? ? "1" : "0"
     )
-    uri.query = query.to_query
-    uri.to_s
+    "#{path}?#{query.to_query}"
   end
 
   def bulk_label_preview_query_params
