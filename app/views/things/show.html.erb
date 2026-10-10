@@ -24,6 +24,9 @@
         <div class="text-12 text-secondary mt-1">
           Created <%= relative_time(@thing.created_at) %>
           · Updated <%= relative_time(@thing.updated_at) %>
+          <% if can_manage_things? && @thing.thing_template %>
+            · From template <%= link_to @thing.thing_template.name, edit_settings_thing_template_path(@thing.thing_template) %>
+          <% end %>
         </div>
       </div>
     </div>
@@ -96,6 +99,10 @@
              unifi_devices: @unifi_devices,
              zigbee2mqtt_devices: @zigbee2mqtt_devices,
              prusa_connect_printers: @prusa_connect_printers %>
+
+  <% if can_manage_things? %>
+    <%= render "journal_entries/journal", journal_entries: @journal_entries %>
+  <% end %>
 
   <div class="modal fade" tabindex="-1" data-lightbox-target="modal" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">

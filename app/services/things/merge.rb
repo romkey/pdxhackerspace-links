@@ -18,32 +18,36 @@ module Things
       raise ArgumentError, "a thing can't be merged into itself" if target.id == source.id
 
       Thing.transaction do
-        retired_key = source.key
-        retired_slug = source.slug
-
-        reassign_integration_devices
-        reassign_aliases
-        relationships = capture_relationships
-        source.thing_relationships.destroy_all
-        move_photos
-        move_ar_anchor
-        release_unique_columns
-
-        apply_attributes
-        apply_standard_links
-        move_custom_links
-        add_relationships(relationships)
-
-        source.reload.destroy!
-        retire_identifiers(retired_key, retired_slug)
-
-        target
+        target.journaled("merged", message: "Merged in “#{source.name}”") { merge }
       end
     end
 
     private
 
     attr_reader :target, :source, :attributes, :links
+
+    def merge
+      retired_key = source.key
+      retired_slug = source.slug
+
+      reassign_integration_devices
+      reassign_aliases
+      relationships = capture_relationships
+      source.thing_relationships.destroy_all
+      move_photos
+      move_ar_anchor
+      release_unique_columns
+
+      apply_attributes
+      apply_standard_links
+      move_custom_links
+      add_relationships(relationships)
+
+      source.reload.destroy!
+      retire_identifiers(retired_key, retired_slug)
+
+      target
+    end
 
     # Has to happen before the source is destroyed: Thing#ignore_integration_devices
     # would otherwise mark these devices ignored and unlink them.
@@ -132,7 +136,8 @@ module Things
         "qr_scan_count" => target.qr_scan_count + source.qr_scan_count,
         "nfc_scan_count" => target.nfc_scan_count + source.nfc_scan_count,
         "visit_count" => target.visit_count + source.visit_count,
-        "labelled_at" => [ target.labelled_at, source.labelled_at ].compact.min
+        "labelled_at" => [ target.labelled_at, source.labelled_at ].compact.min,
+      "thing_template_id" => target.thing_template_id || source.thing_template_id
       }
     end
 

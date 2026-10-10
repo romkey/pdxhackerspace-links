@@ -2,12 +2,17 @@
 # stay the same from one instance to the next are kept: no serial number,
 # network details, identifiers, photos, Where link, or related things.
 class ThingTemplate < ApplicationRecord
+  include Journaled
+
   FIELDS = %i[description notes owner manufacturer model manufacturer_url public_access].freeze
   LINK_TYPES = (ThingLink::STANDARD_TYPES.keys - %w[where]).freeze
   FIELD_LABELS = {
     manufacturer_url: "Manufacturer link",
     public_access: "Public"
   }.freeze
+  JOURNAL_FIELDS = (%w[name thing_name] + FIELDS.map(&:to_s)).freeze
+
+  has_many :things, dependent: :nullify
 
   validates :name, presence: true, uniqueness: { case_sensitive: false }
   validates :manufacturer_url, format: {
@@ -35,7 +40,7 @@ class ThingTemplate < ApplicationRecord
   end
 
   def build_thing
-    thing = Thing.new(name: thing_name, **FIELDS.index_with { |field| self[field] })
+    thing = Thing.new(name: thing_name, thing_template: self, **FIELDS.index_with { |field| self[field] })
     standard_links.each do |data|
       thing.link_for(data["link_type"]).assign_attributes(url: data["url"], note: data["note"])
     end
@@ -90,6 +95,16 @@ class ThingTemplate < ApplicationRecord
     FIELD_LABELS[field] || human_attribute_name(field)
   end
 
+  # Standard links are known by type and custom links by title, so a refresh
+  # can find the matching link on a thing.
+  def self.link_key(data)
+    data["link_type"] == "custom" ? "custom:#{data['title'].to_s.strip.downcase}" : data["link_type"]
+  end
+
+  def self.link_label(data)
+    data["link_type"] == "custom" ? data["title"] : ThingLink::STANDARD_TYPES[data["link_type"]]
+  end
+
   def self.links_from(thing)
     standard = thing.standard_links.filter_map do |link|
       next unless LINK_TYPES.include?(link.link_type)
@@ -117,6 +132,13 @@ class ThingTemplate < ApplicationRecord
       changed = true
     end
     changed
+  end
+
+  def journal_links(before:)
+    data = before ? attribute_in_database("links") : links
+    Array(data).to_h do |link|
+      [ self.class.link_key(link), self.class.journal_link(self.class.link_label(link), link["url"], link["note"]) ]
+    end
   end
 
   def normalize_name

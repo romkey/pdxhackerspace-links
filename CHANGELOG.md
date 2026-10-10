@@ -9,6 +9,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 
 - **Apply template…** on a thing's page (or from its row's ⋯ menu on the Things index) fills an existing thing from a template. Pick a template to preview what it will fill in, then apply. Only blank fields and blank link URLs or notes are filled — anything already set is kept, and the visibility setting is never changed. The template's custom links are added, or fill in the blanks of an existing custom link with the same title
+- Things made from a template keep a link to it, shown next to the created and updated times on the thing's page
+- **Refresh things** on a template (from its settings page or its ⋯ menu in **Settings → Templates**) updates every thing made from it: blank fields and missing links are filled in from the template, and values a thing still has from an earlier version of the template are updated. Anything changed on the thing by hand is kept
+- **History** on each thing's page and each template's settings page lists its creation and every change since — fields changed, links added, changed, or removed, duplicates, merges, and refreshes — with who made them. Signed-in users only
+- **Settings → Templates** shows how many things were made from each template
 
 ## [0.14.1] - 2026-10-10
 

@@ -37,6 +37,9 @@ class ThingTemplateApplicationsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Main network router", router.description
     assert_redirected_to thing_path(router)
     assert_match "Applied “Raspberry Pi 4”", flash[:notice]
+    entry = router.journal_entries.sole
+    assert_equal "Applied template “Raspberry Pi 4”", entry.message
+    assert_equal [ nil, "Raspberry Pi Ltd" ], entry.field_changes["manufacturer"]
   end
 
   test "create without a template redirects back to the picker" do

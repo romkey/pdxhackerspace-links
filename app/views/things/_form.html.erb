@@ -6,6 +6,10 @@
                 thing_wizard_index_value: thing_form_initial_step(thing),
                 thing_wizard_reached_value: thing_form_reached_step(thing)
               } do |form| %>
+  <% if thing.new_record? && thing.thing_template_id %>
+    <%= form.hidden_field :thing_template_id %>
+  <% end %>
+
   <% if thing.errors.any? %>
     <div class="alert alert-danger text-13">
       <%= thing.errors.full_messages.to_sentence %>

@@ -16,6 +16,7 @@ class ThingTemplateApplicationsController < ApplicationController
     end
 
     filled = @thing_template.apply_to(@thing)
+    @thing.journal_message = "Applied template “#{@thing_template.name}”"
     if filled.empty?
       redirect_to thing_path(@thing), notice: "“#{@thing_template.name}” had nothing to fill in."
     elsif @thing.save

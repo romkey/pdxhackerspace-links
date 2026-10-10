@@ -44,4 +44,32 @@ class Settings::ThingTemplatesControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to settings_thing_templates_path
   end
+
+  test "edit lists things made from the template and its history" do
+    template = thing_templates(:pi)
+    thing = template.build_thing
+    thing.save!
+    template.update!(model: "Pi 5")
+
+    get edit_settings_thing_template_path(template)
+
+    assert_response :success
+    assert_select "a[href=?]", thing_path(thing), text: "Raspberry Pi"
+    assert_select "button", text: "Refresh things"
+    assert_select ".journal li", text: /Model: Pi 4 Model B → Pi 5/
+  end
+
+  test "refresh updates things made from the template" do
+    template = thing_templates(:pi)
+    thing = template.build_thing
+    thing.save!
+    template.update!(owner: "team")
+
+    post refresh_settings_thing_template_path(template)
+
+    assert_redirected_to edit_settings_thing_template_path(template)
+    assert_equal "Updated 1 of 1 thing from “Raspberry Pi 4”.", flash[:notice]
+    assert_equal "team", thing.reload.owner
+    assert_equal users(:local_admin), thing.journal_entries.first.user
+  end
 end

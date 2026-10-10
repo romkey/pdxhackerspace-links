@@ -34,7 +34,11 @@ Rails.application.routes.draw do
     root to: "site#show"
     resource :site, only: %i[show update], controller: "site"
     resource :scan_visits, only: %i[show], controller: "scan_visits"
-    resources :thing_templates, only: %i[index edit update destroy], path: "templates"
+    resources :thing_templates, only: %i[index edit update destroy], path: "templates" do
+      member do
+        post :refresh
+      end
+    end
     resources :printers do
       collection do
         get :cups_queues

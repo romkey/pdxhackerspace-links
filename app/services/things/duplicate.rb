@@ -10,7 +10,7 @@ module Things
 
     def call
       Thing.transaction do
-        copy = Thing.create!(
+        copy = Thing.new(
           name: "#{thing.name} (duplicate)",
           description: thing.description,
           notes: thing.notes,
@@ -20,9 +20,12 @@ module Things
           manufacturer: thing.manufacturer,
           model: thing.model,
           manufacturer_url: thing.manufacturer_url,
-          ar_anchor_note: thing.ar_anchor_note
+          ar_anchor_note: thing.ar_anchor_note,
+          thing_template_id: thing.thing_template_id
         )
         copy_links(copy)
+        copy.journal_message = "Duplicated from “#{thing.name}”"
+        copy.save!
         copy_relationships(copy)
         copy_photos(copy)
         copy_ar_anchor(copy)
@@ -34,10 +37,11 @@ module Things
 
     attr_reader :thing
 
+    # Built rather than created so the copy's journal records them with it.
     def copy_links(copy)
       thing.links.select { |link| link.present_link? || link.standard_note? }.each do |link|
         if link.link_custom?
-          copy.links.create!(
+          copy.links.build(
             link_type: :custom,
             title: link.title,
             url: link.url,
@@ -45,7 +49,7 @@ module Things
             position: link.position
           )
         else
-          copy.links.create!(link_type: link.link_type, url: link.url, note: link.note)
+          copy.link_for(link.link_type).assign_attributes(url: link.url, note: link.note)
         end
       end
     end
