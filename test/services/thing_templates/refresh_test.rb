@@ -129,5 +129,35 @@ module ThingTemplates
       assert_equal 1, result.unchanged
       assert_equal 1, @thing.journal_entries.count
     end
+
+    test "a duplicate follows the template's history from when the original was linked" do
+      @template.update!(model: "L2")
+      travel 1.hour
+      copy = Things::Duplicate.call(thing: @thing)
+
+      Refresh.call(template: @template)
+
+      assert_equal "L2", copy.reload.model
+      assert_equal @thing.thing_template_linked_at, copy.thing_template_linked_at
+    end
+
+    test "a merge target keeps a value the template dropped before the source was linked" do
+      target = Thing.create!(name: "Desk lamp", model: "L1")
+      travel 1.hour
+      @template.update!(model: "L2")
+      travel 1.hour
+      source = @template.build_thing
+      source.save!
+      travel 1.hour
+      @template.update!(model: "L3")
+
+      Things::Merge.call(target: target, source: source)
+      Refresh.call(template: @template)
+
+      target.reload
+      assert_equal @template, target.thing_template
+      assert_equal source.thing_template_linked_at, target.thing_template_linked_at
+      assert_equal "L1", target.model
+    end
   end
 end

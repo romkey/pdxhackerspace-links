@@ -21,7 +21,8 @@ module Things
           model: thing.model,
           manufacturer_url: thing.manufacturer_url,
           ar_anchor_note: thing.ar_anchor_note,
-          thing_template_id: thing.thing_template_id
+          thing_template_id: thing.thing_template_id,
+          thing_template_linked_at: thing.thing_template_linked_at
         )
         copy_links(copy)
         copy.journal_message = "Duplicated from “#{thing.name}”"

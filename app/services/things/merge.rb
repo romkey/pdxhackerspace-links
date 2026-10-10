@@ -136,8 +136,17 @@ module Things
         "qr_scan_count" => target.qr_scan_count + source.qr_scan_count,
         "nfc_scan_count" => target.nfc_scan_count + source.nfc_scan_count,
         "visit_count" => target.visit_count + source.visit_count,
-        "labelled_at" => [ target.labelled_at, source.labelled_at ].compact.min,
-      "thing_template_id" => target.thing_template_id || source.thing_template_id
+        "labelled_at" => [ target.labelled_at, source.labelled_at ].compact.min
+      }.merge(carried_over_template)
+    end
+
+    # The template link keeps the time it was made so Refresh reads the right history.
+    def carried_over_template
+      template_holder = target.thing_template_id ? target : source
+
+      {
+        "thing_template_id" => template_holder.thing_template_id,
+        "thing_template_linked_at" => template_holder.thing_template_linked_at
       }
     end
 
