@@ -83,4 +83,33 @@
       <%= link_to "Cancel", settings_thing_templates_path, class: "btn btn-outline-secondary btn-sm" %>
     </div>
   <% end %>
+
+  <section class="mt-4">
+    <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+      <div class="h-section-label mb-0">Things from this template</div>
+      <% if @things.any? %>
+        <%= button_to "Refresh things",
+                      refresh_settings_thing_template_path(@thing_template),
+                      method: :post,
+                      class: "btn btn-outline-secondary btn-sm",
+                      form: { class: "d-inline",
+                              data: { turbo_confirm: "Update #{pluralize(@things.size, 'thing')} from “#{@thing_template.name_was}”?" } } %>
+      <% end %>
+    </div>
+    <% if @things.any? %>
+      <ul class="list-unstyled text-13 mb-2">
+        <% @things.each do |thing| %>
+          <li><%= link_to thing.name, thing_path(thing) %></li>
+        <% end %>
+      </ul>
+      <div class="text-12 text-secondary">
+        Refreshing fills in fields and links a thing leaves blank, adds links it is missing, and updates
+        values it still has from an earlier version of this template. Anything changed on the thing itself is kept.
+      </div>
+    <% else %>
+      <p class="text-secondary text-13 mb-0">No things have been made from this template yet.</p>
+    <% end %>
+  </section>
+
+  <%= render "journal_entries/journal", journal_entries: @journal_entries %>
 <% end %>

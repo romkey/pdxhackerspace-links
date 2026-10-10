@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_10_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_11_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -39,6 +39,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_10_000001) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "journal_entries", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.jsonb "details", default: {}, null: false
+    t.string "event", null: false
+    t.bigint "journalable_id", null: false
+    t.string "journalable_type", null: false
+    t.string "message"
+    t.bigint "user_id"
+    t.index ["journalable_type", "journalable_id", "created_at"], name: "index_journal_entries_on_journalable_and_created_at"
+    t.index ["user_id"], name: "index_journal_entries_on_user_id"
   end
 
   create_table "printers", force: :cascade do |t|
@@ -194,6 +206,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_10_000001) do
     t.integer "qr_scan_count", default: 0, null: false
     t.string "serial_number"
     t.string "slug"
+    t.bigint "thing_template_id"
     t.datetime "updated_at", null: false
     t.integer "visit_count", default: 0, null: false
     t.index ["ble_beacon_uuid"], name: "index_things_on_ble_beacon_uuid", unique: true, where: "(ble_beacon_uuid IS NOT NULL)"
@@ -204,6 +217,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_10_000001) do
     t.index ["name"], name: "index_things_on_name"
     t.index ["serial_number"], name: "index_things_on_serial_number", where: "(serial_number IS NOT NULL)"
     t.index ["slug"], name: "index_things_on_slug", unique: true, where: "(slug IS NOT NULL)"
+    t.index ["thing_template_id"], name: "index_things_on_thing_template_id"
   end
 
   create_table "unifi_controllers", force: :cascade do |t|
@@ -324,12 +338,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_10_000001) do
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "journal_entries", "users", on_delete: :nullify
   add_foreign_key "prusa_connect_printers", "prusa_connect_accounts"
   add_foreign_key "prusa_connect_printers", "things"
   add_foreign_key "thing_aliases", "things", on_delete: :cascade
   add_foreign_key "thing_links", "things"
   add_foreign_key "thing_relationships", "things", column: "related_thing_id", on_delete: :cascade
   add_foreign_key "thing_relationships", "things", on_delete: :cascade
+  add_foreign_key "things", "thing_templates", on_delete: :nullify
   add_foreign_key "unifi_devices", "things"
   add_foreign_key "unifi_devices", "unifi_controllers"
   add_foreign_key "zigbee2mqtt_devices", "things"

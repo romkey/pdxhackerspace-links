@@ -20,6 +20,7 @@
             <th>Manufacturer</th>
             <th>Model</th>
             <th class="num">Links</th>
+            <th class="num">Things</th>
             <th></th>
           </tr>
         </thead>
@@ -31,6 +32,8 @@
               <td class="text-secondary"><%= template.manufacturer.presence || "—" %></td>
               <td class="text-secondary"><%= template.model.presence || "—" %></td>
               <td class="num <%= "text-secondary" if template.links.empty? %>"><%= template.links.size %></td>
+              <% thing_count = @thing_counts.fetch(template.id, 0) %>
+              <td class="num <%= "text-secondary" if thing_count.zero? %>"><%= thing_count %></td>
               <td class="text-end">
                 <div class="dropdown d-inline-block">
                   <button type="button"
@@ -43,6 +46,16 @@
                   <ul class="dropdown-menu dropdown-menu-end">
                     <li><%= link_to "New thing from template", new_thing_path(template: template.id), class: "dropdown-item" %></li>
                     <li><%= link_to "Edit", edit_settings_thing_template_path(template), class: "dropdown-item" %></li>
+                    <% if thing_count.positive? %>
+                      <li>
+                        <%= button_to "Refresh things",
+                                      refresh_settings_thing_template_path(template),
+                                      method: :post,
+                                      class: "dropdown-item",
+                                      form: { class: "d-inline",
+                                              data: { turbo_confirm: "Update #{pluralize(thing_count, 'thing')} from “#{template.name}”?" } } %>
+                      </li>
+                    <% end %>
                     <li><hr class="dropdown-divider"></li>
                     <li>
                       <%= button_to "Delete",

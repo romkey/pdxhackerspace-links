@@ -18,6 +18,7 @@ class ThingsController < ApplicationController
   before_action :load_unifi_devices, only: :show, if: :can_manage_things?
   before_action :load_zigbee2mqtt_devices, only: :show, if: :can_manage_things?
   before_action :load_prusa_connect_printers, only: :show, if: :can_manage_things?
+  before_action :load_journal_entries, only: :show, if: :can_manage_things?
 
   def index
     @search_query = params[:q].to_s.strip.presence
@@ -362,7 +363,7 @@ class ThingsController < ApplicationController
   def preload_thing_show_associations
     ActiveRecord::Associations::Preloader.new(
       records: [ @thing ],
-      associations: [ :links, :thing_relationships, { photos_attachments: :blob } ]
+      associations: [ :links, :thing_relationships, :thing_template, { photos_attachments: :blob } ]
     ).call
   end
 
@@ -411,6 +412,7 @@ class ThingsController < ApplicationController
       :ar_anchor_note,
       :public_access,
       :ar_anchor,
+      :thing_template_id,
       photos: [],
       links_attributes: %i[id link_type title url note position _destroy],
       thing_relationships_attributes: %i[id related_thing_id note _destroy]
@@ -445,6 +447,10 @@ class ThingsController < ApplicationController
 
   def load_prusa_connect_printers
     @prusa_connect_printers = @thing&.prusa_connect_printers&.includes(:prusa_connect_account)&.ordered
+  end
+
+  def load_journal_entries
+    @journal_entries = @thing.journal_entries.includes(:user).limit(JournalEntriesHelper::JOURNAL_LIMIT)
   end
 
   def label_preview_filename(printer, extension)

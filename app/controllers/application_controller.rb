@@ -3,6 +3,7 @@ class ApplicationController < ActionController::Base
 
   before_action :require_login
   before_action :set_sentry_user
+  before_action :set_current_user
 
   helper_method :current_user, :logged_in?, :network_guest?, :public_guest?, :show_navigation?,
                 :can_manage_things?, :oidc_login_available?, :local_login_available?
@@ -64,6 +65,10 @@ class ApplicationController < ActionController::Base
 
   def local_login_available?
     User.local_auth_configured?
+  end
+
+  def set_current_user
+    Current.user = current_user
   end
 
   def set_sentry_user

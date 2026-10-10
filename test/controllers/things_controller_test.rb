@@ -1398,4 +1398,46 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".thing-show-actions-desktop a.btn[href=?]", new_thing_template_path(things(:router)), text: "Save as template…"
     assert_select ".thing-show-actions-mobile a.dropdown-item[href=?]", new_thing_template_path(things(:router)), text: "Save as template…"
   end
+
+  test "new form from a template carries the template link" do
+    get new_thing_path(template: thing_templates(:pi).id)
+
+    assert_select "input[type=hidden][name='thing[thing_template_id]'][value=?]", thing_templates(:pi).id.to_s
+  end
+
+  test "creating from a template keeps the link to it" do
+    post things_path, params: { thing: { name: "Pi in the closet", thing_template_id: thing_templates(:pi).id } }
+
+    thing = Thing.order(:id).last
+    assert_redirected_to thing_path(thing)
+    assert_equal thing_templates(:pi), thing.thing_template
+    assert_equal "Created from template “Raspberry Pi 4”", thing.journal_entries.sole.message
+  end
+
+  test "show page links to the thing's template" do
+    things(:router).update!(thing_template: thing_templates(:pi))
+
+    get thing_path(things(:router))
+
+    assert_select "a[href=?]", edit_settings_thing_template_path(thing_templates(:pi)), text: "Raspberry Pi 4"
+  end
+
+  test "show page lists the thing's history" do
+    things(:router).update!(owner: "someone")
+
+    get thing_path(things(:router))
+
+    assert_select ".journal li", text: /Owner: romkey → someone/
+  end
+
+  test "public visitors see neither the template nor the history" do
+    things(:keyboard).update!(thing_template: thing_templates(:pi))
+    delete logout_path
+
+    get thing_path(things(:keyboard))
+
+    assert_response :success
+    assert_select "a[href=?]", edit_settings_thing_template_path(thing_templates(:pi)), count: 0
+    assert_select ".journal", count: 0
+  end
 end

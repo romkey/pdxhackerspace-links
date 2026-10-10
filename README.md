@@ -246,6 +246,12 @@ After enabling photo variants on an existing install, run `bin/rails photos:back
 
 **Save as template…** on a thing’s page (or in its row’s ⋯ menu on the Things index) stores the fields that stay the same from one instance of a thing to the next — name, description, notes, owner, manufacturer, model, manufacturer link, visibility, and the Wiki, Slack, AR, and custom links. Label name, slug, serial number, network and radio details, photos, the AR marker, the Where link, and related things are never saved. Templates show as buttons at the top of the first step of **New thing**; clicking one pre-fills the form. Saving under an existing template’s name replaces it, and **Settings → Templates** edits or deletes them. Templates live in `thing_templates`, with links kept as a JSON array.
 
+A thing made from a template remembers it and links to it from its page. **Refresh things** on the template’s settings page (or in its ⋯ menu) brings those things up to date: blank fields and blank or missing links are filled in from the template, and values the thing still holds from an earlier version of the template are updated. Anything changed on the thing itself is left alone. Earlier versions are read from the template’s journal, counting only versions in effect when the thing was made or later.
+
+### History
+
+Things and templates keep a journal (`journal_entries`) of their creation and every change after it: who made it, which fields changed from what to what, and which links were added, changed, or removed. Duplicates, merges, and template refreshes are noted too. The latest 50 entries show under **History** on a thing’s page and a template’s settings page, for signed-in users only.
+
 ### Merging duplicates
 
 A thing sometimes ends up entered twice, or an integration imports one that was already created by hand. **Merge…** in a thing’s ⋯ menu — on its own page or on its row on the Things index — folds a second thing into it.

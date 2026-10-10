@@ -1,0 +1,36 @@
+<section class="journal mt-4">
+  <div class="h-section-label mb-2">History</div>
+  <% if journal_entries.any? %>
+    <ol class="list-unstyled mb-0">
+      <% journal_entries.each do |entry| %>
+        <li class="py-2 border-top border-secondary-subtle text-13">
+          <div class="d-flex flex-wrap align-items-baseline column-gap-2">
+            <span class="fw-medium"><%= journal_event_label(entry) %></span>
+            <% if entry.message.present? %>
+              <span><%= entry.message %></span>
+            <% end %>
+            <span class="text-12 text-secondary ms-auto">
+              <%= journal_actor(entry) %> · <%= relative_time(entry.created_at) %>
+            </span>
+          </div>
+          <% lines = journal_change_lines(entry) %>
+          <% if lines.any? || entry.things.any? %>
+            <ul class="list-unstyled text-12 text-secondary mb-0 mt-1">
+              <% lines.each do |line| %>
+                <li class="text-break"><%= line %></li>
+              <% end %>
+              <% if entry.things.any? %>
+                <li class="text-break">Updated <%= journal_things(entry) %></li>
+              <% end %>
+            </ul>
+          <% end %>
+        </li>
+      <% end %>
+    </ol>
+    <% if journal_entries.size >= JournalEntriesHelper::JOURNAL_LIMIT %>
+      <div class="text-12 text-secondary mt-2">Showing the latest <%= JournalEntriesHelper::JOURNAL_LIMIT %> changes.</div>
+    <% end %>
+  <% else %>
+    <p class="text-secondary text-13 mb-0">No changes recorded yet.</p>
+  <% end %>
+</section>

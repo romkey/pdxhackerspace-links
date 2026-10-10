@@ -1,4 +1,6 @@
 class Thing < ApplicationRecord
+  include Journaled
+
   IPV4_REGEX = /\A(?:\d{1,3}\.){3}\d{1,3}\z/
   HOSTNAME_REGEX = /\A(?=.{1,253}\z)(?!-)[a-zA-Z0-9-]{1,63}(?<!-)(?:\.(?!-)[a-zA-Z0-9-]{1,63}(?<!-))*\z/
   BLE_BEACON_UUID_REGEX = /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/
@@ -10,6 +12,12 @@ class Thing < ApplicationRecord
   LABEL_SEPARATOR = " - ".freeze
   RESERVED_SLUGS = %w[by_beacon new edit].freeze
   RESERVED_KEYS = (%w[login logout settings sidekiq things up auth] + RESERVED_SLUGS).freeze
+  JOURNAL_FIELDS = %w[
+    name label_name slug description notes owner ip_address hostname ieee_address manufacturer model
+    serial_number manufacturer_url ble_beacon_uuid ar_anchor_note public_access
+  ].freeze
+
+  belongs_to :thing_template, optional: true
 
   has_many :links, class_name: "ThingLink", dependent: :destroy, inverse_of: :thing
   has_many :thing_aliases, dependent: :destroy, inverse_of: :thing
@@ -198,6 +206,21 @@ class Thing < ApplicationRecord
   end
 
   private
+
+  def journal_links(before:)
+    return {} if before && new_record?
+
+    ThingLink.where(thing_id: id).each_with_object({}) do |link, hash|
+      next if link.url.blank? && link.note.blank?
+
+      key = link.link_custom? ? "custom:#{link.id}" : link.link_type
+      hash[key] = self.class.journal_link(link.display_title, link.url, link.note)
+    end
+  end
+
+  def journal_default_message(event)
+    "Created from template “#{thing_template.name}”" if event == "created" && thing_template
+  end
 
   def normalize_slug
     self.slug = slug.to_s.strip.downcase.presence
