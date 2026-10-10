@@ -1346,4 +1346,56 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
       assert_select "a.btn[href=?]", edit_thing_path(things(:keyboard)), text: "Edit"
     end
   end
+
+  test "new form lists templates as buttons on the identity step" do
+    get new_thing_path
+
+    assert_response :success
+    assert_select "section#identity .thing-template-picker a.btn[href=?]",
+                  new_thing_path(template: thing_templates(:pi).id), text: "Raspberry Pi 4"
+    assert_select "section#identity .thing-template-picker a.btn[href=?]",
+                  new_thing_path(template: thing_templates(:sensor).id), text: "Door sensor"
+    assert_select ".thing-template-picker a.active", count: 0
+  end
+
+  test "new form hides the template picker when there are no templates" do
+    ThingTemplate.delete_all
+
+    get new_thing_path
+
+    assert_response :success
+    assert_select ".thing-template-picker", count: 0
+  end
+
+  test "new form pre-fills from a chosen template" do
+    template = thing_templates(:pi)
+
+    get new_thing_path(template: template.id)
+
+    assert_response :success
+    assert_select ".thing-template-picker a.active[aria-current=true]", text: "Raspberry Pi 4"
+    assert_select "input[name='thing[name]'][value=?]", "Raspberry Pi"
+    assert_select "input[name='thing[manufacturer]'][value=?]", "Raspberry Pi Ltd"
+    assert_select "input[name='thing[model]'][value=?]", "Pi 4 Model B"
+    assert_select "textarea[name='thing[description]']", text: "Single-board computer"
+    assert_select "input[type=checkbox][name='thing[public_access]'][checked]"
+    assert_select "input[type=url][value=?]", "https://wiki.example.com/pi"
+    assert_select "input[name$='[title]'][value=?]", "Datasheet"
+    assert_select "input[name='thing[serial_number]'][value]", count: 0
+  end
+
+  test "new form ignores an unknown template" do
+    get new_thing_path(template: 0)
+
+    assert_response :success
+    assert_select "input[name='thing[name]'][value]", count: 0
+  end
+
+  test "show page offers save as template" do
+    get thing_path(things(:router))
+
+    assert_response :success
+    assert_select ".thing-show-actions-desktop a.btn[href=?]", new_thing_template_path(things(:router)), text: "Save as template…"
+    assert_select ".thing-show-actions-mobile a.dropdown-item[href=?]", new_thing_template_path(things(:router)), text: "Save as template…"
+  end
 end

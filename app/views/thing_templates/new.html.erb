@@ -1,0 +1,45 @@
+<% content_for :title, "Save as template" %>
+
+<div class="container-fluid py-4">
+  <div class="mb-3">
+    <div class="text-12 text-secondary mb-1">
+      <%= link_to "Things", things_path, class: "text-secondary text-decoration-none" %>
+      <span class="mx-1">/</span>
+      <%= link_to @thing.name, thing_path(@thing), class: "text-secondary text-decoration-none" %>
+      <span class="mx-1">/</span>
+      <span class="text-body">Save as template</span>
+    </div>
+    <h1 class="h-page-title mb-0">Save as template</h1>
+    <div class="text-13 text-secondary mt-1">New things can start from this template instead of a blank form.</div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <%= form_with model: @thing_template, url: thing_templates_path(@thing), method: :post do |form| %>
+        <% if @thing_template.errors.any? %>
+          <div class="alert alert-danger text-13">
+            <%= @thing_template.errors.full_messages.to_sentence %>
+          </div>
+        <% end %>
+
+        <div class="mb-3">
+          <%= form.label :name, "Template name", class: "form-label" %>
+          <%= form.text_field :name, class: "form-control", required: true, autofocus: true %>
+          <div class="form-text text-12">Shown as a button when creating a thing. Using an existing template’s name replaces it.</div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <%= form.submit "Save template", class: "btn btn-primary btn-sm" %>
+          <%= link_to "Cancel", thing_path(@thing), class: "btn btn-outline-secondary btn-sm" %>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="col-lg-6">
+      <%= render "thing_templates/contents", template: ThingTemplate.new.tap { |template| template.capture(@thing) } %>
+      <div class="text-12 text-secondary mt-3">
+        Not saved: label name, slug, serial number, network and radio details, photos, AR marker, the Where link, and related things.
+      </div>
+    </div>
+  </div>
+</div>

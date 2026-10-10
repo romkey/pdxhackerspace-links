@@ -246,8 +246,10 @@ class ThingsController < ApplicationController
   end
 
   def new
-    @thing = Thing.new
-    @thing.links.build(link_type: :custom, position: 0)
+    @thing_template = ThingTemplate.find_by(id: params[:template]) if params[:template].present?
+    @thing = @thing_template ? @thing_template.build_thing : Thing.new
+    ensure_custom_link_fields
+    load_thing_templates
   end
 
   def edit
@@ -264,6 +266,7 @@ class ThingsController < ApplicationController
       redirect_to @thing, notice: "Thing was created."
     else
       ensure_custom_link_fields
+      load_thing_templates
       render :new, status: :unprocessable_entity
     end
   end
@@ -422,6 +425,10 @@ class ThingsController < ApplicationController
     return if @thing.links.any?(&:link_custom?)
 
     @thing.links.build(link_type: :custom, position: next_custom_link_position)
+  end
+
+  def load_thing_templates
+    @thing_templates = ThingTemplate.ordered
   end
 
   def load_printers

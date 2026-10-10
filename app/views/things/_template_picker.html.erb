@@ -1,0 +1,17 @@
+<div class="thing-template-picker mb-4">
+  <div class="h-section-label mb-2">Start from a template</div>
+  <div class="d-flex flex-wrap gap-2">
+    <% thing_templates.each do |template| %>
+      <%= link_to template.name,
+                  new_thing_path(template: template.id),
+                  class: class_names("btn btn-outline-secondary btn-sm", active: template == selected),
+                  aria: { current: (template == selected ? "true" : nil) } %>
+    <% end %>
+    <% if selected %>
+      <%= link_to "Clear", new_thing_path, class: "btn btn-link btn-sm text-secondary" %>
+    <% end %>
+  </div>
+  <% if selected %>
+    <div class="form-text text-12">Filled in from “<%= selected.name %>”. Change anything before saving.</div>
+  <% end %>
+</div>

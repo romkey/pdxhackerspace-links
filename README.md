@@ -242,6 +242,10 @@ A thing also has optional standard links (Asset, Wiki, Slack, Where, AR), option
 
 After enabling photo variants on an existing install, run `bin/rails photos:backfill_variants` once to preprocess hero/thumbnail sizes for photos already on disk.
 
+### Templates
+
+**Save as template…** on a thing’s page (or in its row’s ⋯ menu on the Things index) stores the fields that stay the same from one instance of a thing to the next — name, description, notes, owner, manufacturer, model, manufacturer link, visibility, and the Wiki, Slack, AR, and custom links. Label name, slug, serial number, network and radio details, photos, the AR marker, the Where link, and related things are never saved. Templates show as buttons at the top of the first step of **New thing**; clicking one pre-fills the form. Saving under an existing template’s name replaces it, and **Settings → Templates** edits or deletes them. Templates live in `thing_templates`, with links kept as a JSON array.
+
 ### Merging duplicates
 
 A thing sometimes ends up entered twice, or an integration imports one that was already created by hand. **Merge…** in a thing’s ⋯ menu — on its own page or on its row on the Things index — folds a second thing into it.

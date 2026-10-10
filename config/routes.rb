@@ -24,12 +24,15 @@ Rails.application.routes.draw do
       post :print
       patch :labelled, action: :update_labelled
     end
+
+    resources :templates, only: %i[new create], controller: "thing_templates"
   end
 
   namespace :settings do
     root to: "site#show"
     resource :site, only: %i[show update], controller: "site"
     resource :scan_visits, only: %i[show], controller: "scan_visits"
+    resources :thing_templates, only: %i[index edit update destroy], path: "templates"
     resources :printers do
       collection do
         get :cups_queues
