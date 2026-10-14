@@ -229,7 +229,7 @@ GEM
       tzinfo
       validate_url
       webfinger (~> 2.0)
-    pagy (43.6.3)
+    pagy (43.7.0)
       json
       uri
       yaml
@@ -410,7 +410,7 @@ GEM
     unicode-display_width (3.2.0)
       unicode-emoji (~> 4.1)
     unicode-emoji (4.2.0)
-    uri (1.1.1)
+    uri (1.1.2)
     useragent (0.16.11)
     validate_url (1.0.15)
       activemodel (>= 3.0.0)
@@ -458,7 +458,7 @@ DEPENDENCIES
   omniauth (~> 2.1)
   omniauth-rails_csrf_protection
   omniauth_openid_connect (~> 0.8)
-  pagy (~> 43.6)
+  pagy (~> 43.7)
   pg (~> 1.1)
   prawn (~> 2.5)
   propshaft
