@@ -1,25 +1,36 @@
 module Unifi
   # UniFi Network integration API: adopted infrastructure devices (gateways,
-  # switches, access points) across every local site.
+  # switches, access points) across every local site, and the clients on them.
+  #
+  # The integration API only lists clients that are connected right now, so the
+  # console's own client lists are read too. They accept the same API key and
+  # are what carry offline hosts, DHCP reservations, and radio details.
   class NetworkClient
     BASE_PATH = "/proxy/network/integration".freeze
+    CONSOLE_BASE_PATH = "/proxy/network/api".freeze
     PAGE_LIMIT = 200
     MAX_PAGES = 50
 
     def self.for(unifi_controller, transport: nil, rate_limiter: nil)
-      new(client: Client.new(
-        host: unifi_controller.host,
-        port: unifi_controller.port,
-        api_key: unifi_controller.api_key,
-        verify_tls: unifi_controller.verify_tls?,
-        base_path: BASE_PATH,
-        transport: transport,
-        rate_limiter: rate_limiter
-      ))
+      rate_limiter ||= RateLimiter.new
+      build = lambda do |base_path|
+        Client.new(
+          host: unifi_controller.host,
+          port: unifi_controller.port,
+          api_key: unifi_controller.api_key,
+          verify_tls: unifi_controller.verify_tls?,
+          base_path: base_path,
+          transport: transport,
+          rate_limiter: rate_limiter
+        )
+      end
+
+      new(client: build.call(BASE_PATH), console_client: build.call(CONSOLE_BASE_PATH))
     end
 
-    def initialize(client:)
+    def initialize(client:, console_client: nil)
       @client = client
+      @console_client = console_client
     end
 
     def application_version
@@ -40,7 +51,42 @@ module Unifi
       end
     end
 
+    # Clients connected right now. Older Network releases have no endpoint.
+    def clients(site_id:)
+      paged("/v1/sites/#{ERB::Util.url_encode(site_id)}/clients")
+    rescue Client::NotFoundError
+      []
+    end
+
+    # Every client the site has ever seen, with aliases, notes, and reservations.
+    def known_clients(site_reference:)
+      console_data(site_reference, "rest/user")
+    end
+
+    # Connected clients with their radio, uplink, and network details.
+    def active_clients(site_reference:)
+      console_data(site_reference, "stat/sta")
+    end
+
+    def networks(site_reference:)
+      console_data(site_reference, "rest/networkconf")
+    end
+
+    def host_inventory
+      HostInventory.build(self, sites)
+    end
+
+    def console_available?
+      @console_client.present?
+    end
+
     private
+
+    def console_data(site_reference, path)
+      raise Client::Error, "No console client configured" unless console_available?
+
+      Array(@console_client.get("/s/#{ERB::Util.url_encode(site_reference)}/#{path}")["data"])
+    end
 
     def paged(path)
       results = []

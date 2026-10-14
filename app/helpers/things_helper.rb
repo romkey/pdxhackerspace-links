@@ -3,6 +3,10 @@ module ThingsHelper
     { key: :links, label: "Links" },
     { key: :photos, label: "Photos" },
     { key: :ip_address, label: "IP address" },
+    { key: :reserved_ip_address, label: "Reserved IP" },
+    { key: :wifi, label: "Wi-Fi" },
+    { key: :wired, label: "Wired" },
+    { key: :online, label: "Online" },
     { key: :hostname, label: "Hostname" },
     { key: :ieee_address, label: "IEEE address" },
     { key: :ar_marker, label: "AR marker" },
@@ -18,7 +22,7 @@ module ThingsHelper
   THING_FORM_STEPS = [
     { key: "identity", label: "Identity", attributes: %i[name label_name owner slug description notes key] },
     { key: "hardware", label: "Hardware", attributes: %i[manufacturer model serial_number manufacturer_url] },
-    { key: "network", label: "Network", attributes: %i[ip_address hostname ieee_address ble_beacon_uuid] },
+    { key: "network", label: "Network", attributes: %i[ip_address reserved_ip_address network_name hostname ieee_address ble_beacon_uuid] },
     { key: "visibility", label: "Visibility", attributes: %i[public_access] },
     { key: "links", label: "Links", attributes: %i[links thing_relationships] },
     { key: "photos", label: "Photos", optional: true, attributes: %i[photos] },
@@ -29,7 +33,7 @@ module ThingsHelper
   THINGS_FILTER_STATES = { nil => "any", "yes" => "has", "no" => "none" }.freeze
 
   THINGS_DEFAULT_COLUMNS = %w[name manufacturer model integration links photos].freeze
-  THINGS_OPTIONAL_COLUMNS = %w[hostname ip_address labelled visits nfc qr].freeze
+  THINGS_OPTIONAL_COLUMNS = %w[hostname ip_address reserved_ip_address network_name connection labelled visits nfc qr].freeze
   THINGS_ALL_COLUMNS = (THINGS_DEFAULT_COLUMNS + THINGS_OPTIONAL_COLUMNS).freeze
   THINGS_COLUMN_LABELS = {
     "name" => "Name",
@@ -40,6 +44,9 @@ module ThingsHelper
     "photos" => "Photos",
     "hostname" => "Hostname",
     "ip_address" => "IP address",
+    "reserved_ip_address" => "Reserved IP",
+    "network_name" => "Network",
+    "connection" => "Connection",
     "labelled" => "Labelled",
     "visits" => "Views",
     "nfc" => "NFC",
@@ -204,6 +211,13 @@ module ThingsHelper
     "text-decoration-line-through" if state == "no"
   end
 
+  def things_connection_cell(thing)
+    labels = thing.network_connection_labels
+    return tag.span("—", class: "text-secondary") if labels.empty?
+
+    safe_join(labels, ", ")
+  end
+
   def things_manufacturer_cell(thing)
     things_manufacturer_link(thing) || tag.span("—", class: "text-secondary")
   end
@@ -245,6 +259,8 @@ module ThingsHelper
         label: "Network",
         rows: [
           { label: "IP address", value: thing.ip_address, code: true, copy: true },
+          { label: "Reserved IP address", value: thing.reserved_ip_address, code: true, copy: true },
+          { label: "Network", value: thing.network_name },
           { label: "Hostname", value: thing.hostname, code: true, copy: true },
           { label: "IEEE address", value: thing.ieee_address_display, code: true, copy: true }
         ]

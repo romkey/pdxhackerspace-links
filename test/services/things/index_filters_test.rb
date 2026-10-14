@@ -92,4 +92,34 @@ class Things::IndexFiltersTest < ActiveSupport::TestCase
 
     assert_equal({ links: "yes" }, filters.values)
   end
+
+  test "filters things on a wired host" do
+    assert_equal [ things(:router).name ], Things::IndexQuery.call(filters: { wired: "yes" }).scope.map(&:name)
+    assert_not_includes Things::IndexQuery.call(filters: { wired: "no" }).scope.map(&:name), things(:router).name
+  end
+
+  test "filters things on a Wi-Fi host" do
+    assert_empty Things::IndexQuery.call(filters: { wifi: "yes" }).scope
+
+    unifi_hosts(:laptop_host).update!(thing: things(:keyboard))
+
+    assert_equal [ things(:keyboard).name ], Things::IndexQuery.call(filters: { wifi: "yes" }).scope.map(&:name)
+  end
+
+  test "ignores archived hosts when filtering on connection" do
+    unifi_hosts(:router_host).update!(archived_at: Time.current)
+
+    assert_empty Things::IndexQuery.call(filters: { wired: "yes" }).scope
+  end
+
+  test "filters things on an online host" do
+    assert_equal [ things(:router).name ], Things::IndexQuery.call(filters: { online: "yes" }).scope.map(&:name)
+  end
+
+  test "filters things with a reserved IP address" do
+    things(:keyboard).update!(reserved_ip_address: "192.168.1.20")
+
+    assert_equal [ things(:keyboard).name ],
+                 Things::IndexQuery.call(filters: { reserved_ip_address: "yes" }).scope.map(&:name)
+  end
 end

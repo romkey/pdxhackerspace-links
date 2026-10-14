@@ -6,6 +6,7 @@ class UnifiController < ApplicationRecord
   encrypts :api_key
 
   has_many :unifi_devices, dependent: :destroy
+  has_many :unifi_hosts, dependent: :destroy
   has_many :things, -> { distinct }, through: :unifi_devices
 
   validates :name, presence: true, uniqueness: true
@@ -47,6 +48,11 @@ class UnifiController < ApplicationRecord
     applications << "network" if network_enabled?
     applications << "protect" if protect_enabled?
     applications
+  end
+
+  # Hosts come from the Network application, so they need it switched on too.
+  def import_hosts?
+    network_enabled? && hosts_enabled?
   end
 
   def device_count

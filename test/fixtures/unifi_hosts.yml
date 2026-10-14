@@ -1,0 +1,38 @@
+router_host:
+  unifi_controller: udm
+  thing: router
+  ieee_address: 94:2a:6f:26:c6:ca
+  site_external_id: 88888888-8888-4888-8888-888888888888
+  site_name: Default
+  name: Router
+  hostname: router
+  manufacturer: Ubiquiti Inc
+  ip_address: 192.168.1.1
+  reserved_ip_address: 192.168.1.1
+  connection_type: wired
+  network_name: Default
+  vlan: 1
+  uplink_name: Rack switch
+  switch_port: 1
+  online: true
+  imported_at: <%= 1.hour.ago.to_fs(:db) %>
+  last_seen_at: <%= 1.hour.ago.to_fs(:db) %>
+
+laptop_host:
+  unifi_controller: udm
+  ieee_address: 3c:22:fb:11:22:33
+  site_external_id: 88888888-8888-4888-8888-888888888888
+  site_name: Default
+  hostname: romkey-laptop
+  manufacturer: Apple, Inc.
+  ip_address: 192.168.1.50
+  connection_type: wireless
+  network_name: Default
+  ssid: Hackerspace
+  radio: 5 GHz
+  wifi_standard: Wi-Fi 6
+  channel: 36
+  signal: -55
+  online: true
+  imported_at: <%= 1.hour.ago.to_fs(:db) %>
+  last_seen_at: <%= 1.hour.ago.to_fs(:db) %>

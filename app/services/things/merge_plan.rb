@@ -76,6 +76,8 @@ module Things
         label: "Network and radios",
         fields: [
           [ :ip_address, "IP address", :text ],
+          [ :reserved_ip_address, "Reserved IP address", :text ],
+          [ :network_name, "Network", :text ],
           [ :hostname, "Hostname", :text ],
           [ :ieee_address, "IEEE address", :text ],
           [ :ble_beacon_uuid, "BLE beacon UUID", :text ]
@@ -165,6 +167,7 @@ module Things
 
     def integration_device_count
       @integration_device_count ||= source.unifi_devices.count +
+                                    source.unifi_hosts.count +
                                     source.zigbee2mqtt_devices.count +
                                     source.prusa_connect_printers.count
     end

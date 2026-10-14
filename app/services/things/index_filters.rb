@@ -1,7 +1,7 @@
 module Things
   class IndexFilters < Data.define(:values, :sources)
     KEYS = %i[
-      links photos ip_address hostname ieee_address ar_marker labelled
+      links photos ip_address reserved_ip_address wifi wired online hostname ieee_address ar_marker labelled
       wiki slack where url
     ].freeze
 
@@ -41,8 +41,14 @@ module Things
         apply_links_count_filter(scope, value)
       when :photos
         apply_photos_count_filter(scope, value)
-      when :ip_address, :hostname, :ieee_address
+      when :ip_address, :reserved_ip_address, :hostname, :ieee_address
         apply_presence_filter(scope, key, value)
+      when :wifi
+        apply_host_filter(scope, UnifiHost.wireless, value)
+      when :wired
+        apply_host_filter(scope, UnifiHost.wired, value)
+      when :online
+        apply_host_filter(scope, UnifiHost.online, value)
       when :ar_marker
         apply_ar_marker_filter(scope, value)
       when :labelled
@@ -92,6 +98,19 @@ module Things
       end
     end
     private_class_method :apply_photos_count_filter
+
+    # Matches things through the UniFi hosts linked to them. Archived hosts no
+    # longer describe how anything connects, so they are left out.
+    def self.apply_host_filter(scope, host_scope, value)
+      host_scope = host_scope.active.where("unifi_hosts.thing_id = things.id")
+
+      if value == "yes"
+        scope.where("EXISTS (?)", host_scope.select(1))
+      else
+        scope.where("NOT EXISTS (?)", host_scope.select(1))
+      end
+    end
+    private_class_method :apply_host_filter
 
     def self.apply_presence_filter(scope, column, value)
       if value == "yes"

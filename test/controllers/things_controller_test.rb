@@ -14,6 +14,60 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "turbo-frame#things_results input[type=search][name=q]"
   end
 
+  test "index shows reserved IP and connection columns" do
+    things(:router).update!(reserved_ip_address: "192.168.1.1")
+
+    get things_path, params: { columns: %w[reserved_ip_address connection] }
+
+    assert_response :success
+    assert_select "th", text: /Reserved IP/
+    assert_select "code", text: "192.168.1.1"
+    assert_select "td", text: "Wired"
+  end
+
+  test "index offers connection and reservation filters" do
+    get things_path
+
+    %w[Wi-Fi Wired Online].each { |label| assert_select "a.filter-chip", text: /#{label}/ }
+    assert_select "a.filter-chip", text: /Reserved IP/
+  end
+
+  test "show displays linked UniFi hosts" do
+    get thing_path(things(:router))
+
+    assert_response :success
+    assert_select ".h-section-label", text: "UniFi hosts"
+    assert_match "Rack switch port 1", response.body
+  end
+
+  test "index shows the network column" do
+    things(:router).update!(network_name: "Infrastructure")
+
+    get things_path, params: { columns: %w[network_name] }
+
+    assert_select "th", text: /Network/
+    assert_select "td", text: "Infrastructure"
+  end
+
+  test "update saves the network name" do
+    patch thing_path(things(:router)), params: { thing: { network_name: "IoT" } }
+
+    assert_equal "IoT", things(:router).reload.network_name
+  end
+
+  test "update saves the reserved IP address" do
+    patch thing_path(things(:router)), params: { thing: { reserved_ip_address: "192.168.1.2" } }
+
+    assert_equal "192.168.1.2", things(:router).reload.reserved_ip_address
+  end
+
+  test "update rejects a malformed reserved IP address" do
+    patch thing_path(things(:router)), params: { thing: { reserved_ip_address: "not an ip" } }
+
+    assert_response :unprocessable_entity
+    assert_nil things(:router).reload.reserved_ip_address
+  end
+
   test "index lists things" do
     get things_path
     assert_response :success

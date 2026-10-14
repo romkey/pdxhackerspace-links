@@ -82,6 +82,15 @@
           <% if things_column_visible?("ip_address") %>
             <th><%= things_sort_link("IP address", "ip_address") %></th>
           <% end %>
+          <% if things_column_visible?("reserved_ip_address") %>
+            <th><%= things_sort_link("Reserved IP", "reserved_ip_address") %></th>
+          <% end %>
+          <% if things_column_visible?("network_name") %>
+            <th><%= things_sort_link("Network", "network_name") %></th>
+          <% end %>
+          <% if things_column_visible?("connection") %>
+            <th>Connection</th>
+          <% end %>
           <% if things_column_visible?("links") %>
             <th class="num"><%= things_sort_link("Links", "links") %></th>
           <% end %>
@@ -150,6 +159,21 @@
                   <span class="text-secondary">—</span>
                 <% end %>
               </td>
+            <% end %>
+            <% if things_column_visible?("reserved_ip_address") %>
+              <td>
+                <% if thing.reserved_ip_address.present? %>
+                  <code class="text-12"><%= thing.reserved_ip_address %></code>
+                <% else %>
+                  <span class="text-secondary">—</span>
+                <% end %>
+              </td>
+            <% end %>
+            <% if things_column_visible?("network_name") %>
+              <td class="<%= "text-secondary" if thing.network_name.blank? %>"><%= thing.network_name.presence || "—" %></td>
+            <% end %>
+            <% if things_column_visible?("connection") %>
+              <td><%= things_connection_cell(thing) %></td>
             <% end %>
             <% if things_column_visible?("links") %>
               <td class="num <%= thing.links_count.zero? ? 'text-secondary' : '' %>"><%= thing.links_count %></td>

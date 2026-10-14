@@ -274,6 +274,7 @@ Create the key in the UniFi console under **Settings → Control Plane → Integ
 |-------------|----------|
 | Network | Adopted gateways, switches, and access points across every local site, with model, IP address, IEEE address, firmware version, and state |
 | Protect | Cameras, lights, sensors, chimes, viewers, speakers, bridges, fobs, sirens, relays, alarm hubs, and the NVR |
+| Network hosts | Every client the Network application knows about — online or not — with name, hostname, note, manufacturer, IP address, DHCP reservation, wired/Wi-Fi/VPN connection, network and VLAN, SSID, band, Wi-Fi standard, channel, signal, experience score, uplink device and switch port, guest and blocked flags, and first/last seen times |
 
 Consoles ship a self-signed certificate, so **Verify the TLS certificate** is off by default. Turn it on once the console has a certificate from a trusted authority.
 
@@ -288,6 +289,16 @@ How devices become things:
 - **Ignore** on a device unlinks its thing and stops future imports from recreating one. Deleting a UniFi-managed thing does the same.
 
 Model, serial, firmware, site, and last-seen details stay on the device record and are shown in a UniFi card on the thing page for signed-in users.
+
+How hosts link to things:
+
+- Hosts never create things. A host links to the thing with its MAC address (the thing's IEEE address), or failing that to the one thing whose IP address matches the host's reserved or current address. When several things share that IP address nothing is linked.
+- Connected clients come from the integration API's `/v1/sites/{id}/clients`. Offline hosts, reservations, and radio details come from the console's own client lists (`/proxy/network/api/s/<site>/rest/user`, `stat/sta`, and `rest/networkconf`), read with the same API key. If the console refuses those, only connected clients are imported, the import notes it, and no host is archived for being offline.
+- The DHCP reservation and network name are the only values written to a linked thing, into its **Reserved IP address** and **Network**. Each stays in sync until you edit it by hand.
+- Hosts the console forgets are archived. **Ignore** on a host (under **Hosts** on the controller page) unlinks it and stops future imports from linking it. Deleting a thing just unlinks its hosts.
+- Turn **Network hosts** off on the controller to skip them. They are skipped when the Network application is unreachable.
+
+On the Things index, **Wi-Fi**, **Wired**, and **Online** filter things by their linked hosts, **Reserved IP** filters on the reservation, and **Reserved IP**, **Network**, and **Connection** are optional columns.
 
 #### Zigbee2MQTT import
 

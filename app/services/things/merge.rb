@@ -52,7 +52,7 @@ module Things
     # Has to happen before the source is destroyed: Thing#ignore_integration_devices
     # would otherwise mark these devices ignored and unlink them.
     def reassign_integration_devices
-      %i[unifi_devices zigbee2mqtt_devices prusa_connect_printers].each do |association|
+      %i[unifi_devices unifi_hosts zigbee2mqtt_devices prusa_connect_printers].each do |association|
         source.public_send(association).update_all(thing_id: target.id, updated_at: Time.current)
       end
     end

@@ -53,8 +53,10 @@ Rails.application.routes.draw do
         post :test_connection
         post :import
       end
+      resources :unifi_hosts, only: :index, path: "hosts"
     end
     resources :unifi_devices, only: :update
+    resources :unifi_hosts, only: :update
     resources :zigbee2mqtt_bridges do
       member do
         post :test_connection

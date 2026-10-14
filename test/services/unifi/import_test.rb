@@ -4,12 +4,18 @@ class Unifi::ImportTest < ActiveSupport::TestCase
   setup do
     @unifi_controller = unifi_controllers(:udm)
     @unifi_controller.unifi_devices.destroy_all
+    @unifi_controller.unifi_hosts.destroy_all
   end
 
   # Stand-in clients keep the import test focused on upsert, linking, and archiving.
   class StubClient
-    def initialize(records) = @records = records
+    def initialize(records, hosts: Unifi::HostInventory::Result.new(records: [], complete: true, notes: []))
+      @records = records
+      @hosts = hosts
+    end
+
     def device_records = @records
+    def host_inventory = @hosts
   end
 
   class FailingClient
@@ -199,5 +205,100 @@ class Unifi::ImportTest < ActiveSupport::TestCase
       assert_equal "success", @unifi_controller.last_sync_status
       assert_match "2 devices", @unifi_controller.last_sync_message
     end
+  end
+
+  def host_record(overrides = {})
+    Unifi::HostRecord.new(**{
+      ieee_address: "aa:bb:cc:dd:ee:10",
+      site_external_id: "site-1",
+      site_name: "Default",
+      hostname: "printer",
+      ip_address: "192.168.1.60",
+      connection_type: "wired",
+      online: true
+    }.merge(overrides))
+  end
+
+  def hosts(records, complete: true, notes: [])
+    Unifi::HostInventory::Result.new(records: records, complete: complete, notes: notes)
+  end
+
+  def import_hosts(records, **options)
+    import(network: StubClient.new([ network_record ], hosts: hosts(records, **options)))
+  end
+
+  test "imports hosts without creating things" do
+    @unifi_controller.update!(auto_create_things: false)
+    result = nil
+
+    assert_no_difference -> { Thing.count } do
+      result = import_hosts([ host_record ])
+    end
+
+    assert result.success?
+    assert_equal 1, result.hosts_seen
+    host = @unifi_controller.unifi_hosts.sole
+    assert_equal "printer", host.hostname
+    assert_nil host.thing
+  end
+
+  test "links a host to the thing with its MAC address" do
+    thing = Thing.create!(name: "Label printer", ieee_address: "aa:bb:cc:dd:ee:10")
+
+    result = import_hosts([ host_record ])
+
+    assert_equal 1, result.hosts_linked
+    assert_equal thing, @unifi_controller.unifi_hosts.sole.thing
+    assert_match "1 host linked", result.summary
+  end
+
+  test "links a host to the only thing with its IP address" do
+    thing = Thing.create!(name: "Label printer", ip_address: "192.168.1.60")
+
+    import_hosts([ host_record ])
+
+    assert_equal thing, @unifi_controller.unifi_hosts.sole.thing
+  end
+
+  test "names a host's uplink from the imported network devices" do
+    import_hosts([ host_record(uplink_ieee_address: "aa:bb:cc:dd:ee:01") ])
+
+    assert_equal "Rack switch", @unifi_controller.unifi_hosts.sole.uplink_name
+  end
+
+  test "archives hosts that drop off a complete inventory" do
+    import_hosts([ host_record ])
+    result = import_hosts([])
+
+    host = @unifi_controller.unifi_hosts.reload.sole
+    assert host.archived?
+    assert_not host.online?
+    assert_equal 1, result.hosts_archived
+  end
+
+  test "only marks hosts offline when the inventory is connected clients only" do
+    import_hosts([ host_record ])
+    result = import_hosts([], complete: false, notes: [ "only connected hosts were read (HTTP 401)" ])
+
+    host = @unifi_controller.unifi_hosts.reload.sole
+    assert_not host.archived?
+    assert_not host.online?
+    assert result.success?
+    assert_match "Hosts: only connected hosts were read", result.summary
+  end
+
+  test "skips hosts when the controller has them turned off" do
+    @unifi_controller.update!(hosts_enabled: false)
+
+    import_hosts([ host_record ])
+
+    assert_empty @unifi_controller.unifi_hosts
+  end
+
+  test "skips hosts when the network application is unreachable" do
+    result = import(network: FailingClient.new("Cannot reach console"))
+
+    assert_equal 1, result.errors.count { |error| error.start_with?("Network") }
+    assert_empty result.errors.grep(/\AHosts/)
   end
 end

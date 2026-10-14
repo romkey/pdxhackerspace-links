@@ -101,6 +101,16 @@
         <%= form.text_field :ip_address, class: "form-control", placeholder: "192.168.1.10" %>
       </div>
       <div class="col-md-6">
+        <%= form.label :reserved_ip_address, "Reserved IP address", class: "form-label" %>
+        <%= form.text_field :reserved_ip_address, class: "form-control", placeholder: "192.168.1.10" %>
+        <div class="form-text text-12">The DHCP reservation for this thing. Filled in from a linked UniFi host until you edit it.</div>
+      </div>
+      <div class="col-md-6">
+        <%= form.label :network_name, "Network", class: "form-label" %>
+        <%= form.text_field :network_name, class: "form-control", placeholder: "IoT" %>
+        <div class="form-text text-12">The network or VLAN it is on. Filled in from a linked UniFi host until you edit it.</div>
+      </div>
+      <div class="col-md-6">
         <%= form.label :hostname, class: "form-label" %>
         <%= form.text_field :hostname, class: "form-control", placeholder: "host.example.com" %>
       </div>

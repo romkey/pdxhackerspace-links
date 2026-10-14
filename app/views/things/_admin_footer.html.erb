@@ -3,6 +3,9 @@
     <% if unifi_devices.present? %>
       <%= render "unifi_devices", unifi_devices: unifi_devices %>
     <% end %>
+    <% if local_assigns[:unifi_hosts].present? %>
+      <%= render "unifi_hosts", unifi_hosts: unifi_hosts %>
+    <% end %>
     <% if zigbee2mqtt_devices.present? %>
       <%= render "zigbee2mqtt_devices", zigbee2mqtt_devices: zigbee2mqtt_devices %>
     <% end %>

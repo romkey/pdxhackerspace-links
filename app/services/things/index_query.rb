@@ -1,10 +1,10 @@
 module Things
   class IndexQuery < Data.define(:scope, :sort, :direction, :total_count, :filters)
-    PUBLIC_SORTS = %w[name hostname ip_address manufacturer model integration links photos].freeze
+    PUBLIC_SORTS = %w[name hostname ip_address reserved_ip_address network_name manufacturer model integration links photos].freeze
     ADMIN_SORTS = %w[labelled qr nfc visits].freeze
     SORTS = (PUBLIC_SORTS + ADMIN_SORTS).freeze
     DEFAULT_SORT = "name"
-    ASC_DEFAULT_SORTS = %w[name hostname ip_address manufacturer model integration].freeze
+    ASC_DEFAULT_SORTS = %w[name hostname ip_address reserved_ip_address network_name manufacturer model integration].freeze
 
     def self.call(search: nil, sort: DEFAULT_SORT, direction: nil, admin: false, filters: {})
       allowed_sorts = admin ? SORTS : PUBLIC_SORTS
@@ -53,6 +53,18 @@ module Things
           scope.reorder(Arel.sql("things.ip_address DESC NULLS LAST"), tie_break)
         else
           scope.reorder(Arel.sql("things.ip_address ASC NULLS LAST"), tie_break)
+        end
+      when "reserved_ip_address"
+        if direction == :desc
+          scope.reorder(Arel.sql("things.reserved_ip_address DESC NULLS LAST"), tie_break)
+        else
+          scope.reorder(Arel.sql("things.reserved_ip_address ASC NULLS LAST"), tie_break)
+        end
+      when "network_name"
+        if direction == :desc
+          scope.reorder(Arel.sql("things.network_name DESC NULLS LAST"), tie_break)
+        else
+          scope.reorder(Arel.sql("things.network_name ASC NULLS LAST"), tie_break)
         end
       when "manufacturer"
         if direction == :desc

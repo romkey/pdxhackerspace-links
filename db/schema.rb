@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_11_000004) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_14_000004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -210,6 +210,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_11_000004) do
     t.integer "visit_count", default: 0, null: false
     t.bigint "thing_template_id"
     t.datetime "thing_template_linked_at"
+    t.string "reserved_ip_address"
+    t.string "network_name"
     t.index ["ble_beacon_uuid"], name: "index_things_on_ble_beacon_uuid", unique: true, where: "(ble_beacon_uuid IS NOT NULL)"
     t.index ["ieee_address"], name: "index_things_on_ieee_address", unique: true, where: "(ieee_address IS NOT NULL)"
     t.index ["integration_source"], name: "index_things_on_integration_source"
@@ -237,6 +239,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_11_000004) do
     t.boolean "protect_enabled", default: true, null: false
     t.datetime "updated_at", null: false
     t.boolean "verify_tls", default: false, null: false
+    t.boolean "hosts_enabled", default: true, null: false
     t.index ["enabled"], name: "index_unifi_controllers_on_enabled"
     t.index ["host", "port"], name: "index_unifi_controllers_on_host_and_port", unique: true
     t.index ["name"], name: "index_unifi_controllers_on_name", unique: true
@@ -270,6 +273,54 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_11_000004) do
     t.index ["thing_id"], name: "index_unifi_devices_on_thing_id"
     t.index ["unifi_controller_id", "source", "external_id"], name: "index_unifi_devices_on_controller_source_and_external_id", unique: true
     t.index ["unifi_controller_id"], name: "index_unifi_devices_on_unifi_controller_id"
+  end
+
+  create_table "unifi_hosts", force: :cascade do |t|
+    t.bigint "unifi_controller_id", null: false
+    t.bigint "thing_id"
+    t.string "ieee_address", null: false
+    t.string "site_external_id"
+    t.string "site_name"
+    t.string "client_external_id"
+    t.string "name"
+    t.string "hostname"
+    t.text "note"
+    t.string "manufacturer"
+    t.string "ip_address"
+    t.string "reserved_ip_address"
+    t.string "connection_type"
+    t.string "network_name"
+    t.string "network_external_id"
+    t.integer "vlan"
+    t.string "ssid"
+    t.string "radio"
+    t.string "wifi_standard"
+    t.integer "channel"
+    t.integer "signal"
+    t.integer "satisfaction"
+    t.string "uplink_ieee_address"
+    t.string "uplink_name"
+    t.integer "switch_port"
+    t.boolean "online", default: false, null: false
+    t.boolean "guest", default: false, null: false
+    t.boolean "blocked", default: false, null: false
+    t.boolean "ignored", default: false, null: false
+    t.datetime "connected_at"
+    t.datetime "first_seen_at"
+    t.datetime "last_seen_at"
+    t.datetime "imported_at", null: false
+    t.datetime "archived_at"
+    t.jsonb "payload", default: {}, null: false
+    t.jsonb "applied_attributes", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["archived_at"], name: "index_unifi_hosts_on_archived_at"
+    t.index ["connection_type"], name: "index_unifi_hosts_on_connection_type"
+    t.index ["ieee_address"], name: "index_unifi_hosts_on_ieee_address"
+    t.index ["ip_address"], name: "index_unifi_hosts_on_ip_address"
+    t.index ["thing_id"], name: "index_unifi_hosts_on_thing_id"
+    t.index ["unifi_controller_id", "site_external_id", "ieee_address"], name: "index_unifi_hosts_on_controller_site_and_ieee_address", unique: true
+    t.index ["unifi_controller_id"], name: "index_unifi_hosts_on_unifi_controller_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -349,6 +400,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_11_000004) do
   add_foreign_key "things", "thing_templates", on_delete: :nullify
   add_foreign_key "unifi_devices", "things"
   add_foreign_key "unifi_devices", "unifi_controllers"
+  add_foreign_key "unifi_hosts", "things"
+  add_foreign_key "unifi_hosts", "unifi_controllers"
   add_foreign_key "zigbee2mqtt_devices", "things"
   add_foreign_key "zigbee2mqtt_devices", "zigbee2mqtt_bridges"
 end
