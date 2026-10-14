@@ -29,8 +29,9 @@ module Unifi
       return :unmatched if thing.nil?
 
       newly_linked = unifi_host.thing_id != thing.id
-      # Values written to a previous thing say nothing about this one.
-      unifi_host.applied_attributes = {} if newly_linked && unifi_host.thing_id
+      # Values written to a previous thing say nothing about this one, even when
+      # that link is already gone (ignoring a host or deleting its thing).
+      unifi_host.applied_attributes = {} if newly_linked
       applied = apply_synced_attributes(thing)
       thing.save! if thing.changed?
       unifi_host.update!(thing: thing, applied_attributes: applied, ignored: false)

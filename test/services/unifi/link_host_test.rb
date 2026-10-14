@@ -116,4 +116,14 @@ class Unifi::LinkHostTest < ActiveSupport::TestCase
     assert_equal "192.168.1.9", thing.reload.reserved_ip_address
     assert_equal({ "network_name" => "Default" }, host.applied_attributes)
   end
+
+  test "linking a chosen thing to an ignored host forgets values written before it was ignored" do
+    @unifi_host.update!(ignored: true, applied_attributes: { "network_name" => "Lab" })
+    thing = Thing.create!(name: "Work laptop", network_name: "Lab")
+
+    Unifi::LinkHost.call(unifi_host: @unifi_host, thing: thing)
+
+    assert_equal "Lab", thing.reload.network_name
+    assert_empty @unifi_host.reload.applied_attributes
+  end
 end

@@ -50,6 +50,7 @@ class Settings::UnifiHostsControllerTest < ActionDispatch::IntegrationTest
     host.reload
     assert host.ignored?
     assert_nil host.thing
+    assert_empty host.applied_attributes
     assert Thing.exists?(things(:router).id)
   end
 

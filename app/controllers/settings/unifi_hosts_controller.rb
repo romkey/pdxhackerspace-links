@@ -35,7 +35,7 @@ module Settings
       ignored = ActiveModel::Type::Boolean.new.cast(params[:ignored])
 
       if ignored
-        unifi_host.update!(ignored: true, thing: nil)
+        unifi_host.update!(ignored: true, thing: nil, applied_attributes: {})
         notice = "#{unifi_host.display_name} will no longer be linked to a thing."
       else
         unifi_host.update!(ignored: false)
