@@ -35,7 +35,7 @@ module Settings
       ignored = ActiveModel::Type::Boolean.new.cast(params[:ignored])
 
       if ignored
-        unifi_host.update!(ignored: true, thing: nil)
+        unifi_host.update!(ignored: true, thing: nil, applied_attributes: {})
         notice = "#{unifi_host.display_name} will no longer be linked to a thing."
       else
         unifi_host.update!(ignored: false)
@@ -44,6 +44,27 @@ module Settings
       end
 
       redirect_back_or_to settings_unifi_controller_unifi_hosts_path(unifi_host.unifi_controller), notice: notice
+    end
+
+    def link
+      unifi_host = UnifiHost.find(params[:id])
+      thing = Thing.find(params[:thing_id])
+      Unifi::LinkHost.call(unifi_host: unifi_host, thing: thing)
+
+      redirect_back_or_to settings_unifi_controller_unifi_hosts_path(unifi_host.unifi_controller),
+                          notice: "#{unifi_host.display_name} is linked to #{thing.name}."
+    end
+
+    def add_thing
+      unifi_host = UnifiHost.find(params[:id])
+      thing = Unifi::AddHostThing.call(unifi_host: unifi_host)
+      fallback = settings_unifi_controller_unifi_hosts_path(unifi_host.unifi_controller)
+
+      if thing.persisted?
+        redirect_back_or_to fallback, notice: "Added #{thing.name} and linked #{unifi_host.display_name} to it."
+      else
+        redirect_back_or_to fallback, alert: "Couldn't add #{unifi_host.display_name}: #{thing.errors.full_messages.to_sentence}."
+      end
     end
 
     private

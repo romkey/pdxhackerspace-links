@@ -428,3 +428,16 @@
     border: 1px solid rgba(var(--bs-warning-rgb), 0.25);
   }
 }
+
+// A Link button on the UniFi hosts page that opens a thing search in place.
+.unifi-host-link > summary {
+  list-style: none;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+}
+
+.unifi-host-link[open] > summary {
+  background-color: var(--bs-secondary-bg);
+}

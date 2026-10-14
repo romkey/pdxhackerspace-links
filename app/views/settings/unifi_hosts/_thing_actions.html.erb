@@ -1,0 +1,31 @@
+<div class="d-flex flex-wrap align-items-start gap-1">
+  <%= button_to "Add", add_thing_settings_unifi_host_path(unifi_host),
+                class: "btn btn-outline-secondary btn-sm",
+                title: "Add a new thing for #{unifi_host.display_name}" %>
+  <details class="unifi-host-link"
+           data-controller="thing-picker"
+           data-thing-picker-search-url-value="<%= search_things_path(format: :json) %>"
+           data-thing-picker-select-url-template-value="<%= link_settings_unifi_host_path(unifi_host, thing_id: "__SOURCE__") %>"
+           data-thing-picker-select-method-value="post"
+           data-action="toggle->thing-picker#focus">
+    <summary class="btn btn-outline-secondary btn-sm">Link</summary>
+    <div class="mt-2" style="width: 18rem;">
+      <input type="search"
+             class="form-control form-control-sm"
+             placeholder="Search things…"
+             aria-label="Search things to link <%= unifi_host.display_name %> to"
+             autocomplete="off"
+             data-thing-picker-target="input"
+             data-action="input->thing-picker#input keydown->thing-picker#keydown">
+      <div class="list-group mt-1 d-none"
+           style="max-height: 240px; overflow-y: auto;"
+           data-thing-picker-target="results"></div>
+      <div class="text-12 text-secondary mt-2">
+        Not here?
+        <%= button_to "Add it as a new thing", add_thing_settings_unifi_host_path(unifi_host),
+                      class: "btn btn-link btn-sm p-0 align-baseline text-12",
+                      form: { class: "d-inline" } %>
+      </div>
+    </div>
+  </details>
+</div>

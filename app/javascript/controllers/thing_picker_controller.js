@@ -1,13 +1,15 @@
 import { Controller } from "@hotwired/stimulus"
 
 // Searches things and links each result to a URL built from a template, e.g.
-// picking the second thing to merge in.
+// picking the second thing to merge in. Set selectMethod to "post" when picking
+// a thing changes something.
 export default class extends Controller {
   static targets = ["input", "results"]
   static values = {
     searchUrl: String,
     excludeId: String,
-    selectUrlTemplate: String
+    selectUrlTemplate: String,
+    selectMethod: String
   }
 
   connect() {
@@ -79,11 +81,15 @@ export default class extends Controller {
       return
     }
 
+    const method = this.hasSelectMethodValue && this.selectMethodValue
+      ? ` data-turbo-method="${this.escapeHtml(this.selectMethodValue)}"`
+      : ""
+
     this.resultsTarget.innerHTML = things.map((thing) => {
       const subtitle = this.subtitleFor(thing)
       return `
         <a class="list-group-item list-group-item-action py-2"
-           href="${this.escapeHtml(this.selectUrlFor(thing.id))}">
+           href="${this.escapeHtml(this.selectUrlFor(thing.id))}"${method}>
           <div class="text-13">${this.escapeHtml(thing.name)}</div>
           ${subtitle ? `<div class="text-12 text-secondary">${this.escapeHtml(subtitle)}</div>` : ""}
         </a>
@@ -96,6 +102,11 @@ export default class extends Controller {
 
   selectUrlFor(id) {
     return this.selectUrlTemplateValue.replace("__SOURCE__", encodeURIComponent(id))
+  }
+
+  focus() {
+    // Runs as a <details> toggles open, before the input is visible.
+    requestAnimationFrame(() => this.inputTarget.focus())
   }
 
   clickOutside(event) {

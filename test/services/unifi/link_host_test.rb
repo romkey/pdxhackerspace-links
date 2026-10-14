@@ -92,4 +92,38 @@ class Unifi::LinkHostTest < ActiveSupport::TestCase
 
     assert_nil thing.reload.reserved_ip_address
   end
+
+  test "links a chosen thing whatever its addresses, unignoring the host" do
+    thing = Thing.create!(name: "Work laptop")
+    @unifi_host.update!(ignored: true)
+
+    assert_equal :linked, Unifi::LinkHost.call(unifi_host: @unifi_host, thing: thing)
+
+    @unifi_host.reload
+    assert_equal thing, @unifi_host.thing
+    assert_not @unifi_host.ignored?
+    assert_equal "Default", thing.reload.network_name
+  end
+
+  test "relinking a chosen thing forgets values written to the previous one" do
+    host = unifi_hosts(:router_host)
+    host.update!(applied_attributes: { "reserved_ip_address" => "192.168.1.9" })
+    thing = Thing.create!(name: "Gateway", reserved_ip_address: "192.168.1.9")
+
+    Unifi::LinkHost.call(unifi_host: host, thing: thing)
+
+    assert_equal thing, host.reload.thing
+    assert_equal "192.168.1.9", thing.reload.reserved_ip_address
+    assert_equal({ "network_name" => "Default" }, host.applied_attributes)
+  end
+
+  test "linking a chosen thing to an ignored host forgets values written before it was ignored" do
+    @unifi_host.update!(ignored: true, applied_attributes: { "network_name" => "Lab" })
+    thing = Thing.create!(name: "Work laptop", network_name: "Lab")
+
+    Unifi::LinkHost.call(unifi_host: @unifi_host, thing: thing)
+
+    assert_equal "Lab", thing.reload.network_name
+    assert_empty @unifi_host.reload.applied_attributes
+  end
 end
