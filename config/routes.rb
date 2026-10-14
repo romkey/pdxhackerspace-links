@@ -56,7 +56,12 @@ Rails.application.routes.draw do
       resources :unifi_hosts, only: :index, path: "hosts"
     end
     resources :unifi_devices, only: :update
-    resources :unifi_hosts, only: :update
+    resources :unifi_hosts, only: :update do
+      member do
+        post :link
+        post :add_thing
+      end
+    end
     resources :zigbee2mqtt_bridges do
       member do
         post :test_connection

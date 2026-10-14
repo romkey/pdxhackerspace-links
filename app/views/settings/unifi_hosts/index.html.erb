@@ -112,7 +112,7 @@
                 <% if unifi_host.thing %>
                   <%= link_to unifi_host.thing.name, thing_path(unifi_host.thing), class: "text-13" %>
                 <% else %>
-                  <span class="text-secondary text-13">—</span>
+                  <%= render "thing_actions", unifi_host: unifi_host %>
                 <% end %>
               </td>
               <td class="text-end">
