@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-10-14
+
 ### Added
 
 - **UniFi Network hosts.** Imports now read every client a UniFi console knows about, online or offline: name, hostname, manufacturer, IP address, DHCP reservation, wired or Wi-Fi, network and VLAN, SSID, band, channel, signal, uplink and switch port, and when it was last seen. Hosts never create things — they link to a thing with the same MAC address, or the only thing with the same IP address. Browse them from **Hosts** on a controller's settings page, and see a linked thing's hosts on its page. Turn them off with **Network hosts** on the controller
