@@ -62,6 +62,16 @@
         </dd>
         <dt class="col-sm-4">Devices</dt>
         <dd class="col-sm-8"><%= @unifi_controller.unifi_devices.active.count %> active, <%= @unifi_controller.unifi_devices.archived.count %> archived</dd>
+        <dt class="col-sm-4">Hosts</dt>
+        <dd class="col-sm-8">
+          <% if @unifi_controller.import_hosts? || @unifi_controller.unifi_hosts.exists? %>
+            <%= link_to settings_unifi_controller_unifi_hosts_path(@unifi_controller) do %>
+              <%= @unifi_controller.unifi_hosts.active.count %> known, <%= @unifi_controller.unifi_hosts.active.linked.count %> linked
+            <% end %>
+          <% else %>
+            Not imported
+          <% end %>
+        </dd>
         <dt class="col-sm-4">Added</dt>
         <dd class="col-sm-8"><%= @unifi_controller.created_at.to_fs(:long) %></dd>
       </dl>

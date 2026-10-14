@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- **UniFi Network hosts.** Imports now read every client a UniFi console knows about, online or offline: name, hostname, manufacturer, IP address, DHCP reservation, wired or Wi-Fi, network and VLAN, SSID, band, channel, signal, uplink and switch port, and when it was last seen. Hosts never create things — they link to a thing with the same MAC address, or the only thing with the same IP address. Browse them from **Hosts** on a controller's settings page, and see a linked thing's hosts on its page. Turn them off with **Network hosts** on the controller
+- **Reserved IP address** and **Network** on things, in the Network section. A linked UniFi host fills them from its DHCP reservation and network until you edit them by hand
+- **Wi-Fi**, **Wired**, **Online**, and **Reserved IP** filters, and **Reserved IP**, **Network**, and **Connection** columns, on the Things index
+
 ## [0.15.1] - 2026-10-10
 
 ### Fixed

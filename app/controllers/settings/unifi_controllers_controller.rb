@@ -17,6 +17,7 @@ module Settings
         enabled: true,
         network_enabled: true,
         protect_enabled: true,
+        hosts_enabled: true,
         auto_create_things: true
       )
     end
@@ -87,6 +88,7 @@ module Settings
         :verify_tls,
         :network_enabled,
         :protect_enabled,
+        :hosts_enabled,
         :auto_create_things,
         :description,
         :enabled

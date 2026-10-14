@@ -1,0 +1,145 @@
+<% content_for :title, "#{@unifi_controller.name} hosts" %>
+
+<%= settings_frame do %>
+  <div class="mb-3">
+    <div class="text-12 text-secondary mb-1">
+      <%= link_to "UniFi", settings_unifi_controllers_path, class: "text-secondary text-decoration-none" %>
+      <span class="mx-1">/</span>
+      <%= link_to @unifi_controller.name, settings_unifi_controller_path(@unifi_controller), class: "text-secondary text-decoration-none" %>
+      <span class="mx-1">/</span>
+      <span class="text-body">Hosts</span>
+    </div>
+    <h1 class="h-page-title mb-0">Hosts</h1>
+    <div class="text-13 text-secondary mt-1">
+      <span class="text-body"><%= @pagy.count %></span> <%= "host".pluralize(@pagy.count) %>
+      · Hosts link to a thing with the same MAC address, or the only thing with the same IP address. They never create things.
+    </div>
+  </div>
+
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <%= form_with url: settings_unifi_controller_unifi_hosts_path(@unifi_controller), method: :get, class: "d-flex gap-2" do |form| %>
+      <%= form.search_field :q, value: @search_query, class: "form-control form-control-sm", placeholder: "Name, MAC, IP, maker" %>
+      <%= form.hidden_field :filter, value: @filter if @filter %>
+      <%= form.hidden_field :archived, value: "1" if show_archived? %>
+    <% end %>
+    <%= link_to "All", settings_unifi_controller_unifi_hosts_path(@unifi_controller, hosts_index_params(filter: nil)),
+                class: class_names("filter-chip", active: @filter.nil?) %>
+    <% Settings::UnifiHostsController::FILTER_LABELS.each do |key, label| %>
+      <%= link_to label, settings_unifi_controller_unifi_hosts_path(@unifi_controller, hosts_index_params(filter: key)),
+                  class: class_names("filter-chip", active: @filter == key) %>
+    <% end %>
+    <div class="ms-auto text-12">
+      <% if show_archived? %>
+        <%= link_to "Hide archived", settings_unifi_controller_unifi_hosts_path(@unifi_controller, hosts_index_params(archived: nil)), class: "text-secondary" %>
+      <% else %>
+        <%= link_to "Show archived", settings_unifi_controller_unifi_hosts_path(@unifi_controller, hosts_index_params(archived: "1")), class: "text-secondary" %>
+      <% end %>
+    </div>
+  </div>
+
+  <% if @unifi_hosts.any? %>
+    <div class="table-responsive">
+      <table class="table table-compact align-middle mb-0">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Host</th>
+            <th>Address</th>
+            <th>Reserved IP</th>
+            <th>Connection</th>
+            <th>Last seen</th>
+            <th>Thing</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @unifi_hosts.each do |unifi_host| %>
+            <tr class="<%= "opacity-50" if unifi_host.archived? || unifi_host.ignored? %>">
+              <td>
+                <span class="status-dot <%= unifi_host.online? ? "status-success" : "status-warning" %>"
+                      title="<%= unifi_host.online? ? "Online" : "Offline" %>"></span>
+              </td>
+              <td>
+                <div class="fw-medium">
+                  <%= unifi_host.display_name %>
+                  <% if unifi_host.guest? %>
+                    <span class="badge text-bg-secondary-subtle text-11 fw-normal">Guest</span>
+                  <% end %>
+                  <% if unifi_host.blocked? %>
+                    <span class="badge text-bg-danger-subtle text-11 fw-normal">Blocked</span>
+                  <% end %>
+                  <% if unifi_host.archived? %>
+                    <span class="badge text-bg-secondary-subtle text-11 fw-normal">Archived</span>
+                  <% end %>
+                  <% if unifi_host.ignored? %>
+                    <span class="badge text-bg-secondary-subtle text-11 fw-normal">Ignored</span>
+                  <% end %>
+                </div>
+                <div class="text-12 text-secondary">
+                  <%= [ (unifi_host.hostname if unifi_host.hostname != unifi_host.display_name), unifi_host.manufacturer ].compact_blank.join(" · ") %>
+                </div>
+              </td>
+              <td class="text-secondary text-12">
+                <% if unifi_host.ip_address.present? %>
+                  <code class="text-12"><%= unifi_host.ip_address %></code><br>
+                <% end %>
+                <code class="text-12"><%= unifi_host.ieee_address_display %></code>
+              </td>
+              <td class="text-12">
+                <% if unifi_host.reserved? %>
+                  <code class="text-12"><%= unifi_host.reserved_ip_address %></code>
+                <% else %>
+                  <span class="text-secondary">—</span>
+                <% end %>
+              </td>
+              <td class="text-secondary text-12">
+                <%= unifi_host.connection_label || "—" %>
+                <% details = [ unifi_host.ssid, unifi_host.network_name, unifi_host.uplink_label ].compact_blank.uniq %>
+                <% if details.any? %>
+                  <div class="text-11"><%= details.join(" · ") %></div>
+                <% end %>
+              </td>
+              <td class="text-secondary text-12">
+                <% if unifi_host.online? %>
+                  Now
+                <% elsif unifi_host.last_seen_at %>
+                  <span title="<%= unifi_host.last_seen_at.to_fs(:long) %>"><%= time_ago_in_words(unifi_host.last_seen_at) %> ago</span>
+                <% else %>
+                  —
+                <% end %>
+              </td>
+              <td>
+                <% if unifi_host.thing %>
+                  <%= link_to unifi_host.thing.name, thing_path(unifi_host.thing), class: "text-13" %>
+                <% else %>
+                  <span class="text-secondary text-13">—</span>
+                <% end %>
+              </td>
+              <td class="text-end">
+                <%= button_to unifi_host.ignored? ? "Unignore" : "Ignore",
+                              settings_unifi_host_path(unifi_host, ignored: unifi_host.ignored? ? "0" : "1"),
+                              method: :patch,
+                              class: "btn btn-outline-secondary btn-sm",
+                              form: { data: { turbo_confirm: unifi_host.ignored? || unifi_host.thing.nil? ? nil : "Ignore #{unifi_host.display_name} and unlink its thing?" } } %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @pagy.pages > 1 %>
+      <div class="mt-3">
+        <%== @pagy.series_nav(:bootstrap) %>
+      </div>
+    <% end %>
+  <% else %>
+    <p class="text-secondary text-13 mb-0">
+      <% if @search_query.present? || @filter %>
+        No hosts match.
+      <% else %>
+        No hosts imported yet. Turn on Network hosts for this controller, then run an import.
+      <% end %>
+    </p>
+  <% end %>
+<% end %>

@@ -78,7 +78,7 @@ class Things::MergePlanTest < ActiveSupport::TestCase
     assert_equal 1, plan.photo_count
     assert_equal 1, plan.custom_links.size
     assert_equal [ dongle.id ], plan.relationship_additions.map(&:related_thing_id)
-    assert_equal 2, plan.integration_device_count
+    assert_equal 3, plan.integration_device_count, "two devices and one UniFi host"
   end
 
   test "does not count a relationship to the target itself" do

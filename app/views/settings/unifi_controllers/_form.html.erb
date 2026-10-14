@@ -90,6 +90,15 @@
             <% end %>
           </div>
         </div>
+        <div class="col-md-6">
+          <div class="form-check border border-secondary-subtle rounded p-2 h-100">
+            <%= form.check_box :hosts_enabled, class: "form-check-input" %>
+            <%= form.label :hosts_enabled, class: "form-check-label w-100" do %>
+              <span class="fw-medium text-13">Network hosts</span>
+              <span class="d-block text-secondary text-12 mt-1">Every client the Network application knows about, wired or Wi-Fi, online or not. Hosts never create things — they link to a thing with the same MAC or IP address. Needs Network devices turned on.</span>
+            <% end %>
+          </div>
+        </div>
       </div>
     </div>
 

@@ -13,7 +13,7 @@ class Thing < ApplicationRecord
   RESERVED_SLUGS = %w[by_beacon new edit].freeze
   RESERVED_KEYS = (%w[login logout settings sidekiq things up auth] + RESERVED_SLUGS).freeze
   JOURNAL_FIELDS = %w[
-    name label_name slug description notes owner ip_address hostname ieee_address manufacturer model
+    name label_name slug description notes owner ip_address reserved_ip_address network_name hostname ieee_address manufacturer model
     serial_number manufacturer_url ble_beacon_uuid ar_anchor_note public_access
   ].freeze
 
@@ -24,6 +24,7 @@ class Thing < ApplicationRecord
   has_many :thing_relationships, dependent: :destroy, inverse_of: :thing
   has_many :related_things, through: :thing_relationships, source: :related_thing
   has_many :unifi_devices, dependent: :nullify
+  has_many :unifi_hosts, dependent: :nullify
   has_many :zigbee2mqtt_devices, dependent: :nullify
   has_many :prusa_connect_printers, dependent: :nullify
   has_many_attached :photos do |attachable|
@@ -47,6 +48,7 @@ class Thing < ApplicationRecord
     message: "must be an http or https URL"
   }
   validate :ip_address_format
+  validate :reserved_ip_address_format
   validate :hostname_format
   validate :ble_beacon_uuid_format
   validate :ieee_address_format
@@ -76,7 +78,7 @@ class Thing < ApplicationRecord
 
     pattern = "%#{sanitize_sql_like(term)}%"
     left_joins(:links).where(
-      "things.name ILIKE :q OR things.label_name ILIKE :q OR things.key ILIKE :q OR things.slug ILIKE :q OR things.description ILIKE :q OR things.notes ILIKE :q OR things.ar_anchor_note ILIKE :q OR things.owner ILIKE :q OR things.ip_address ILIKE :q OR things.hostname ILIKE :q OR things.ieee_address ILIKE :q OR things.manufacturer ILIKE :q OR things.model ILIKE :q OR things.serial_number ILIKE :q OR things.ble_beacon_uuid ILIKE :q OR thing_links.title ILIKE :q OR thing_links.url ILIKE :q OR thing_links.note ILIKE :q",
+      "things.name ILIKE :q OR things.label_name ILIKE :q OR things.key ILIKE :q OR things.slug ILIKE :q OR things.description ILIKE :q OR things.notes ILIKE :q OR things.ar_anchor_note ILIKE :q OR things.owner ILIKE :q OR things.ip_address ILIKE :q OR things.reserved_ip_address ILIKE :q OR things.network_name ILIKE :q OR things.hostname ILIKE :q OR things.ieee_address ILIKE :q OR things.manufacturer ILIKE :q OR things.model ILIKE :q OR things.serial_number ILIKE :q OR things.ble_beacon_uuid ILIKE :q OR thing_links.title ILIKE :q OR thing_links.url ILIKE :q OR thing_links.note ILIKE :q",
       q: pattern
     ).distinct
   }
@@ -161,6 +163,11 @@ class Thing < ApplicationRecord
 
   def unifi_managed?
     unifi_devices.any?
+  end
+
+  # How the thing reaches the network, from the UniFi hosts linked to it.
+  def network_connection_labels
+    unifi_hosts.reject(&:archived?).filter_map(&:connection_label).uniq.sort
   end
 
   def integration_managed?
@@ -335,6 +342,14 @@ class Thing < ApplicationRecord
     return if value.match?(IPV4_REGEX)
 
     errors.add(:ip_address, "must be a valid IPv4 address")
+  end
+
+  def reserved_ip_address_format
+    value = reserved_ip_address.to_s.strip
+    return if value.blank?
+    return if value.match?(IPV4_REGEX)
+
+    errors.add(:reserved_ip_address, "must be a valid IPv4 address")
   end
 
   def hostname_format

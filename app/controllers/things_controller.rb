@@ -16,6 +16,7 @@ class ThingsController < ApplicationController
   before_action :require_login_or_public_thing, only: %i[show by_beacon]
   before_action :load_printers, only: %i[index show label_preview bulk_label_preview], if: :can_manage_things?
   before_action :load_unifi_devices, only: :show, if: :can_manage_things?
+  before_action :load_unifi_hosts, only: :show, if: :can_manage_things?
   before_action :load_zigbee2mqtt_devices, only: :show, if: :can_manage_things?
   before_action :load_prusa_connect_printers, only: :show, if: :can_manage_things?
   before_action :load_journal_entries, only: :show, if: :can_manage_things?
@@ -380,10 +381,10 @@ class ThingsController < ApplicationController
   def preload_things_index_associations
     return if @things.blank?
 
-    ActiveRecord::Associations::Preloader.new(
-      records: @things,
-      associations: [ :links, { photos_attachments: :blob } ]
-    ).call
+    associations = [ :links, { photos_attachments: :blob } ]
+    associations << :unifi_hosts if @things_columns.include?("connection")
+
+    ActiveRecord::Associations::Preloader.new(records: @things, associations: associations).call
   end
 
   def set_thing_by_beacon
@@ -404,6 +405,8 @@ class ThingsController < ApplicationController
       :notes,
       :owner,
       :ip_address,
+      :reserved_ip_address,
+      :network_name,
       :hostname,
       :ieee_address,
       :manufacturer,
@@ -441,6 +444,10 @@ class ThingsController < ApplicationController
 
   def load_unifi_devices
     @unifi_devices = @thing&.unifi_devices&.includes(:unifi_controller)&.ordered
+  end
+
+  def load_unifi_hosts
+    @unifi_hosts = @thing&.unifi_hosts&.includes(:unifi_controller)&.order(Arel.sql("unifi_hosts.archived_at IS NOT NULL"), :name)
   end
 
   def load_zigbee2mqtt_devices

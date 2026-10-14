@@ -1,0 +1,59 @@
+<div class="h-section-label mb-2">UniFi hosts</div>
+<div class="vstack gap-3 mb-4">
+  <% unifi_hosts.each do |unifi_host| %>
+    <div class="sidebar-card">
+      <div class="d-flex justify-content-between align-items-start gap-2">
+        <div class="fw-medium text-13"><%= unifi_host.display_name %></div>
+        <% if unifi_host.archived? %>
+          <span class="badge text-bg-warning-subtle text-11 fw-normal">Not seen</span>
+        <% elsif unifi_host.online? %>
+          <span class="badge text-bg-success-subtle text-11 fw-normal">Online</span>
+        <% else %>
+          <span class="badge text-bg-secondary-subtle text-11 fw-normal">Offline</span>
+        <% end %>
+      </div>
+      <dl class="row text-12 mb-0 mt-2">
+        <dt class="col-5 text-secondary">Controller</dt>
+        <dd class="col-7">
+          <%= link_to unifi_host.unifi_controller.name,
+                      settings_unifi_controller_unifi_hosts_path(unifi_host.unifi_controller, q: unifi_host.ieee_address) %>
+        </dd>
+        <% [
+             [ "Connection", unifi_host.connection_label ],
+             [ "IP address", unifi_host.ip_address, true ],
+             [ "Reserved IP", unifi_host.reserved_ip_address, true ],
+             [ "MAC address", unifi_host.ieee_address_display, true ],
+             [ "Hostname", unifi_host.hostname, true ],
+             [ "Manufacturer", unifi_host.manufacturer ],
+             [ "Network", [ unifi_host.network_name, ("VLAN #{unifi_host.vlan}" if unifi_host.vlan) ].compact_blank.join(" · ") ],
+             [ "SSID", unifi_host.ssid ],
+             [ "Radio", [ unifi_host.wifi_standard, unifi_host.radio, ("channel #{unifi_host.channel}" if unifi_host.channel) ].compact_blank.join(" · ") ],
+             [ "Signal", unifi_host.signal_label ],
+             [ "Experience", ("#{unifi_host.satisfaction}%" if unifi_host.satisfaction) ],
+             [ "Uplink", unifi_host.uplink_label ],
+             [ "Site", unifi_host.site_name ],
+             [ "Note", unifi_host.note ]
+           ].each do |label, value, code| %>
+          <% next if value.blank? %>
+          <dt class="col-5 text-secondary"><%= label %></dt>
+          <dd class="col-7"><%= code ? tag.code(value, class: "text-12") : value %></dd>
+        <% end %>
+        <% if unifi_host.online? && unifi_host.connected_at %>
+          <dt class="col-5 text-secondary">Connected</dt>
+          <dd class="col-7 text-secondary" title="<%= unifi_host.connected_at.to_fs(:long) %>">
+            <%= time_ago_in_words(unifi_host.connected_at) %> ago
+          </dd>
+        <% elsif unifi_host.last_seen_at %>
+          <dt class="col-5 text-secondary">Last seen</dt>
+          <dd class="col-7 text-secondary" title="<%= unifi_host.last_seen_at.to_fs(:long) %>">
+            <%= time_ago_in_words(unifi_host.last_seen_at) %> ago
+          </dd>
+        <% end %>
+        <% if unifi_host.first_seen_at %>
+          <dt class="col-5 text-secondary">First seen</dt>
+          <dd class="col-7 text-secondary"><%= unifi_host.first_seen_at.to_date.to_fs(:long) %></dd>
+        <% end %>
+      </dl>
+    </div>
+  <% end %>
+</div>
