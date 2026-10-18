@@ -229,7 +229,7 @@ GEM
       tzinfo
       validate_url
       webfinger (~> 2.0)
-    pagy (43.7.1)
+    pagy (43.8.1)
       json
       uri
       yaml
