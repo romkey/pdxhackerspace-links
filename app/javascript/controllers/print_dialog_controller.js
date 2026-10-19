@@ -1,5 +1,4 @@
 import { Controller } from "@hotwired/stimulus"
-import { Modal } from "bootstrap"
 
 const REOPEN_PARAMS = [ "print_label", "print_printer_id", "print_layout", "print_mark_labelled" ]
 
@@ -62,7 +61,7 @@ export default class extends Controller {
     const markLabelled = this.formTarget.querySelector("input[name='mark_labelled']")
     if (markLabelled && saved.print_mark_labelled) markLabelled.checked = saved.print_mark_labelled === "1"
 
-    Modal.getOrCreateInstance(this.modalElement()).show()
+    window.bootstrap.Modal.getOrCreateInstance(this.modalElement()).show()
   }
 
   open(event) {
