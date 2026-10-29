@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.16.3] - 2026-10-29
+
 ### Changed
 
 - Integration filters on the Things index cycle through included, excluded, and off like the other filters, so a second click hides things from that integration
