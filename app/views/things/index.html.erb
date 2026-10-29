@@ -44,9 +44,9 @@
       <% things_search_hidden_params.each do |key, value| %>
         <% if key == :filter && value.is_a?(Hash) %>
           <% value.each do |filter_key, filter_value| %>
-            <% if filter_key.to_s == "integration" %>
-              <% Array(filter_value).each do |source| %>
-                <%= hidden_field_tag "filter[integration][]", source %>
+            <% if filter_value.is_a?(Array) %>
+              <% filter_value.each do |source| %>
+                <%= hidden_field_tag "filter[#{filter_key}][]", source %>
               <% end %>
             <% else %>
               <%= hidden_field_tag "filter[#{filter_key}]", filter_value %>

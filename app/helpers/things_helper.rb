@@ -31,6 +31,7 @@ module ThingsHelper
 
   THINGS_FILTER_CYCLE ={ nil => "yes", "yes" => "no", "no" => nil }.freeze
   THINGS_FILTER_STATES = { nil => "any", "yes" => "has", "no" => "none" }.freeze
+  THINGS_INTEGRATION_FILTER_STATES = { nil => "any", "yes" => "included", "no" => "excluded" }.freeze
 
   THINGS_DEFAULT_COLUMNS = %w[name manufacturer model integration links photos].freeze
   THINGS_OPTIONAL_COLUMNS = %w[hostname ip_address reserved_ip_address network_name connection labelled visits nfc qr].freeze
@@ -177,22 +178,18 @@ module ThingsHelper
 
   def things_integration_filter_chip(key)
     label = Integrations::Registry.label_for(key)
-    active = @things_index.filters.integration_active?(key)
-    sources = @things_index.filters.sources.dup
+    current = @things_index.filters.integration_state(key)
+    next_value = THINGS_FILTER_CYCLE[current]
+    sources = @things_index.filters.sources - [ key ]
+    excluded_sources = @things_index.filters.excluded_sources - [ key ]
+    sources += [ key ] if next_value == "yes"
+    excluded_sources += [ key ] if next_value == "no"
 
-    if active
-      sources.delete(key)
-    else
-      sources << key
-    end
-
-    filters = @things_index.filters.values.dup
-    filters[:integration] = sources.uniq if sources.any?
-
-    link_to things_path(things_index_params(filter: filter_params_with_sources(filters, sources: sources))),
-            class: class_names("filter-chip", active: active),
-            title: "#{label}: #{active ? 'included' : 'not included'} — click to #{active ? 'remove' : 'add'}" do
-      label
+    filters = filter_params_with_sources(@things_index.filters.values, sources: sources, excluded_sources: excluded_sources)
+    link_to things_path(things_index_params(filter: filters)),
+            class: class_names("filter-chip", active: current.present?),
+            title: "#{label}: #{THINGS_INTEGRATION_FILTER_STATES[current]} — click for #{THINGS_INTEGRATION_FILTER_STATES[next_value]}" do
+      safe_join([ things_filter_icon(current), tag.span(label, class: things_filter_label_class(current)) ].compact, " ")
     end
   end
 
@@ -331,9 +328,10 @@ module ThingsHelper
     end
 
     Integrations::Registry.filter_keys.each do |key|
-      next unless @things_index.filters.integration_active?(key)
+      state = @things_index.filters.integration_state(key)
+      next if state.blank?
 
-      pills << things_active_integration_pill(key)
+      pills << things_active_integration_pill(key, state)
     end
 
     safe_join(pills, " ")
@@ -372,16 +370,20 @@ module ThingsHelper
 
   def build_filter_params(raw_filter)
     hash = raw_filter.to_h.stringify_keys
-    integration = Array(hash.delete("integration")).map(&:to_s).select(&:present?)
+    source_params = %w[integration integration_exclude].index_with do |name|
+      Array(hash.delete(name)).map(&:to_s).select(&:present?)
+    end
     params = hash.select { |_, value| value.present? }
-    params["integration"] = integration if integration.any?
+    source_params.each { |name, sources| params[name] = sources if sources.any? }
     params
   end
 
-  def filter_params_with_sources(values, sources: nil)
-    merged_sources = sources || @things_index.filters.sources
+  def filter_params_with_sources(values, sources: nil, excluded_sources: nil)
+    sources ||= @things_index.filters.sources
+    excluded_sources ||= @things_index.filters.excluded_sources
     result = values.stringify_keys.select { |_, value| value.present? }
-    result["integration"] = merged_sources if merged_sources.any?
+    result["integration"] = sources if sources.any?
+    result["integration_exclude"] = excluded_sources if excluded_sources.any?
     result
   end
 
@@ -397,16 +399,19 @@ module ThingsHelper
     end
   end
 
-  def things_active_integration_pill(key)
+  def things_active_integration_pill(key, state)
     label = Integrations::Registry.label_for(key)
-    sources = @things_index.filters.sources.dup
-    sources.delete(key)
-    filters = @things_index.filters.values.dup
-    filters[:integration] = sources if sources.any?
-    remove_path = things_path(things_index_params(filter: filter_params_with_sources(filters, sources: sources)))
+    filters = filter_params_with_sources(
+      @things_index.filters.values,
+      sources: @things_index.filters.sources - [ key ],
+      excluded_sources: @things_index.filters.excluded_sources - [ key ]
+    )
+    remove_path = things_path(things_index_params(filter: filters))
+    icon = state == "no" ? tag.i(class: "bi bi-slash-lg text-11") : tag.i(class: "bi bi-check-lg text-11")
+    label_span = tag.span(label, class: things_filter_label_class(state))
 
     link_to remove_path, class: "active-filter-pill", title: "Remove filter" do
-      safe_join([ label, tag.i(class: "bi bi-x-lg text-11") ], " ")
+      safe_join([ icon, label_span, tag.i(class: "bi bi-x-lg text-11") ], " ")
     end
   end
 end

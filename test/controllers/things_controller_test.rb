@@ -605,6 +605,26 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "a.filter-chip.active[href=?]", things_path(sort: "name", direction: "asc")
   end
 
+  test "index integration chips cycle through any, included, and excluded" do
+    get things_path
+    assert_response :success
+    assert_select "a.filter-chip[href=?]",
+                  things_path(sort: "name", direction: "asc", filter: { integration: [ "unifi" ] })
+
+    get things_path, params: { filter: { integration: [ "unifi" ] } }
+    assert_response :success
+    assert_select "a.filter-chip.active[href=?]",
+                  things_path(sort: "name", direction: "asc", filter: { integration_exclude: [ "unifi" ] })
+
+    get things_path, params: { filter: { integration_exclude: [ "unifi" ] } }
+    assert_response :success
+    assert_select "td", text: things(:keyboard).name
+    assert_select "td", text: things(:router).name, count: 0
+    assert_select "a.filter-chip.active i.bi-slash-lg"
+    assert_select "a.filter-chip.active[href=?]", things_path(sort: "name", direction: "asc")
+    assert_select "a.active-filter-pill .text-decoration-line-through", text: "UniFi"
+  end
+
   test "index marks excluded filters with a struck through label" do
     get things_path, params: { filter: { photos: "no" } }
 
