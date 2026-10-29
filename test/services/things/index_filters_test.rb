@@ -76,6 +76,26 @@ class Things::IndexFiltersTest < ActiveSupport::TestCase
     assert_equal [ things(:keyboard).name ], query.scope.map(&:name)
   end
 
+  test "excludes things from an integration source" do
+    query = Things::IndexQuery.call(filters: { integration_exclude: [ "unifi" ] })
+
+    assert_equal [ things(:keyboard).name ], query.scope.map(&:name)
+  end
+
+  test "excludes things with no integration source" do
+    query = Things::IndexQuery.call(filters: { integration_exclude: [ "none" ] })
+
+    assert_equal [ things(:router).name ], query.scope.map(&:name)
+  end
+
+  test "combines included and excluded integration sources" do
+    query = Things::IndexQuery.call(filters: { integration: [ "unifi", "none" ], integration_exclude: [ "none" ] })
+
+    assert_equal [ "unifi", "none" ], query.filters.sources
+    assert_equal [], query.filters.excluded_sources
+    assert_equal [ things(:router).name, things(:keyboard).name ].sort, query.scope.map(&:name).sort
+  end
+
   test "filters labelled things" do
     things(:router).mark_labelled!
 

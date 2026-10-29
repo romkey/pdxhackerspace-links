@@ -1,5 +1,5 @@
 module Things
-  class IndexFilters < Data.define(:values, :sources)
+  class IndexFilters < Data.define(:values, :sources, :excluded_sources)
     KEYS = %i[
       links photos ip_address reserved_ip_address wifi wired online hostname ieee_address ar_marker labelled
       wiki slack where url
@@ -7,13 +7,13 @@ module Things
 
     def self.parse(raw)
       hash = if raw.is_a?(ActionController::Parameters)
-        raw.permit(*KEYS.map(&:to_s), integration: []).to_h
+        raw.permit(*KEYS.map(&:to_s), integration: [], integration_exclude: []).to_h
       else
         raw.to_h.stringify_keys
       end
 
       values = {}
-      hash.except("integration").each do |key, value|
+      hash.except("integration", "integration_exclude").each do |key, value|
         sym_key = key.to_sym
         next unless KEYS.include?(sym_key)
 
@@ -21,18 +21,24 @@ module Things
         values[sym_key] = normalized if %w[yes no].include?(normalized)
       end
 
-      integration_keys = Array(hash["integration"]).map(&:to_s)
-      sources = integration_keys.select { |key| Integrations::Registry.filter_keys.include?(key) }.uniq
+      sources = parse_sources(hash["integration"])
+      excluded_sources = parse_sources(hash["integration_exclude"]) - sources
 
-      new(values: values, sources: sources)
+      new(values: values, sources: sources, excluded_sources: excluded_sources)
     end
+
+    def self.parse_sources(raw)
+      Array(raw).map(&:to_s).select { |key| Integrations::Registry.filter_keys.include?(key) }.uniq
+    end
+    private_class_method :parse_sources
 
     def self.apply(scope, filters)
       scope = filters.values.reduce(scope) do |current_scope, (key, value)|
         apply_filter(current_scope, key, value)
       end
 
-      apply_integration_sources(scope, filters.sources)
+      scope = apply_integration_sources(scope, filters.sources)
+      apply_integration_exclusions(scope, filters.excluded_sources)
     end
 
     def self.apply_filter(scope, key, value)
@@ -74,6 +80,19 @@ module Things
       clauses.reduce { |combined, clause| combined.or(clause) }
     end
     private_class_method :apply_integration_sources
+
+    # NOT IN drops NULLs, so things with no integration have to be let back in
+    # explicitly unless "none" is itself excluded.
+    def self.apply_integration_exclusions(scope, excluded_sources)
+      return scope if excluded_sources.empty?
+
+      column = Thing.arel_table[:integration_source]
+      real_sources = excluded_sources - [ Integrations::Registry::FILTER_NONE ]
+      scope = scope.where(column.eq(nil).or(column.not_in(real_sources))) if real_sources.any?
+      scope = scope.where.not(integration_source: nil) if excluded_sources.include?(Integrations::Registry::FILTER_NONE)
+      scope
+    end
+    private_class_method :apply_integration_exclusions
 
     def self.apply_links_count_filter(scope, value)
       link_scope = ThingLink.where("thing_links.thing_id = things.id")
@@ -156,24 +175,35 @@ module Things
     private_class_method :apply_link_type_filter
 
     def active_count
-      values.size + (sources.any? ? 1 : 0)
+      values.size + (integration_filtered? ? 1 : 0)
     end
 
     def active?
-      values.any? || sources.any?
+      values.any? || integration_filtered?
+    end
+
+    def integration_filtered?
+      sources.any? || excluded_sources.any?
     end
 
     def [](key)
       values[key.to_sym]
     end
 
-    def integration_active?(key)
-      sources.include?(key.to_s)
+    # "yes" when only things from this integration are shown, "no" when they
+    # are excluded, nil otherwise — the same states the other filters use.
+    def integration_state(key)
+      if sources.include?(key.to_s)
+        "yes"
+      elsif excluded_sources.include?(key.to_s)
+        "no"
+      end
     end
 
     def to_params
       params = values.transform_keys(&:to_s)
       params["integration"] = sources if sources.any?
+      params["integration_exclude"] = excluded_sources if excluded_sources.any?
       params
     end
   end
