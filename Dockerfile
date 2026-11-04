@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
 # check=error=true
 
-ARG RUBY_VERSION=4.0.5
-ARG NODE_VERSION=24.4.0
+ARG RUBY_VERSION=4.0.9
+ARG NODE_VERSION=26.13.0
 ARG APP_VERSION=dev
 ARG GITHUB_REPO_URL=https://github.com/romkey/pdxhackerspace-links
 FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
