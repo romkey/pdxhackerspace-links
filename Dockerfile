@@ -27,7 +27,7 @@ ENV RAILS_ENV="production" \
     GITHUB_REPO_URL="${GITHUB_REPO_URL}"
 
 FROM docker.io/library/node:${NODE_VERSION}-bookworm-slim AS node
-RUN corepack enable && corepack prepare yarn@1.22.22 --activate
+RUN npm install -g yarn@1.22.22
 
 FROM base AS build
 
