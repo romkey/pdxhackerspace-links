@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Release Docker images build again. Node 26 images no longer include Corepack, so the image build now installs Yarn with npm; the v0.17.0 images were never published because of this
+
 ## [0.17.0] - 2026-11-17
 
 ### Added
