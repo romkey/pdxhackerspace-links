@@ -12,6 +12,8 @@ class LocalSessionsController < ApplicationController
       password: params[:password]
     )
 
+    Metrics::Recorder.login(provider: "local", success: user.present?)
+
     if user
       session[:user_id] = user.id
       redirect_to root_path, notice: "Signed in."
