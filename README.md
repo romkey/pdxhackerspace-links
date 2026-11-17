@@ -211,6 +211,67 @@ Set `SENTRY_DSN` on production and staging to enable [Sentry](https://sentry.io)
 
 Release versions are tagged automatically from `APP_VERSION`. Signed-in users are attached to events by ID. Sidekiq job failures are reported via `sentry-sidekiq`.
 
+### Metrics
+
+Set `METRICS_TOKEN` to turn on a [Prometheus](https://prometheus.io) scrape endpoint at `/metrics`. Until it is set the endpoint answers `404` and nothing is recorded. Generate a token with `openssl rand -hex 32`, and set it on **both** the web and Sidekiq containers (`docker-compose.server.yml` passes it to both) so job runs are counted.
+
+Scrapers must send the token as a bearer token. A signed-in session, the network whitelist, a query parameter, or basic auth are not accepted; a missing or wrong token gets `401`.
+
+```bash
+curl -H "Authorization: Bearer $METRICS_TOKEN" https://links.example.com/metrics
+```
+
+```yaml
+scrape_configs:
+  - job_name: links
+    scheme: https
+    metrics_path: /metrics
+    authorization:
+      type: Bearer
+      credentials_file: /etc/prometheus/links-token
+    static_configs:
+      - targets: ["links.example.com"]
+```
+
+Every metric is prefixed `links_`:
+
+| Metrics | What they cover |
+|---------|-----------------|
+| `links_app_info`, `links_web_process_start_time_seconds` | Version, Ruby and Rails versions, environment, and hostname of the web process that answered |
+| `links_job_enqueued_total`, `links_job_executions_total`, `links_job_failures_total` | Background jobs by `job` class and `queue`; executions split by `status` (`success`/`failed`), failures by `error` class |
+| `links_job_duration_seconds`, `links_job_queue_wait_seconds` | Histograms of how long each job ran and how long it waited in the queue |
+| `links_job_last_run_timestamp_seconds`, `…_last_success_…`, `…_last_failure_…` | When each job last ran, succeeded, and failed |
+| `links_sidekiq_*` | Sidekiq totals (processed, failed, enqueued, scheduled, retries, dead, busy), size and latency per queue, and per worker server (`hostname`): processes, threads available and in use, memory, start time |
+| `links_redis_*` | Redis memory, connected clients, uptime |
+| `links_http_requests_total`, `links_http_request_duration_seconds` | Requests by `controller`, `action`, `method`, and `status`, with a duration histogram per controller and action |
+| `links_logins_total` | Sign-in attempts by `provider` (`local`/`oidc`) and `result` |
+| `links_users` | User accounts by sign-in provider |
+| `links_things`, `links_things_public`, `links_things_labelled`, `links_things_with_template`, `links_thing_scans`, `links_thing_visits` | Things by the integration that created them, plus visibility, labelling, and QR/NFC scan and visit totals |
+| `links_thing_templates`, `links_thing_links`, `links_thing_relationships`, `links_thing_aliases`, `links_journal_entries`, `links_printers` | Counts of the records around things |
+| `links_storage_blobs`, `links_storage_bytes`, `links_storage_attachments` | Uploaded photos and AR markers |
+| `links_integration_source_enabled`, `links_integration_source_last_sync_timestamp_seconds`, `links_integration_source_last_sync_status` | Each UniFi console, Zigbee2MQTT bridge, and Prusa Connect account (`integration`, `source`): whether it is enabled, when it was last imported, and how that went (`running`, `success`, `partial`, `failed`, `skipped`) |
+| `links_integration_devices`, `links_unifi_hosts` | Imported devices per source by state (`linked`, `unlinked`, `ignored`, `archived`); UniFi network clients by connection type and whether online |
+| `links_db_pool_*`, `links_database_size_bytes` | Database connection pool and database size |
+| `links_web_*`, `links_puma_*` | Threads, memory, and garbage collection of the web process; Puma thread pool and backlog |
+| `links_scrape_collector_success`, `links_scrape_collector_duration_seconds` | Whether each group of metrics could be collected on this scrape, and how long it took |
+
+Job, request, and sign-in counters are kept in Redis (under `links:metrics:*`), so they cover every web and Sidekiq process and survive restarts; they reset only if Redis loses its data. Counting adds one Redis round trip to each request and job. If one group of metrics cannot be collected — Redis is down, say — the scrape still succeeds with the rest, and `links_scrape_collector_success` for that group reads `0`.
+
+Useful alerts:
+
+```promql
+# An import job is failing
+increase(links_job_failures_total[1h]) > 0
+
+# An integration's last import failed, or it has not imported in a day
+links_integration_source_last_sync_status{status="failed"} == 1
+time() - links_integration_source_last_sync_timestamp_seconds > 86400 and links_integration_source_enabled == 1
+
+# Jobs are queueing up, or no worker is running
+links_sidekiq_queue_latency_seconds > 300
+absent(links_sidekiq_processes) or sum(links_sidekiq_processes) == 0
+```
+
 ## Architecture
 
 ```

@@ -20,6 +20,7 @@ services:
       SENTRY_DSN: ${SENTRY_DSN:-}
       SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-production}
       SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0}
+      METRICS_TOKEN: ${METRICS_TOKEN:-}
       TRUSTED_REVERSE_PROXIES: ${TRUSTED_REVERSE_PROXIES:-}
       NETWORK_WHITELIST: ${NETWORK_WHITELIST:-}
     depends_on:
@@ -42,6 +43,7 @@ services:
       SENTRY_DSN: ${SENTRY_DSN:-}
       SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-production}
       SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0}
+      METRICS_TOKEN: ${METRICS_TOKEN:-}
     depends_on:
       redis:
         condition: service_healthy

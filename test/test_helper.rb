@@ -29,6 +29,18 @@ class ActiveSupport::TestCase
     end
   end
 
+  # Turns metrics on (they are off without a token) and starts from an empty
+  # counter store.
+  def with_metrics_token(token = "scrape-secret")
+    previous = ENV["METRICS_TOKEN"]
+    token.nil? ? ENV.delete("METRICS_TOKEN") : ENV["METRICS_TOKEN"] = token
+    Metrics.store.clear
+    yield
+  ensure
+    previous.nil? ? ENV.delete("METRICS_TOKEN") : ENV["METRICS_TOKEN"] = previous
+    Metrics.store.clear
+  end
+
   def with_app_host(app_host)
     previous = ENV["APP_HOST"]
     ENV["APP_HOST"] = app_host

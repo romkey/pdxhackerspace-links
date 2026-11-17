@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- **Prometheus metrics** at `/metrics`, turned on by setting `METRICS_TOKEN` and read with that token as a bearer token. Covers background jobs (runs, failures by error, duration, queue wait), Sidekiq queues and worker servers, Redis, requests and sign-ins, users, things and scans, uploads, each integration source's last import, the database pool, and the web process. See **Metrics** in the README
+
 ## [0.16.4] - 2026-11-04
 
 ## [0.16.3] - 2026-10-29
