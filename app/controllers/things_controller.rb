@@ -1,5 +1,6 @@
 class ThingsController < ApplicationController
   MAX_BULK_LABELS = 100
+  RECENT_THINGS_LIMIT = 5
 
   skip_before_action :require_login, only: %i[show by_beacon]
   before_action :require_full_access, only: %i[
@@ -38,6 +39,7 @@ class ThingsController < ApplicationController
       count: @things_index.total_count
     )
     preload_things_index_associations
+    load_recent_things
   end
 
   def search
@@ -376,6 +378,12 @@ class ThingsController < ApplicationController
       session[:things_columns] = ThingsHelper::THINGS_DEFAULT_COLUMNS + optional
     end
     @things_columns = session[:things_columns].presence || ThingsHelper::THINGS_DEFAULT_COLUMNS
+  end
+
+  def load_recent_things
+    return if @search_query.present? || @things_index.filters.active? || @pagy.page > 1
+
+    @recent_things = Thing.order(created_at: :desc, id: :desc).limit(RECENT_THINGS_LIMIT).to_a
   end
 
   def preload_things_index_associations

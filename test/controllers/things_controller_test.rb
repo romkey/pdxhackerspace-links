@@ -32,6 +32,31 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "a.filter-chip", text: /Reserved IP/
   end
 
+  test "index shows the five most recently added things" do
+    Thing.update_all(created_at: 1.day.ago)
+    7.times do |index|
+      Thing.create!(name: "Recent thing #{index}", created_at: (10 - index).minutes.ago)
+    end
+
+    get things_path
+
+    assert_response :success
+    assert_select "details.recent-additions[open]" do
+      assert_select "summary", text: /Most recent additions/
+      assert_select "li", count: 5
+      assert_select "li:first-child a", text: /Recent thing 6/
+      assert_select "a", text: /Recent thing 1\b/, count: 0
+    end
+  end
+
+  test "index hides recent additions while searching or filtering" do
+    get things_path, params: { q: things(:keyboard).name }
+    assert_select "details.recent-additions", count: 0
+
+    get things_path, params: { filter: { links: "yes" } }
+    assert_select "details.recent-additions", count: 0
+  end
+
   test "show displays linked UniFi hosts" do
     get thing_path(things(:router))
 
