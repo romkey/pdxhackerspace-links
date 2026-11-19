@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.18.1] - 2026-11-19
+
 ### Security
 
 - Ruby 4.0.10, which fixes vulnerabilities in regular expressions and string case conversion
