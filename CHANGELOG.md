@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-11-19
+
 ### Added
 
 - **Most recent additions** at the top of the Things list: the five newest things, in a section you can collapse. It stays collapsed or open in that browser, and hides while searching, filtering, or past the first page
