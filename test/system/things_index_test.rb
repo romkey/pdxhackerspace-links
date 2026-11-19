@@ -37,4 +37,17 @@ class ThingsIndexTest < ApplicationSystemTestCase
     assert_selector ".filter-chip", minimum: 1
     assert_selector "#things-filters .filter-chip", minimum: 1
   end
+
+  test "recent additions can be collapsed and stay collapsed" do
+    page.driver.browser.manage.window.resize_to(1440, 900)
+    visit things_path
+
+    assert_selector "details.recent-additions[open] li", minimum: 1
+    find("details.recent-additions summary").click
+    assert_no_selector "details.recent-additions[open]"
+
+    visit things_path
+    assert_selector "details.recent-additions"
+    assert_no_selector "details.recent-additions[open]"
+  end
 end

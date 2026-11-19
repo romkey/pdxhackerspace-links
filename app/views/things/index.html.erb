@@ -69,6 +69,7 @@
              data-action="input->debounced-submit#submit">
     <% end %>
 
+    <%= render "recent_additions", things: @recent_things if @recent_things.present? %>
     <%= render "filters_panel" %>
     <%= render "index_results" %>
   <% end %>

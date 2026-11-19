@@ -1,0 +1,21 @@
+<details class="recent-additions mb-3"
+         open
+         data-controller="persisted-details"
+         data-persisted-details-key-value="things.recentAdditions.open"
+         data-action="toggle->persisted-details#save">
+  <summary class="text-13 fw-medium text-secondary">
+    Most recent additions
+  </summary>
+  <ul class="list-unstyled mb-0 mt-2 recent-additions-list">
+    <% things.each do |thing| %>
+      <li>
+        <%= link_to thing_path(thing),
+                    class: "d-flex align-items-baseline justify-content-between gap-2 text-decoration-none",
+                    data: { turbo_frame: "_top" } do %>
+          <span class="text-body text-truncate"><%= thing.name %></span>
+          <span class="text-12 text-secondary flex-shrink-0"><%= relative_time(thing.created_at) %></span>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+</details>
