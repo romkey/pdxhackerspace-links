@@ -3,7 +3,7 @@
 [![CI](https://github.com/romkey/pdxhackerspace-links/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/romkey/pdxhackerspace-links/actions/workflows/ci.yml)
 [![Lint](https://github.com/romkey/pdxhackerspace-links/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/romkey/pdxhackerspace-links/actions/workflows/lint.yml)
 [![Release](https://github.com/romkey/pdxhackerspace-links/actions/workflows/release.yml/badge.svg)](https://github.com/romkey/pdxhackerspace-links/actions/workflows/release.yml)
-[![Ruby](https://img.shields.io/badge/Ruby-4.0.5-red?logo=ruby&logoColor=white)](https://www.ruby-lang.org/)
+[![Ruby](https://img.shields.io/badge/Ruby-4.0.10-red?logo=ruby&logoColor=white)](https://www.ruby-lang.org/)
 [![Rails](https://img.shields.io/badge/Rails-8.1-red?logo=rubyonrails&logoColor=white)](https://rubyonrails.org/)
 [![License: MIT](https://img.shields.io/github/license/romkey/pdxhackerspace-links)](https://github.com/romkey/pdxhackerspace-links/blob/main/LICENSE)
 
@@ -12,18 +12,18 @@ A Rails application for managing links. This repository contains the application
 ## Requirements
 
 - Docker and Docker Compose
-- Ruby 4.0.5 (via Docker for local development)
-- PostgreSQL 16
+- Ruby 4.0.10 (via Docker for local development)
+- PostgreSQL 18
 - Redis 8
-- Node.js (for CSS builds; handled in Docker images)
+- Node.js 26.13.1 (for CSS builds; handled in Docker images)
 
 ## Stack
 
 | Component | Version |
 |-----------|---------|
-| Ruby | 4.0.5 |
-| Rails | 8.1 |
-| PostgreSQL | 16 |
+| Ruby | 4.0.10 |
+| Rails | 8.1.4 |
+| PostgreSQL | 18 |
 | Redis | 8 |
 | Sidekiq | 8 |
 | Bootstrap | 5.3 |
@@ -132,7 +132,7 @@ Services:
 
 - **web** — Rails on port 3000
 - **sidekiq** — background job worker
-- **postgres** — PostgreSQL 16
+- **postgres** — PostgreSQL 18
 - **redis** — Redis 8
 
 ## Testing

@@ -8,9 +8,9 @@ alwaysApply: false
 
 ## Docker
 
-- **Base image:** `ruby:4.0.5-slim` with multi-stage build
-- **Node:** 24.x for asset compilation in production Dockerfile
-- **Yarn:** Use `yarn install --immutable` in production builds
+- **Base image:** `ruby:4.0.10-slim` with multi-stage build
+- **Node:** 26.13.1, copied from the official image, for asset compilation
+- **Yarn:** Use `yarn install --frozen-lockfile` in image builds
 - **Assets:** Precompiled with `SECRET_KEY_BASE_DUMMY=1`
 - **Runtime:** Non-root `rails` user; entrypoint at `bin/docker-entrypoint`
 - **Version:** Pass `APP_VERSION` build arg from git tag in release workflow
@@ -35,7 +35,7 @@ Use `-f docker-compose.<stack>.yml`; each stack sets a top-level `name:` so volu
 
 ## GitHub Actions
 
-- **ci.yml:** Push/PR to `main` and `staging`; PostgreSQL 16 and Redis 8 services; runs Brakeman, bundler-audit, and `bin/rails test`
+- **ci.yml:** Push/PR to `main` and `staging`; PostgreSQL 18 and Redis 8 services; runs Brakeman, bundler-audit, and `bin/rails test`
 - **lint.yml:** Push/PR to `main` and `staging`; runs RuboCop with a cached `tmp/rubocop` root
 - **staging.yml:** Push to `staging`; tests then builds/pushes `:staging` image to `ghcr.io`
 - **release.yml:** Push tag `v*`; tests then builds/pushes semver + `:latest` images with `APP_VERSION` from tag

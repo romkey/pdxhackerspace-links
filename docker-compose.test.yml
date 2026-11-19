@@ -25,8 +25,7 @@ services:
       context: .
       dockerfile: Dockerfile.test
     command: >
-      bash -c "export PATH=/usr/local/node/bin:$$PATH &&
-      bundle install &&
+      bash -c "bundle install &&
       yarn install --frozen-lockfile &&
       yarn build:css &&
       ./bin/rails db:prepare &&
