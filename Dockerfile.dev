@@ -1,7 +1,11 @@
 # syntax=docker/dockerfile:1
 
-ARG RUBY_VERSION=4.0.9
-ARG NODE_VERSION=26.13.0
+ARG RUBY_VERSION=4.0.10
+ARG NODE_VERSION=26.13.1
+
+FROM node:${NODE_VERSION}-bookworm-slim AS node
+RUN npm install -g yarn@1.22.22
+
 FROM ruby:${RUBY_VERSION}-slim
 
 WORKDIR /rails
@@ -10,12 +14,8 @@ RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential curl cups-client git libpq-dev libpoppler-glib8 libusb-1.0-0 libvips poppler-utils libyaml-dev pkg-config python-is-python3 && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-ARG NODE_VERSION
-ENV PATH=/usr/local/node/bin:$PATH
-RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ && \
-    /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
-    rm -rf /tmp/node-build-master && \
-    npm install -g yarn@1.22.22
+COPY --from=node /usr/local/ /opt/node/
+ENV PATH=/opt/node/bin:$PATH
 
 ENV BUNDLE_PATH=/usr/local/bundle
 

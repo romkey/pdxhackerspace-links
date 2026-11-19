@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Security
+
+- Ruby 4.0.10, which fixes vulnerabilities in regular expressions and string case conversion
+
+### Changed
+
+- Docker images use Node.js 26.13.1, the same version as CI and local development, taken from the official Node image instead of compiling Node during the image build
+- Stylesheet build dependencies are updated, including the browser data Autoprefixer uses
+
 ## [0.18.0] - 2026-11-19
 
 ### Added
