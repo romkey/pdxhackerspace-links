@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.18.2] - 2026-11-20
+
 ### Changed
 
 - Dependencies refreshed: the Pagy pagination gem and Autoprefixer, along with the browser data Autoprefixer uses
