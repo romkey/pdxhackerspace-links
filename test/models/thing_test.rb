@@ -524,4 +524,30 @@ class ThingTest < ActiveSupport::TestCase
 
     assert_equal linked_at, thing.thing_template_linked_at
   end
+
+  test "add_training_to_label_name starts from the name or label name and never doubles up" do
+    thing = Thing.new(name: "Laser cutter")
+    thing.add_training_to_label_name
+    assert_equal "Laser cutter - TRAINING REQUIRED", thing.label_name
+
+    thing.add_training_to_label_name
+    assert_equal "Laser cutter - TRAINING REQUIRED", thing.label_name
+
+    thing.label_name = "Laser"
+    thing.add_training_to_label_name
+    assert_equal "Laser - TRAINING REQUIRED", thing.label_name
+
+    thing.label_name = "Laser (training required)"
+    thing.add_training_to_label_name
+    assert_equal "Laser (training required)", thing.label_name
+  end
+
+  test "saving with training required off keeps the training label" do
+    router = things(:router)
+    router.update!(training_required: true, label_name: "Router - TRAINING REQUIRED")
+
+    router.update!(training_required: false)
+
+    assert_equal "Router - TRAINING REQUIRED", router.reload.label_name
+  end
 end

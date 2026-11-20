@@ -166,6 +166,7 @@ module ThingTemplates
       Refresh.call(template: @template)
 
       assert @thing.reload.training_required?
+      assert_equal "Lamp - TRAINING REQUIRED", @thing.label_name
     end
   end
 end

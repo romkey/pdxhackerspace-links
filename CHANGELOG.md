@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- Checking **Training required** adds **TRAINING REQUIRED** to the thing's label name, starting from its name when the label name is blank, so printed labels say so. Unchecking it leaves the label alone; edit or remove the text like any other label name. Building, applying, or refreshing from a template that turns training required on does the same
+
 ### Fixed
 
 - Applying a template marked **Training required** to an existing thing now switches training required on for that thing; before, it was skipped because the thing's box was already unchecked

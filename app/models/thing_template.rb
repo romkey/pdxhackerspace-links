@@ -45,6 +45,7 @@ class ThingTemplate < ApplicationRecord
 
   def build_thing
     thing = Thing.new(name: thing_name, thing_template: self, **FIELDS.index_with { |field| self[field] })
+    thing.add_training_to_label_name if thing.training_required?
     standard_links.each do |data|
       thing.link_for(data["link_type"]).assign_attributes(url: data["url"], note: data["note"])
     end
@@ -65,6 +66,7 @@ class ThingTemplate < ApplicationRecord
       next if thing[field] == false && APPLY_WHEN_OFF.exclude?(field)
 
       thing[field] = self[field]
+      thing.add_training_to_label_name if field == :training_required
       filled << self.class.field_label(field)
     end
 
