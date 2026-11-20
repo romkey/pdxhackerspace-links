@@ -1,4 +1,6 @@
 <% content_for :title, "API key created" %>
+<%# Keeps Turbo from snapshotting the page, so Back can't bring the token back. %>
+<% content_for :head, tag.meta(name: "turbo-cache-control", content: "no-cache") %>
 
 <%= settings_frame do %>
   <div class="mb-3">

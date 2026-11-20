@@ -39,6 +39,7 @@ class Settings::ApiKeysControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :created
     assert_equal "no-store", response.headers["Cache-Control"]
+    assert_select "head meta[name=turbo-cache-control][content=no-cache]"
     token = css_select("input[data-api-key-token]").first["value"]
     key = ApiKey.find_by!(name: "New ingester")
     assert_equal ApiKey.digest(token), key.token_digest
