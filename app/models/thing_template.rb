@@ -11,6 +11,9 @@ class ThingTemplate < ApplicationRecord
     public_access: "Public",
     training_required: "Training required"
   }.freeze
+  # Flags a template can switch on when applied to a thing that has them off.
+  # Public stays out: applying a template should never expose a thing.
+  APPLY_WHEN_OFF = %i[training_required].freeze
   JOURNAL_FIELDS = (%w[name thing_name] + FIELDS.map(&:to_s)).freeze
 
   has_many :things, dependent: :nullify
@@ -58,7 +61,8 @@ class ThingTemplate < ApplicationRecord
     filled = []
 
     FIELDS.each do |field|
-      next if self[field].blank? || thing[field].present? || thing[field] == false
+      next if self[field].blank? || thing[field].present?
+      next if thing[field] == false && APPLY_WHEN_OFF.exclude?(field)
 
       thing[field] = self[field]
       filled << self.class.field_label(field)

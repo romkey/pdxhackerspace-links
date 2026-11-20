@@ -335,6 +335,8 @@ After enabling photo variants on an existing install, run `bin/rails photos:back
 
 A thing made from a template remembers it and links to it from its page. **Refresh things** on the template’s settings page (or in its ⋯ menu) brings those things up to date: blank fields and blank or missing links are filled in from the template, and values the thing still holds from an earlier version of the template are updated. Anything changed on the thing itself is left alone. Earlier versions are read from the template’s journal, counting only versions in effect when the thing was made or later.
 
+Applying a template to an existing thing fills only its blank fields and links, with one exception: a template marked **Training required** switches that on for the thing. **Public** is never switched on by applying a template.
+
 ### History
 
 Things and templates keep a journal (`journal_entries`) of their creation and every change after it: who made it, which fields changed from what to what, and which links were added, changed, or removed. Duplicates, merges, and template refreshes are noted too. The latest 50 entries show under **History** on a thing’s page and a template’s settings page, for signed-in users only.

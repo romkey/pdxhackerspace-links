@@ -54,4 +54,23 @@ class ThingTemplateApplicationsControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to login_path
   end
+
+  test "create switches on training required and fills the request training link" do
+    router = things(:router)
+    thing_templates(:pi).update!(
+      training_required: true,
+      links: thing_templates(:pi).links + [ { "link_type" => "training", "url" => "https://example.com/training/pi" } ]
+    )
+
+    get new_thing_template_application_path(router, template: thing_templates(:pi).id)
+    assert_select "li", text: "Training required"
+    assert_select "li", text: "Request training"
+
+    post thing_template_application_path(router), params: { template: thing_templates(:pi).id }
+
+    router.reload
+    assert router.training_required?
+    assert_equal "https://example.com/training/pi", router.link_for("training").url
+    assert_equal [ false, true ], router.journal_entries.sole.field_changes["training_required"]
+  end
 end

@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Applying a template marked **Training required** to an existing thing now switches training required on for that thing; before, it was skipped because the thing's box was already unchecked
+- **Settings → Templates** has a **Training required** checkbox, so it can be set or cleared on a template directly
+
 ## [0.20.0] - 2026-11-20
 
 ### Added

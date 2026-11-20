@@ -72,4 +72,13 @@ class Settings::ThingTemplatesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "team", thing.reload.owner
     assert_equal users(:local_admin), thing.journal_entries.first.user
   end
+
+  test "update sets training required on the template" do
+    get edit_settings_thing_template_path(thing_templates(:pi))
+    assert_select "input[type=checkbox][name=?]", "thing_template[training_required]"
+
+    patch settings_thing_template_path(thing_templates(:pi)), params: { thing_template: { training_required: "1" } }
+
+    assert thing_templates(:pi).reload.training_required?
+  end
 end
