@@ -13,6 +13,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Changed
 
 - Adding, editing, or removing a link or related thing now updates the thing's last-changed time
+
+## [0.18.2] - 2026-11-20
+
+### Changed
+
 - Dependencies refreshed: the Pagy pagination gem and Autoprefixer, along with the browser data Autoprefixer uses
 
 ## [0.18.1] - 2026-11-19
