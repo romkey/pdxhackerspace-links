@@ -6,7 +6,7 @@ class ThingLink < ApplicationRecord
     "ar" => "AR"
   }.freeze
 
-  belongs_to :thing
+  belongs_to :thing, touch: true
 
   enum :link_type, {
     wiki: "wiki",

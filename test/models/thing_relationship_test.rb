@@ -49,4 +49,16 @@ class ThingRelationshipTest < ActiveSupport::TestCase
     assert_not keyboard.related_things.include?(router)
     assert_not router.related_things.include?(keyboard)
   end
+
+  test "relating things marks both as updated" do
+    keyboard = things(:keyboard)
+    router = things(:router)
+    ThingRelationship.where(thing: [ keyboard, router ]).delete_all
+    Thing.where(id: [ keyboard.id, router.id ]).update_all(updated_at: 1.day.ago)
+
+    ThingRelationship.create!(thing: keyboard, related_thing: router, note: "pair")
+
+    assert_operator keyboard.reload.updated_at, :>, 1.hour.ago
+    assert_operator router.reload.updated_at, :>, 1.hour.ago
+  end
 end

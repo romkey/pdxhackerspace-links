@@ -1,0 +1,53 @@
+<% content_for :title, "API keys" %>
+
+<%= settings_frame do %>
+  <div class="d-flex align-items-end justify-content-between mb-3">
+    <div>
+      <h1 class="h-page-title mb-0">API keys</h1>
+      <div class="text-13 text-secondary mt-1">
+        Keys for the read-only API at <code class="text-12"><%= api_v1_things_url %></code>. They don’t expire; delete a key to revoke it.
+      </div>
+    </div>
+    <div>
+      <%= link_to "+ Add API key", new_settings_api_key_path, class: "btn btn-primary btn-sm" %>
+    </div>
+  </div>
+
+  <% if @api_keys.any? %>
+    <div class="table-responsive">
+      <table class="table table-compact table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Key</th>
+            <th>Created</th>
+            <th>Last used</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @api_keys.each do |api_key| %>
+            <tr>
+              <td class="fw-medium"><%= api_key.name %></td>
+              <td><code class="text-12"><%= api_key.token_prefix %>…</code></td>
+              <td class="text-secondary text-12">
+                <%= l(api_key.created_at, format: :short) %>
+                <% if api_key.user %>by <%= api_key.user.name %><% end %>
+              </td>
+              <td class="text-secondary text-12">
+                <%= api_key.last_used_at ? "#{time_ago_in_words(api_key.last_used_at)} ago" : "Never" %>
+              </td>
+              <td class="text-end">
+                <%= button_to "Delete", settings_api_key_path(api_key), method: :delete,
+                              class: "btn btn-outline-danger btn-sm",
+                              form: { data: { turbo_confirm: "Delete #{api_key.name}? Anything using it will stop working." } } %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-secondary text-13 mb-0">No API keys yet. Add one to let another service, such as a RAG ingester, read things and their links.</p>
+  <% end %>
+<% end %>
