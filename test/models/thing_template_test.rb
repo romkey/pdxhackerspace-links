@@ -161,4 +161,13 @@ class ThingTemplateTest < ActiveSupport::TestCase
     assert_empty template.apply_to(router)
     assert_not router.changed?
   end
+
+  test "captures training required and builds things with it" do
+    router = things(:router)
+    router.update!(training_required: true)
+    template = ThingTemplate.from_thing(router, name: "Trained router")
+
+    assert template.training_required?
+    assert template.build_thing.training_required?
+  end
 end

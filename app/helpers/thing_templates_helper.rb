@@ -4,7 +4,7 @@ module ThingTemplatesHelper
     rows = [ [ "Name", template.thing_name ] ]
     ThingTemplate::FIELDS.each do |field|
       value = template[field]
-      value = value ? "Yes" : nil if field == :public_access
+      value = value ? "Yes" : nil if field.in?(%i[public_access training_required])
       rows << [ ThingTemplate.field_label(field), value ]
     end
     template.standard_links.each do |data|

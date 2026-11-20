@@ -24,7 +24,7 @@ module ThingsHelper
     { key: "hardware", label: "Hardware", attributes: %i[manufacturer model serial_number manufacturer_url] },
     { key: "network", label: "Network", attributes: %i[ip_address reserved_ip_address network_name hostname ieee_address ble_beacon_uuid] },
     { key: "visibility", label: "Visibility", attributes: %i[public_access] },
-    { key: "links", label: "Links", attributes: %i[links thing_relationships] },
+    { key: "links", label: "Links", attributes: %i[links thing_relationships training_required] },
     { key: "photos", label: "Photos", optional: true, attributes: %i[photos] },
     { key: "ar", label: "AR", optional: true, attributes: %i[ar_anchor ar_anchor_note] }
   ].freeze

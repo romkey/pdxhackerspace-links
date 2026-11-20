@@ -1,0 +1,11 @@
+<% if thing.training_required? %>
+  <% training_href = thing.links.find(&:link_training?)&.safe_href %>
+  <div class="training-required-badge mb-3" role="alert">
+    <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+    <span class="training-required-badge-text">TRAINING REQUIRED</span>
+    <% if training_href %>
+      <%= link_to "Request training", training_href, target: "_blank", rel: "noopener",
+                  class: "btn btn-light btn-sm fw-semibold ms-auto" %>
+    <% end %>
+  </div>
+<% end %>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_19_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_20_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -164,7 +164,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_000001) do
     t.string "title"
     t.datetime "updated_at", null: false
     t.string "url"
-    t.index ["thing_id", "link_type"], name: "index_thing_links_on_thing_id_and_standard_link_type", unique: true, where: "((link_type)::text = ANY (ARRAY[('wiki'::character varying)::text, ('slack'::character varying)::text, ('where'::character varying)::text, ('ar'::character varying)::text]))"
+    t.index ["thing_id", "link_type"], name: "index_thing_links_on_thing_id_and_standard_link_type", unique: true, where: "((link_type)::text = ANY ((ARRAY['wiki'::character varying, 'slack'::character varying, 'where'::character varying, 'ar'::character varying, 'training'::character varying])::text[]))"
     t.index ["thing_id", "position"], name: "index_thing_links_on_thing_id_and_position"
     t.index ["thing_id"], name: "index_thing_links_on_thing_id"
   end
@@ -193,6 +193,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_000001) do
     t.jsonb "links", default: [], null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "training_required", default: false, null: false
     t.index "lower((name)::text)", name: "index_thing_templates_on_lower_name", unique: true
   end
 
@@ -225,6 +226,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_000001) do
     t.datetime "thing_template_linked_at"
     t.string "reserved_ip_address"
     t.string "network_name"
+    t.boolean "training_required", default: false, null: false
     t.index ["ble_beacon_uuid"], name: "index_things_on_ble_beacon_uuid", unique: true, where: "(ble_beacon_uuid IS NOT NULL)"
     t.index ["ieee_address"], name: "index_things_on_ieee_address", unique: true, where: "(ieee_address IS NOT NULL)"
     t.index ["integration_source"], name: "index_things_on_integration_source"
@@ -234,6 +236,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_000001) do
     t.index ["serial_number"], name: "index_things_on_serial_number", where: "(serial_number IS NOT NULL)"
     t.index ["slug"], name: "index_things_on_slug", unique: true, where: "(slug IS NOT NULL)"
     t.index ["thing_template_id"], name: "index_things_on_thing_template_id"
+    t.index ["training_required"], name: "index_things_on_training_required", where: "training_required"
   end
 
   create_table "unifi_controllers", force: :cascade do |t|

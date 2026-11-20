@@ -32,6 +32,8 @@
     </div>
   </div>
 
+  <%= render "training_required", thing: @thing %>
+
   <%= render "show_actions", thing: @thing, printers: @printers %>
 
   <% if @tracked_redirect %>

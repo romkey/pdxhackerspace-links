@@ -4,11 +4,12 @@
 class ThingTemplate < ApplicationRecord
   include Journaled
 
-  FIELDS = %i[description notes owner manufacturer model manufacturer_url public_access].freeze
+  FIELDS = %i[description notes owner manufacturer model manufacturer_url public_access training_required].freeze
   LINK_TYPES = (ThingLink::STANDARD_TYPES.keys - %w[where]).freeze
   FIELD_LABELS = {
     manufacturer_url: "Manufacturer link",
-    public_access: "Public"
+    public_access: "Public",
+    training_required: "Training required"
   }.freeze
   JOURNAL_FIELDS = (%w[name thing_name] + FIELDS.map(&:to_s)).freeze
 

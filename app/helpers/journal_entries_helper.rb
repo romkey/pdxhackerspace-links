@@ -15,7 +15,8 @@ module JournalEntriesHelper
     "manufacturer_url" => "Manufacturer link",
     "ble_beacon_uuid" => "BLE beacon UUID",
     "ar_anchor_note" => "AR marker note",
-    "public_access" => "Public"
+    "public_access" => "Public",
+    "training_required" => "Training required"
   }.freeze
 
   JOURNAL_VALUE_LENGTH = 80

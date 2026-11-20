@@ -429,6 +429,25 @@
   }
 }
 
+// Big red banner on a thing's page when it needs training before use.
+.training-required-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  border-radius: var(--bs-border-radius-lg);
+  background: #dc3545;
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+
+  .bi {
+    font-size: 1.75rem;
+  }
+}
+
 // A Link button on the UniFi hosts page that opens a thing search in place.
 .unifi-host-link > summary {
   list-style: none;

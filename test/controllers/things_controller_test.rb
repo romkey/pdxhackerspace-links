@@ -1605,4 +1605,45 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", edit_settings_thing_template_path(thing_templates(:pi)), count: 0
     assert_select ".journal", count: 0
   end
+
+  test "update marks a thing as needing training and saves the request training link" do
+    patch thing_path(things(:router)), params: {
+      thing: {
+        training_required: "1",
+        links_attributes: { "0" => { link_type: "training", url: "https://example.com/training/router" } }
+      }
+    }
+
+    router = things(:router).reload
+    assert router.training_required?
+    assert_equal "https://example.com/training/router", router.links.find_by!(link_type: "training").url
+  end
+
+  test "edit shows the training required checkbox with the request training link" do
+    get edit_thing_path(things(:router))
+
+    assert_response :success
+    assert_select "section#links input[type=url][name^='thing[links_attributes]']", minimum: 1
+    assert_select "section#links input[type=checkbox][name=?]", "thing[training_required]"
+    assert_select "section#links label", text: "Request training"
+  end
+
+  test "show displays a training required badge linked to request training" do
+    router = things(:router)
+    router.update!(training_required: true)
+    router.link_for("training").update!(url: "https://example.com/training/router")
+
+    get thing_path(router)
+
+    assert_response :success
+    assert_select ".training-required-badge", text: /TRAINING REQUIRED/
+    assert_select ".training-required-badge a[href=?]", "https://example.com/training/router", text: "Request training"
+  end
+
+  test "show omits the training required badge when training is not required" do
+    get thing_path(things(:router))
+
+    assert_response :success
+    assert_select ".training-required-badge", count: 0
+  end
 end

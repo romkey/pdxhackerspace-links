@@ -424,6 +424,7 @@ class ThingsController < ApplicationController
       :ble_beacon_uuid,
       :ar_anchor_note,
       :public_access,
+      :training_required,
       :ar_anchor,
       :thing_template_id,
       photos: [],
