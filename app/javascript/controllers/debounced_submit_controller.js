@@ -7,8 +7,11 @@ import { Controller } from "@hotwired/stimulus"
 // field is carried across the frame render: the new field gets the user's
 // current text (including anything typed while the request was in flight),
 // focus and the caret position. If the text has moved on since the request
-// was sent, another search is queued.
+// was sent, another search is queued. Staleness is judged against what was
+// submitted, not what the server echoed back, because the server may
+// normalize the value (e.g. strip whitespace).
 let pendingRestore = null
+let lastSubmitted = null
 
 export default class extends Controller {
   static values = { delay: { type: Number, default: 300 } }
@@ -25,6 +28,7 @@ export default class extends Controller {
   submit() {
     if (this.timeout) clearTimeout(this.timeout)
     this.timeout = setTimeout(() => {
+      lastSubmitted = new FormData(this.element)
       this.element.requestSubmit()
     }, this.delayValue)
   }
@@ -37,13 +41,14 @@ export default class extends Controller {
     const newField = event.detail.newFrame?.querySelector(`#${CSS.escape(field.id)}`)
     if (!newField) return
 
+    const submittedValue = lastSubmitted?.get(field.name)
     pendingRestore = {
       id: field.id,
-      renderedValue: newField.value,
       selectionStart: field.selectionStart,
       selectionEnd: field.selectionEnd,
-      stale: newField.value !== field.value
+      stale: submittedValue != null && submittedValue !== field.value
     }
+    lastSubmitted = null
     newField.value = field.value
   }
 
