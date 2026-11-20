@@ -1,0 +1,11 @@
+# Tokens are "links_<fixture name>_token", e.g. links_ingester_token.
+ingester:
+  name: RAG ingester
+  token_digest: <%= ApiKey.digest("links_ingester_token") %>
+  token_prefix: links_ingest
+  user: local_admin
+
+unused:
+  name: Unused
+  token_digest: <%= ApiKey.digest("links_unused_token") %>
+  token_prefix: links_unused

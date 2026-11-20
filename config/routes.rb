@@ -6,6 +6,12 @@ Rails.application.routes.draw do
 
   root "things#index"
 
+  namespace :api do
+    namespace :v1 do
+      resources :things, only: %i[index show]
+    end
+  end
+
   resources :things do
     collection do
       get "by_beacon/:ble_beacon_uuid", action: :by_beacon, as: :by_beacon
@@ -35,6 +41,7 @@ Rails.application.routes.draw do
     root to: "site#show"
     resource :site, only: %i[show update], controller: "site"
     resource :scan_visits, only: %i[show], controller: "scan_visits"
+    resources :api_keys, only: %i[index new create destroy]
     resources :thing_templates, only: %i[index edit update destroy], path: "templates" do
       member do
         post :refresh

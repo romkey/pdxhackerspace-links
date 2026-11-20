@@ -1,6 +1,8 @@
 class User < ApplicationRecord
   has_secure_password validations: false
 
+  has_many :api_keys, dependent: :nullify
+
   validates :email, presence: true, uniqueness: { case_sensitive: false }
   validates :name, presence: true
   validates :password, presence: true, if: :local_account?

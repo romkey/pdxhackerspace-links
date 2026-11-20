@@ -1,0 +1,32 @@
+<% content_for :title, "New API key" %>
+
+<%= settings_frame do %>
+  <div class="mb-3">
+    <div class="text-12 text-secondary mb-1">
+      <%= link_to "API keys", settings_api_keys_path, class: "text-secondary text-decoration-none" %>
+      <span class="mx-1">/</span>
+      <span class="text-body">New API key</span>
+    </div>
+    <h1 class="h-page-title mb-0">New API key</h1>
+  </div>
+
+  <%= form_with model: @api_key, url: settings_api_keys_path, class: "vstack gap-3" do |form| %>
+    <% if @api_key.errors.any? %>
+      <div class="alert alert-danger text-13">
+        <%= @api_key.errors.full_messages.to_sentence %>
+      </div>
+    <% end %>
+
+    <div>
+      <%= form.label :name, class: "form-label" %>
+      <%= form.text_field :name, class: "form-control", required: true, autofocus: true,
+                                 placeholder: "e.g. RAG ingester" %>
+      <div class="form-text">What will use this key, so you know which one to delete later.</div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <%= form.submit "Create API key", class: "btn btn-primary btn-sm" %>
+      <%= link_to "Cancel", settings_api_keys_path, class: "btn btn-outline-secondary btn-sm" %>
+    </div>
+  <% end %>
+<% end %>

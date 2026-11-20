@@ -1,5 +1,5 @@
 class ThingRelationship < ApplicationRecord
-  belongs_to :thing
+  belongs_to :thing, touch: true
   belongs_to :related_thing, class_name: "Thing"
 
   attr_accessor :syncing_inverse

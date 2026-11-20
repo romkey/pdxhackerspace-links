@@ -61,4 +61,18 @@ class ThingLinkTest < ActiveSupport::TestCase
     link.url = "https://example.com/path"
     assert_equal "https://example.com/path", link.safe_href
   end
+
+  test "changing a link marks its thing as updated" do
+    thing = things(:keyboard)
+    thing.update_columns(updated_at: 1.day.ago)
+
+    travel 1.minute do
+      thing_links(:keyboard_wiki).update!(url: "https://wiki.example.com/keyboard-v2")
+    end
+    assert_operator thing.reload.updated_at, :>, 1.hour.ago
+
+    thing.update_columns(updated_at: 1.day.ago)
+    thing_links(:keyboard_wiki).destroy!
+    assert_operator thing.reload.updated_at, :>, 1.hour.ago
+  end
 end

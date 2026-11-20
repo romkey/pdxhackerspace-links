@@ -1,0 +1,30 @@
+<% content_for :title, "API key created" %>
+
+<%= settings_frame do %>
+  <div class="mb-3">
+    <div class="text-12 text-secondary mb-1">
+      <%= link_to "API keys", settings_api_keys_path, class: "text-secondary text-decoration-none" %>
+      <span class="mx-1">/</span>
+      <span class="text-body"><%= @api_key.name %></span>
+    </div>
+    <h1 class="h-page-title mb-0">API key created</h1>
+  </div>
+
+  <div class="alert alert-warning text-13">
+    Copy this key now. It is only shown once; if you lose it, delete it and create another.
+  </div>
+
+  <div class="input-group mb-3">
+    <input type="text" class="form-control font-monospace" value="<%= @api_key.token %>" readonly
+           aria-label="API key" data-api-key-token>
+    <button type="button" class="btn btn-outline-secondary" title="Copy"
+            data-controller="clipboard" data-clipboard-text-value="<%= @api_key.token %>" data-action="clipboard#copy">
+      <i class="bi bi-clipboard"></i>
+    </button>
+  </div>
+
+  <div class="h-section-label mb-2">Try it</div>
+  <pre class="text-12 bg-body-tertiary border rounded p-2 mb-3"><code>curl -H "Authorization: Bearer <%= @api_key.token %>" <%= api_v1_things_url %></code></pre>
+
+  <%= link_to "Done", settings_api_keys_path, class: "btn btn-primary btn-sm" %>
+<% end %>

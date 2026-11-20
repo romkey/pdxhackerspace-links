@@ -272,6 +272,32 @@ links_sidekiq_queue_latency_seconds > 300
 absent(links_sidekiq_processes) or sum(links_sidekiq_processes) == 0
 ```
 
+### API
+
+A read-only JSON API lets another service — a RAG ingester, say — read every thing and its links. Create a key under **Settings → API keys**; the key is shown once, when it is created, and only a digest of it is stored. Keys don't expire: delete one to revoke it. The list shows when each key was last used.
+
+Send the key as a bearer token. A signed-in session, the network whitelist, a query parameter, or basic auth are not accepted; a missing, wrong, or deleted key gets `401`.
+
+```bash
+curl -H "Authorization: Bearer $LINKS_API_KEY" https://links.example.com/api/v1/things
+```
+
+| Endpoint | Returns |
+|----------|---------|
+| `GET /api/v1/things` | `{ "things": [...], "pagination": { "page", "per_page", "count", "pages", "next" } }`, ordered by `id`. Takes `page`, `per_page` (default 100, at most 500), and `updated_since` (an ISO 8601 time, e.g. `2026-11-01T00:00:00Z`; anything else gets `400`) |
+| `GET /api/v1/things/:id` | `{ "thing": {...} }`. `:id` may be the thing's id, short URL key, slug, or a key or slug retired by a merge. Unknown things get `404` |
+
+Each thing carries all of its fields (name, label name, description, notes, owner, hardware, network, and identifier fields, labelled time, scan and visit counts, timestamps), its page and short URLs, and:
+
+- `links` — every link with a URL or note: `type` (`wiki`, `slack`, `where`, `ar`, or `custom`), `title`, `url`, `note`
+- `related_things` — id, key, slug, name, URL, and the relationship note
+- `aliases` — keys and slugs retired into it by merges
+- `template` — the template it was made from, if any
+- `photos` and `ar_anchor` — file name, type, size, and download URL
+- `integrations` — the linked UniFi devices and hosts, Zigbee2MQTT devices, and Prusa Connect printers, with their descriptive fields (not raw payloads)
+
+Adding, editing, or removing a link or related thing counts as a change to the thing, so `updated_since` picks it up. Deleted things simply stop appearing; run a full pass now and then to drop them from the index.
+
 ## Architecture
 
 ```
