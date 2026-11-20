@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-11-20
+
 ### Added
 
 - **Read-only API** at `/api/v1/things` for services such as a RAG ingester: every thing with all its fields, links, related things, aliases, template, photos, and linked integration devices, paginated and filterable by `updated_since`. Authenticated with **API keys** managed under **Settings → API keys**; keys don't expire and are revoked by deleting them. See **API** in the README
