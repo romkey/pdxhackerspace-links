@@ -28,9 +28,16 @@ export default class extends Controller {
   submit() {
     if (this.timeout) clearTimeout(this.timeout)
     this.timeout = setTimeout(() => {
-      lastSubmitted = new FormData(this.element)
       this.element.requestSubmit()
     }, this.delayValue)
+  }
+
+  // submit — fires for both the debounced requestSubmit() and a native
+  // submit such as pressing Enter.
+  recordSubmission() {
+    if (this.timeout) clearTimeout(this.timeout)
+    this.timeout = null
+    lastSubmitted = new FormData(this.element)
   }
 
   // turbo:before-frame-render@document

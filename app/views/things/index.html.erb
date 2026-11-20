@@ -41,7 +41,7 @@
 
     <%= form_with url: things_path, method: :get, class: "mb-3",
                   data: { controller: "debounced-submit", debounced_submit_delay_value: 300,
-                          action: "turbo:before-frame-render@document->debounced-submit#preserveFocusedField" } do %>
+                          action: "submit->debounced-submit#recordSubmission turbo:before-frame-render@document->debounced-submit#preserveFocusedField" } do %>
       <% things_search_hidden_params.each do |key, value| %>
         <% if key == :filter && value.is_a?(Hash) %>
           <% value.each do |filter_key, filter_value| %>
