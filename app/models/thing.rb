@@ -14,7 +14,7 @@ class Thing < ApplicationRecord
   RESERVED_KEYS = (%w[login logout settings sidekiq things up auth] + RESERVED_SLUGS).freeze
   JOURNAL_FIELDS = %w[
     name label_name slug description notes owner ip_address reserved_ip_address network_name hostname ieee_address manufacturer model
-    serial_number manufacturer_url ble_beacon_uuid ar_anchor_note public_access
+    serial_number manufacturer_url ble_beacon_uuid ar_anchor_note public_access training_required
   ].freeze
 
   belongs_to :thing_template, optional: true
@@ -69,6 +69,7 @@ class Thing < ApplicationRecord
   validate :acceptable_ar_anchor
 
   scope :publicly_accessible, -> { where(public_access: true) }
+  scope :training_required, -> { where(training_required: true) }
   scope :labelled, -> { where.not(labelled_at: nil) }
   scope :unlabelled, -> { where(labelled_at: nil) }
 

@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- **Training required**: a checkbox on a thing's Links step marks it as needing training before use, and its page shows a big red **TRAINING REQUIRED** banner. A new standard **Request training** link sits alongside Wiki, Slack, Where, and AR; when it has a URL, the banner links to it. Templates, merges, the journal, and the API include the new flag
+
 ## [0.19.0] - 2026-11-20
 
 ### Added

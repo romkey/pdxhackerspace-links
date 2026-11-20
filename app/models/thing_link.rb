@@ -3,7 +3,8 @@ class ThingLink < ApplicationRecord
     "wiki" => "Wiki",
     "slack" => "Slack",
     "where" => "Where",
-    "ar" => "AR"
+    "ar" => "AR",
+    "training" => "Request training"
   }.freeze
 
   belongs_to :thing, touch: true
@@ -13,6 +14,7 @@ class ThingLink < ApplicationRecord
     slack: "slack",
     where: "where",
     ar: "ar",
+    training: "training",
     custom: "custom"
   }, prefix: :link
 

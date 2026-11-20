@@ -142,7 +142,7 @@
     <div class="vstack gap-4">
       <div>
         <div class="h-section-label mb-2">Standard links</div>
-        <p class="text-secondary text-13 mb-3">Optional links shared by every thing: Wiki, Slack, Where, and AR.</p>
+        <p class="text-secondary text-13 mb-3">Optional links shared by every thing: Wiki, Slack, Where, AR, and Request training.</p>
         <div class="vstack gap-2">
           <% thing.standard_links.each do |link| %>
             <%= form.fields_for :links, link do |link_form| %>
@@ -157,6 +157,13 @@
                   <%= link_form.text_field :note, class: "form-control", placeholder: "Optional" %>
                 </div>
               </div>
+              <% if link.link_training? %>
+                <div class="form-check mt-2">
+                  <%= form.check_box :training_required, class: "form-check-input" %>
+                  <%= form.label :training_required, "Training required", class: "form-check-label" %>
+                </div>
+                <div class="form-text text-12">Shows a TRAINING REQUIRED badge on this thing's page, linked to Request training when it has a URL.</div>
+              <% end %>
             <% end %>
           <% end %>
         </div>

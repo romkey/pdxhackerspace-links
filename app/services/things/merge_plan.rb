@@ -60,7 +60,8 @@ module Things
           [ :label_name, "Label name", :text ],
           [ :owner, "Owner", :text ],
           [ :slug, "Slug", :text ],
-          [ :public_access, "Public", :boolean ]
+          [ :public_access, "Public", :boolean ],
+          [ :training_required, "Training required", :boolean ]
         ]
       },
       {

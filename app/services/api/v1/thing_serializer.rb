@@ -8,7 +8,7 @@ module Api
         id key slug name label_name description notes owner
         manufacturer model serial_number manufacturer_url
         ip_address reserved_ip_address network_name hostname ieee_address ble_beacon_uuid
-        ar_anchor_note public_access integration_source labelled_at
+        ar_anchor_note public_access training_required integration_source labelled_at
         visit_count qr_scan_count nfc_scan_count created_at updated_at
       ].freeze
 
