@@ -48,4 +48,17 @@ class ThingTemplatesControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to login_path
   end
+
+  test "create saves training required and the request training link from the thing" do
+    router = things(:router)
+    router.update!(training_required: true)
+    router.link_for("training").update!(url: "https://example.com/training/router", note: "Ask Sam")
+
+    post thing_templates_path(router), params: { thing_template: { name: "Trained router" } }
+
+    template = ThingTemplate.find_by!(name: "Trained router")
+    assert template.training_required?
+    assert_includes template.standard_links,
+                    { "link_type" => "training", "url" => "https://example.com/training/router", "note" => "Ask Sam" }
+  end
 end

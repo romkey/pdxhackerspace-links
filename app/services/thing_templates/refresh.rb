@@ -51,6 +51,7 @@ module ThingTemplates
         previous = history.field_values(template_field, since: linked_at(thing))
         thing[thing_field] = wanted if replace?(thing[thing_field], wanted, previous)
       end
+      thing.add_training_to_label_name if thing.training_required_changed?(from: false, to: true)
     end
 
     def apply_links(thing, history)

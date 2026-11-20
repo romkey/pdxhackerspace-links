@@ -159,5 +159,14 @@ module ThingTemplates
       assert_equal source.thing_template_linked_at, target.thing_template_linked_at
       assert_equal "L1", target.model
     end
+
+    test "turns on training required for things that still match the template" do
+      @template.update!(training_required: true)
+
+      Refresh.call(template: @template)
+
+      assert @thing.reload.training_required?
+      assert_equal "Lamp - TRAINING REQUIRED", @thing.label_name
+    end
   end
 end

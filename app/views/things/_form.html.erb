@@ -1,6 +1,8 @@
 <%= form_with model: thing, html: { multipart: true },
               data: {
-                controller: "thing-wizard",
+                controller: "thing-wizard training-label",
+                training_label_text_value: Thing::TRAINING_LABEL,
+                training_label_separator_value: Thing::LABEL_SEPARATOR,
                 action: "keydown.enter->thing-wizard#enter",
                 thing_wizard_editing_value: thing.persisted?,
                 thing_wizard_index_value: thing_form_initial_step(thing),
@@ -39,13 +41,14 @@
       <div class="col-md-6">
         <%= form.label :name, class: "form-label" %>
         <%= form.text_field :name, class: "form-control", required: true,
-                            data: { label_name_target: "source", action: "input->label-name#update" } %>
+                            data: { label_name_target: "source", training_label_target: "name",
+                                    action: "input->label-name#update" } %>
       </div>
       <div class="col-md-6">
         <%= form.label :label_name, "Label name", class: "form-label" %>
         <%= form.text_field :label_name, class: "form-control",
                             placeholder: thing.name.presence || "Same as name",
-                            data: { label_name_target: "field" } %>
+                            data: { label_name_target: "field", training_label_target: "label" } %>
         <div class="form-text text-12">Optional shorter name to print on labels.</div>
       </div>
       <div class="col-md-6">
@@ -159,10 +162,11 @@
               </div>
               <% if link.link_training? %>
                 <div class="form-check mt-2">
-                  <%= form.check_box :training_required, class: "form-check-input" %>
+                  <%= form.check_box :training_required, class: "form-check-input",
+                                     data: { action: "change->training-label#add" } %>
                   <%= form.label :training_required, "Training required", class: "form-check-label" %>
                 </div>
-                <div class="form-text text-12">Shows a TRAINING REQUIRED badge on this thing's page, linked to Request training when it has a URL.</div>
+                <div class="form-text text-12">Shows a TRAINING REQUIRED badge on this thing's page, linked to Request training when it has a URL. Checking it also adds TRAINING REQUIRED to the label name, which you can edit or remove.</div>
               <% end %>
             <% end %>
           <% end %>

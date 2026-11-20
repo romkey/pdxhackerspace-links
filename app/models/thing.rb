@@ -10,6 +10,7 @@ class Thing < ApplicationRecord
   KEY_REGEX = /\A[a-z][a-z0-9]{7}\z/
   KEY_ALPHABET = ("a".."z").to_a + ("0".."9").to_a
   LABEL_SEPARATOR = " - ".freeze
+  TRAINING_LABEL = "TRAINING REQUIRED".freeze
   RESERVED_SLUGS = %w[by_beacon new edit].freeze
   RESERVED_KEYS = (%w[login logout settings sidekiq things up auth] + RESERVED_SLUGS).freeze
   JOURNAL_FIELDS = %w[
@@ -121,6 +122,15 @@ class Thing < ApplicationRecord
   # Name printed on labels, which may be shortened to fit.
   def label_display_name
     label_name.presence || name
+  end
+
+  # Adds TRAINING REQUIRED to the label name, starting from the regular name
+  # when the label name is blank. Never removed automatically; people can edit
+  # or delete it like any other label text.
+  def add_training_to_label_name
+    return if label_display_name.to_s.upcase.include?(TRAINING_LABEL)
+
+    self.label_name = [ label_display_name.presence, TRAINING_LABEL ].compact.join(LABEL_SEPARATOR)
   end
 
   def label_title_line

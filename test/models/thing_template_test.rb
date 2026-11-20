@@ -170,4 +170,29 @@ class ThingTemplateTest < ActiveSupport::TestCase
     assert template.training_required?
     assert template.build_thing.training_required?
   end
+
+  test "apply_to switches on training required but never public access" do
+    router = things(:router)
+    template = thing_templates(:pi)
+    template.update!(training_required: true)
+
+    filled = template.apply_to(router)
+
+    assert router.training_required?
+    assert_not router.public_access
+    assert_includes filled, "Training required"
+    assert_not_includes filled, "Public"
+  end
+
+  test "building or applying with training required adds it to the label name" do
+    template = thing_templates(:pi)
+    template.update!(training_required: true)
+
+    assert_equal "Raspberry Pi - TRAINING REQUIRED", template.build_thing.label_name
+
+    router = things(:router)
+    router.update!(label_name: "Rtr")
+    template.apply_to(router)
+    assert_equal "Rtr - TRAINING REQUIRED", router.label_name
+  end
 end
