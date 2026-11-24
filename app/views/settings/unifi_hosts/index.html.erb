@@ -74,6 +74,7 @@
                   <% if unifi_host.ignored? %>
                     <span class="badge text-bg-secondary-subtle text-11 fw-normal">Ignored</span>
                   <% end %>
+                  <%= render "settings/unlinked_badge", record: unifi_host %>
                 </div>
                 <div class="text-12 text-secondary">
                   <%= [ (unifi_host.hostname if unifi_host.hostname != unifi_host.display_name), unifi_host.manufacturer ].compact_blank.join(" · ") %>
@@ -116,11 +117,11 @@
                 <% end %>
               </td>
               <td class="text-end">
-                <%= button_to unifi_host.ignored? ? "Unignore" : "Ignore",
-                              settings_unifi_host_path(unifi_host, ignored: unifi_host.ignored? ? "0" : "1"),
-                              method: :patch,
-                              class: "btn btn-outline-secondary btn-sm",
-                              form: { data: { turbo_confirm: unifi_host.ignored? || unifi_host.thing.nil? ? nil : "Ignore #{unifi_host.display_name} and unlink its thing?" } } %>
+                <%= render "settings/integration_actions",
+                           record: unifi_host,
+                           update_path: settings_unifi_host_path(unifi_host, ignored: unifi_host.ignored? ? "0" : "1"),
+                           unlink_path: unlink_settings_unifi_host_path(unifi_host),
+                           ignore_confirm: (unifi_host.ignored? || unifi_host.thing.nil? ? nil : "Ignore #{unifi_host.display_name} and unlink its thing?") %>
               </td>
             </tr>
           <% end %>

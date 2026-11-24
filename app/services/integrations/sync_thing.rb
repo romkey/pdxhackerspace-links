@@ -12,6 +12,7 @@ module Integrations
 
     def call
       return :ignored if integration_device.ignored?
+      return :unlinked if integration_device.thing_id.nil? && !integration_device.auto_link?
 
       thing = integration_device.thing || match_by_ieee_address
       return update_thing(thing) if thing

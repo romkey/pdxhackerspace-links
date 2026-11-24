@@ -353,6 +353,8 @@ The absorbed thing is then deleted, but its short URL key and slug are kept as a
 
 **Settings → Integrations** groups device imports. Each integration registers a source, imports devices, and can create or update things automatically.
 
+**Unlink** on a linked device or host's card on the thing page detaches that thing. The device stays in the integration, and later imports will not link it again or create another thing for it. The thing keeps the values it already has. **Link** in the device's ⋯ menu on the integration page attaches it again. A UniFi host uses **Link** or **Add** on the hosts page, which also turns automatic linking back on. **Ignore** still unlinks and also skips the device on future imports.
+
 #### UniFi import
 
 **Settings → Integrations → UniFi** registers UniFi consoles and imports their devices as things. Both the [Network](https://developer.ui.com/network/) and [Protect](https://developer.ui.com/protect/) integration APIs are read through the console on HTTPS, authenticated with a stateless `X-API-KEY` header.
@@ -375,7 +377,7 @@ How devices become things:
 - Name, IP address, IEEE address, model, and serial number are kept in sync until you edit them by hand. The import remembers what it last wrote and leaves a field alone once its value differs, so manual names and addresses survive every later import. A field the import has never written counts as empty, so a field added to Links after a thing already exists is filled in on the next import instead of only on newly created things.
 - Serial numbers come from whatever the console puts in the raw device payload. Neither UniFi integration API promises one, so many devices import without a serial and the field stays blank for you to fill in.
 - Devices that disappear from a console are archived, not deleted, and their things are kept. They un-archive if the device comes back. When one application is unreachable the other still imports, and nothing is archived for the failed one.
-- **Ignore** on a device unlinks its thing and stops future imports from recreating one. Deleting a UniFi-managed thing does the same.
+- **Ignore** on a device unlinks its thing and stops future imports from recreating one. **Unlink** on the thing's UniFi card detaches the thing without ignoring the device, so the device stays in the list and is not linked again until you choose **Link**. Deleting a UniFi-managed thing ignores its devices, the same as **Ignore**.
 
 Model, serial, firmware, site, and last-seen details stay on the device record and are shown in a UniFi card on the thing page for signed-in users.
 
@@ -384,7 +386,7 @@ How hosts link to things:
 - Hosts never create things. A host links to the thing with its MAC address (the thing's IEEE address), or failing that to the one thing whose IP address matches the host's reserved or current address. When several things share that IP address nothing is linked.
 - Connected clients come from the integration API's `/v1/sites/{id}/clients`. Offline hosts, reservations, and radio details come from the console's own client lists (`/proxy/network/api/s/<site>/rest/user`, `stat/sta`, and `rest/networkconf`), read with the same API key. If the console refuses those, only connected clients are imported, the import notes it, and no host is archived for being offline.
 - The DHCP reservation and network name are the only values written to a linked thing, into its **Reserved IP address** and **Network**. Each stays in sync until you edit it by hand.
-- Hosts the console forgets are archived. **Ignore** on a host (under **Hosts** on the controller page) unlinks it and stops future imports from linking it. Deleting a thing just unlinks its hosts.
+- Hosts the console forgets are archived. **Ignore** on a host (under **Hosts** on the controller page) unlinks it and stops future imports from linking it. **Unlink** on the thing's UniFi hosts card detaches the thing without ignoring the host; the next import will not match it again until you **Link** or **Add** it. Deleting a thing just unlinks its hosts, and those hosts can match again on the next import.
 - Turn **Network hosts** off on the controller to skip them. They are skipped when the Network application is unreachable.
 
 On the Things index, **Wi-Fi**, **Wired**, and **Online** filter things by their linked hosts, **Reserved IP** filters on the reservation, and **Reserved IP**, **Network**, and **Connection** are optional columns.
@@ -416,7 +418,7 @@ How printers become things:
 - A printer is matched to an existing thing by IEEE address first, so a printer already discovered by UniFi maps to the same thing and gets enriched with model, serial, and firmware. Otherwise a new thing is created, unless the account has **Create a thing for each new printer** turned off.
 - Name, hostname, IEEE address, model, serial number, and manufacturer stay in sync until you edit them by hand.
 - Printers that disappear from the account are archived, not deleted, and their things are kept.
-- **Ignore** on a printer unlinks its thing and stops future imports from recreating one. Deleting a Prusa Connect-managed thing does the same.
+- **Ignore** on a printer unlinks its thing and stops future imports from recreating one. **Unlink** on the thing's Prusa Connect card detaches the thing without ignoring the printer. Deleting a Prusa Connect-managed thing ignores its printers, the same as **Ignore**.
 
 Model, serial, firmware, team, location, and last-seen details stay on the printer record and are shown in a Prusa Connect card on the thing page for signed-in users.
 

@@ -54,6 +54,31 @@ class Settings::UnifiHostsControllerTest < ActionDispatch::IntegrationTest
     assert Thing.exists?(things(:router).id)
   end
 
+  test "unlinking a host keeps it out of the next match" do
+    host = unifi_hosts(:router_host)
+    thing = things(:router)
+
+    post unlink_settings_unifi_host_path(host), headers: { "HTTP_REFERER" => thing_url(thing) }
+
+    host.reload
+    assert_nil host.thing
+    assert_not host.auto_link?
+    assert_not host.ignored?
+    assert_redirected_to thing_path(thing)
+    assert_equal :unlinked, Unifi::LinkHost.call(unifi_host: host)
+  end
+
+  test "linking a host by hand turns automatic linking back on" do
+    host = unifi_hosts(:router_host)
+    Integrations::Unlink.call(host)
+
+    post link_settings_unifi_host_path(host, thing_id: things(:keyboard).id)
+
+    host.reload
+    assert host.auto_link?
+    assert_equal things(:keyboard), host.thing
+  end
+
   test "unignoring a host links it again" do
     host = unifi_hosts(:router_host)
     host.update!(ignored: true, thing: nil)

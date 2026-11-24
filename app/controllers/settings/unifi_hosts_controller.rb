@@ -38,12 +38,22 @@ module Settings
         unifi_host.update!(ignored: true, thing: nil, applied_attributes: {})
         notice = "#{unifi_host.display_name} will no longer be linked to a thing."
       else
-        unifi_host.update!(ignored: false)
+        unifi_host.update!(ignored: false, auto_link: true)
         Unifi::LinkHost.call(unifi_host: unifi_host)
         notice = "#{unifi_host.display_name} will be linked again."
       end
 
       redirect_back_or_to settings_unifi_controller_unifi_hosts_path(unifi_host.unifi_controller), notice: notice
+    end
+
+    # Detaches the thing and stops later imports from linking this host again.
+    def unlink
+      unifi_host = UnifiHost.find(params[:id])
+      thing = unifi_host.thing
+      Integrations::Unlink.call(unifi_host)
+
+      redirect_back_or_to settings_unifi_controller_unifi_hosts_path(unifi_host.unifi_controller),
+                          notice: unlink_notice(unifi_host, thing)
     end
 
     def link

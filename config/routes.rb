@@ -63,11 +63,17 @@ Rails.application.routes.draw do
       end
       resources :unifi_hosts, only: :index, path: "hosts"
     end
-    resources :unifi_devices, only: :update
+    resources :unifi_devices, only: :update do
+      member do
+        post :unlink
+        post :link
+      end
+    end
     resources :unifi_hosts, only: :update do
       member do
         post :link
         post :add_thing
+        post :unlink
       end
     end
     resources :zigbee2mqtt_bridges do
@@ -76,14 +82,24 @@ Rails.application.routes.draw do
         post :import
       end
     end
-    resources :zigbee2mqtt_devices, only: :update
+    resources :zigbee2mqtt_devices, only: :update do
+      member do
+        post :unlink
+        post :link
+      end
+    end
     resources :prusa_connect_accounts do
       member do
         post :test_connection
         post :import
       end
     end
-    resources :prusa_connect_printers, only: :update
+    resources :prusa_connect_printers, only: :update do
+      member do
+        post :unlink
+        post :link
+      end
+    end
   end
 
   get "login", to: "sessions#new"

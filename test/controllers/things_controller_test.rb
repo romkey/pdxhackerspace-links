@@ -65,6 +65,15 @@ class ThingsControllerTest < ActionDispatch::IntegrationTest
     assert_match "Rack switch port 1", response.body
   end
 
+  test "show offers to unlink each linked integration record" do
+    get thing_path(things(:router))
+
+    assert_select "form[action=?]", unlink_settings_unifi_device_path(unifi_devices(:rack_switch))
+    assert_select "form[action=?]", unlink_settings_unifi_host_path(unifi_hosts(:router_host))
+    assert_select "form[action=?]", unlink_settings_prusa_connect_printer_path(prusa_connect_printers(:mk4))
+    assert_select "button", text: "Unlink"
+  end
+
   test "index shows the network column" do
     things(:router).update!(network_name: "Infrastructure")
 

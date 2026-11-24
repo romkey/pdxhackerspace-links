@@ -99,6 +99,7 @@
                 <% if device.ignored? %>
                   <span class="badge text-bg-secondary-subtle text-11 fw-normal">Ignored</span>
                 <% end %>
+                <%= render "settings/unlinked_badge", record: device %>
               </td>
               <td class="text-secondary"><%= device.device_type_label %></td>
               <td class="text-secondary"><%= device.manufacturer.presence || "—" %></td>
@@ -112,11 +113,12 @@
                 <% end %>
               </td>
               <td class="text-end">
-                <%= button_to device.ignored? ? "Unignore" : "Ignore",
-                              settings_zigbee2mqtt_device_path(device, ignored: device.ignored? ? "0" : "1"),
-                              method: :patch,
-                              class: "btn btn-outline-secondary btn-sm",
-                              form: { data: { turbo_confirm: device.ignored? ? nil : "Ignore #{device.display_name} and unlink its thing?" } } %>
+                <%= render "settings/integration_actions",
+                           record: device,
+                           update_path: settings_zigbee2mqtt_device_path(device, ignored: device.ignored? ? "0" : "1"),
+                           unlink_path: unlink_settings_zigbee2mqtt_device_path(device),
+                           link_path: link_settings_zigbee2mqtt_device_path(device),
+                           ignore_confirm: (device.ignored? ? nil : "Ignore #{device.display_name} and unlink its thing?") %>
               </td>
             </tr>
           <% end %>

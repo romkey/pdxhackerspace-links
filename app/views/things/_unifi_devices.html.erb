@@ -4,11 +4,17 @@
     <div class="sidebar-card">
       <div class="d-flex justify-content-between align-items-start gap-2">
         <div class="fw-medium text-13"><%= unifi_device.kind_label %></div>
-        <% if unifi_device.archived? %>
-          <span class="badge text-bg-warning-subtle text-11 fw-normal">Not seen</span>
-        <% elsif !unifi_device.online? %>
-          <span class="badge text-bg-warning-subtle text-11 fw-normal"><%= unifi_device.state_label || "Unknown" %></span>
-        <% end %>
+        <div class="d-flex align-items-center gap-2">
+          <% if unifi_device.archived? %>
+            <span class="badge text-bg-warning-subtle text-11 fw-normal">Not seen</span>
+          <% elsif !unifi_device.online? %>
+            <span class="badge text-bg-warning-subtle text-11 fw-normal"><%= unifi_device.state_label || "Unknown" %></span>
+          <% end %>
+          <%= render "unlink_integration",
+                     record: unifi_device,
+                     thing: unifi_device.thing,
+                     url: unlink_settings_unifi_device_path(unifi_device) %>
+        </div>
       </div>
       <dl class="row text-12 mb-0 mt-2">
         <dt class="col-5 text-secondary">Controller</dt>

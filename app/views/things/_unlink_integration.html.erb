@@ -1,0 +1,9 @@
+<%= button_to "Unlink", url,
+              method: :post,
+              class: "btn btn-outline-secondary btn-sm",
+              form: {
+                class: "d-inline",
+                data: {
+                  turbo_confirm: "Unlink #{record.display_name} from #{thing.name}? Future imports will leave them apart until you link them again."
+                }
+              } %>

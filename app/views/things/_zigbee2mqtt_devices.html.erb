@@ -4,11 +4,17 @@
     <div class="sidebar-card">
       <div class="d-flex justify-content-between align-items-start gap-2">
         <div class="fw-medium text-13"><%= device.device_type_label %></div>
-        <% if device.archived? %>
-          <span class="badge text-bg-warning-subtle text-11 fw-normal">Not seen</span>
-        <% elsif device.disabled? %>
-          <span class="badge text-bg-secondary-subtle text-11 fw-normal">Disabled</span>
-        <% end %>
+        <div class="d-flex align-items-center gap-2">
+          <% if device.archived? %>
+            <span class="badge text-bg-warning-subtle text-11 fw-normal">Not seen</span>
+          <% elsif device.disabled? %>
+            <span class="badge text-bg-secondary-subtle text-11 fw-normal">Disabled</span>
+          <% end %>
+          <%= render "unlink_integration",
+                     record: device,
+                     thing: device.thing,
+                     url: unlink_settings_zigbee2mqtt_device_path(device) %>
+        </div>
       </div>
       <dl class="row text-12 mb-0 mt-2">
         <dt class="col-5 text-secondary">Bridge</dt>

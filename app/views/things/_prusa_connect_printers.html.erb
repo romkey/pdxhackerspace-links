@@ -4,11 +4,17 @@
     <div class="sidebar-card">
       <div class="d-flex justify-content-between align-items-start gap-2">
         <div class="fw-medium text-13"><%= printer.display_name %></div>
-        <% if printer.archived? %>
-          <span class="badge text-bg-warning-subtle text-11 fw-normal">Not seen</span>
-        <% elsif printer.state.present? %>
-          <span class="badge text-bg-secondary-subtle text-11 fw-normal"><%= printer.state_label %></span>
-        <% end %>
+        <div class="d-flex align-items-center gap-2">
+          <% if printer.archived? %>
+            <span class="badge text-bg-warning-subtle text-11 fw-normal">Not seen</span>
+          <% elsif printer.state.present? %>
+            <span class="badge text-bg-secondary-subtle text-11 fw-normal"><%= printer.state_label %></span>
+          <% end %>
+          <%= render "unlink_integration",
+                     record: printer,
+                     thing: printer.thing,
+                     url: unlink_settings_prusa_connect_printer_path(printer) %>
+        </div>
       </div>
       <dl class="row text-12 mb-0 mt-2">
         <dt class="col-5 text-secondary">Account</dt>

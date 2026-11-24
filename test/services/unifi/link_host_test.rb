@@ -34,6 +34,18 @@ class Unifi::LinkHostTest < ActiveSupport::TestCase
     end
   end
 
+  test "leaves an unlinked host alone until it is linked by hand" do
+    thing = Thing.create!(name: "Laptop", ieee_address: @unifi_host.ieee_address)
+    @unifi_host.update!(auto_link: false)
+
+    assert_equal :unlinked, Unifi::LinkHost.call(unifi_host: @unifi_host)
+    assert_nil @unifi_host.reload.thing
+
+    assert_equal :linked, Unifi::LinkHost.call(unifi_host: @unifi_host, thing: thing)
+    assert_equal thing, @unifi_host.reload.thing
+    assert @unifi_host.auto_link?
+  end
+
   test "leaves an ignored host alone" do
     Thing.create!(name: "Laptop", ieee_address: @unifi_host.ieee_address)
     @unifi_host.update!(ignored: true)

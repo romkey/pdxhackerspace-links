@@ -1,0 +1,49 @@
+<% linked = record.thing.present? %>
+<% can_relink = local_assigns[:link_path].present? && !linked && !record.ignored? && !record.auto_link? %>
+<% menu = linked || can_relink %>
+<% item_class = menu ? "dropdown-item" : "btn btn-outline-secondary btn-sm" %>
+<% form_class = menu ? "d-inline" : nil %>
+
+<% if menu %>
+  <div class="dropdown d-inline-block">
+    <button type="button"
+            class="btn btn-outline-secondary btn-sm"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+            aria-label="Actions for <%= record.display_name %>">
+      ⋯
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+      <% if linked %>
+        <li>
+          <%= button_to "Unlink", unlink_path,
+                        method: :post,
+                        class: "dropdown-item",
+                        form: {
+                          class: "d-inline",
+                          data: {
+                            turbo_confirm: "Unlink #{record.display_name} from #{record.thing.name}? Future imports will leave them apart until you link them again."
+                          }
+                        } %>
+        </li>
+      <% elsif can_relink %>
+        <li>
+          <%= button_to "Link", link_path, method: :post, class: "dropdown-item", form: { class: "d-inline" } %>
+        </li>
+      <% end %>
+      <li>
+        <%= button_to record.ignored? ? "Unignore" : "Ignore",
+                      update_path,
+                      method: :patch,
+                      class: item_class,
+                      form: { class: form_class, data: { turbo_confirm: ignore_confirm } } %>
+      </li>
+    </ul>
+  </div>
+<% else %>
+  <%= button_to record.ignored? ? "Unignore" : "Ignore",
+                update_path,
+                method: :patch,
+                class: item_class,
+                form: { data: { turbo_confirm: ignore_confirm } } %>
+<% end %>
