@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-11-24
+
 ### Added
 
 - **Unlink** on a UniFi device, UniFi host, Zigbee2MQTT device, or Prusa Connect printer card on a thing's page detaches that thing. The device stays in the integration, and later imports will not link it again or create another thing for it. The thing keeps the name, addresses, and other values it already has. **Link** in the device's ⋯ menu attaches it again; a UniFi host uses the existing **Link** or **Add** on the hosts page. **Ignore** still unlinks and also skips the device on future imports
