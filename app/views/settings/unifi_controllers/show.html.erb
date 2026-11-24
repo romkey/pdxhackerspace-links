@@ -121,6 +121,7 @@
                 <% if unifi_device.ignored? %>
                   <span class="badge text-bg-secondary-subtle text-11 fw-normal">Ignored</span>
                 <% end %>
+                <%= render "settings/unlinked_badge", record: unifi_device %>
               </td>
               <td class="text-secondary"><%= unifi_device.kind_label %> <span class="text-11">· <%= unifi_device.source_label %></span></td>
               <td class="text-secondary"><%= unifi_device.model.presence || "—" %></td>
@@ -138,11 +139,12 @@
                 <% end %>
               </td>
               <td class="text-end">
-                <%= button_to unifi_device.ignored? ? "Unignore" : "Ignore",
-                              settings_unifi_device_path(unifi_device, ignored: unifi_device.ignored? ? "0" : "1"),
-                              method: :patch,
-                              class: "btn btn-outline-secondary btn-sm",
-                              form: { data: { turbo_confirm: unifi_device.ignored? ? nil : "Ignore #{unifi_device.display_name} and unlink its thing?" } } %>
+                <%= render "settings/integration_actions",
+                           record: unifi_device,
+                           update_path: settings_unifi_device_path(unifi_device, ignored: unifi_device.ignored? ? "0" : "1"),
+                           unlink_path: unlink_settings_unifi_device_path(unifi_device),
+                           link_path: link_settings_unifi_device_path(unifi_device),
+                           ignore_confirm: (unifi_device.ignored? ? nil : "Ignore #{unifi_device.display_name} and unlink its thing?") %>
               </td>
             </tr>
           <% end %>

@@ -6,7 +6,8 @@ module JournalEntriesHelper
     "updated" => "Updated",
     "refreshed" => "Refreshed",
     "merged" => "Merged",
-    "recorded" => "Recorded"
+    "recorded" => "Recorded",
+    "unlinked" => "Unlinked"
   }.freeze
 
   JOURNAL_FIELD_LABELS = {

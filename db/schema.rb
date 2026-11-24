@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_20_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_24_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -126,6 +126,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_20_000001) do
     t.string "team_name"
     t.bigint "thing_id"
     t.datetime "updated_at", null: false
+    t.boolean "auto_link", default: true, null: false
     t.index ["archived_at"], name: "index_prusa_connect_printers_on_archived_at"
     t.index ["ieee_address"], name: "index_prusa_connect_printers_on_ieee_address"
     t.index ["prusa_connect_account_id", "external_id"], name: "index_pc_printers_on_account_and_external_id", unique: true
@@ -283,6 +284,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_20_000001) do
     t.bigint "thing_id"
     t.bigint "unifi_controller_id", null: false
     t.datetime "updated_at", null: false
+    t.boolean "auto_link", default: true, null: false
     t.index ["archived_at"], name: "index_unifi_devices_on_archived_at"
     t.index ["ieee_address"], name: "index_unifi_devices_on_ieee_address"
     t.index ["source"], name: "index_unifi_devices_on_source"
@@ -330,6 +332,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_20_000001) do
     t.jsonb "applied_attributes", default: {}, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "auto_link", default: true, null: false
     t.index ["archived_at"], name: "index_unifi_hosts_on_archived_at"
     t.index ["connection_type"], name: "index_unifi_hosts_on_connection_type"
     t.index ["ieee_address"], name: "index_unifi_hosts_on_ieee_address"
@@ -398,6 +401,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_20_000001) do
     t.bigint "thing_id"
     t.datetime "updated_at", null: false
     t.bigint "zigbee2mqtt_bridge_id", null: false
+    t.boolean "auto_link", default: true, null: false
     t.index ["archived_at"], name: "index_zigbee2mqtt_devices_on_archived_at"
     t.index ["ieee_address"], name: "index_zigbee2mqtt_devices_on_ieee_address"
     t.index ["thing_id"], name: "index_zigbee2mqtt_devices_on_thing_id"

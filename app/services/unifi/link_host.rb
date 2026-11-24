@@ -4,7 +4,8 @@ module Unifi
   # failing that, is the one thing with its IP address.
   #
   # Passing a thing links the host to it by hand, whatever its addresses, and
-  # clears the host's ignored flag.
+  # clears the host's ignored flag. A host someone unlinked stays unlinked
+  # until it is linked by hand.
   #
   # The DHCP reservation and network name are the only values written back to
   # the thing, and each is kept in sync only until someone edits it by hand.
@@ -22,6 +23,7 @@ module Unifi
 
     def call
       return :ignored if unifi_host.ignored? && chosen_thing.nil?
+      return :unlinked if chosen_thing.nil? && unifi_host.thing_id.nil? && !unifi_host.auto_link?
 
       # Read afresh: a cached thing would mistake a hand edit for the value this
       # host last wrote.
@@ -34,7 +36,7 @@ module Unifi
       unifi_host.applied_attributes = {} if newly_linked
       applied = apply_synced_attributes(thing)
       thing.save! if thing.changed?
-      unifi_host.update!(thing: thing, applied_attributes: applied, ignored: false)
+      unifi_host.update!(thing: thing, applied_attributes: applied, ignored: false, auto_link: true)
 
       newly_linked ? :linked : :updated
     end

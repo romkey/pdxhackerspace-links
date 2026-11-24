@@ -136,4 +136,18 @@ class Unifi::SyncThingTest < ActiveSupport::TestCase
       assert_equal :ignored, Unifi::SyncThing.call(unifi_device: device)
     end
   end
+
+  test "does not relink or create a thing after it was unlinked" do
+    device = build_device
+    Unifi::SyncThing.call(unifi_device: device)
+    thing = device.thing
+    Integrations::Unlink.call(device)
+
+    assert_no_difference -> { Thing.count } do
+      assert_equal :unlinked, Unifi::SyncThing.call(unifi_device: device)
+    end
+
+    assert_nil device.reload.thing
+    assert Thing.exists?(thing.id)
+  end
 end

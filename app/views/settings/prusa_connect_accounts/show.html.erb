@@ -98,6 +98,7 @@
                 <% if printer.ignored? %>
                   <span class="badge text-bg-secondary-subtle text-11 fw-normal">Ignored</span>
                 <% end %>
+                <%= render "settings/unlinked_badge", record: printer %>
               </td>
               <td class="text-secondary"><%= printer.printer_type_name.presence || printer.printer_model.presence || "—" %></td>
               <td class="text-secondary text-12"><%= printer.team_name.presence || "—" %></td>
@@ -115,11 +116,12 @@
                 <% end %>
               </td>
               <td class="text-end">
-                <%= button_to printer.ignored? ? "Unignore" : "Ignore",
-                              settings_prusa_connect_printer_path(printer, ignored: printer.ignored? ? "0" : "1"),
-                              method: :patch,
-                              class: "btn btn-outline-secondary btn-sm",
-                              form: { data: { turbo_confirm: printer.ignored? ? nil : "Ignore #{printer.display_name} and unlink its thing?" } } %>
+                <%= render "settings/integration_actions",
+                           record: printer,
+                           update_path: settings_prusa_connect_printer_path(printer, ignored: printer.ignored? ? "0" : "1"),
+                           unlink_path: unlink_settings_prusa_connect_printer_path(printer),
+                           link_path: link_settings_prusa_connect_printer_path(printer),
+                           ignore_confirm: (printer.ignored? ? nil : "Ignore #{printer.display_name} and unlink its thing?") %>
               </td>
             </tr>
           <% end %>
